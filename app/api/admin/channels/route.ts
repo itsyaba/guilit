@@ -1,48 +1,17 @@
 import type { NextRequest } from "next/server"
+import fixtureChannels from "@/fixtures/channels.json"
+import type { AdminChannel } from "@/lib/types"
 
-/**
- * Typed shape for the admin channel list response.
- */
-export type AdminChannel = {
-  id: number
-  telegramId: number
-  username: string
-  title: string
-  active: boolean
-  lastMessageId: number | null
-  messageCount: number
-  createdAt: string
-}
+export type { AdminChannel }
 
-const FIXTURE_CHANNELS: AdminChannel[] = [
-  {
-    id: 1,
-    telegramId: -1001234567890,
-    username: "addis_market",
-    title: "Addis Market",
-    active: true,
-    lastMessageId: 4823,
-    messageCount: 4823,
-    createdAt: "2026-08-16T00:00:00Z",
-  },
-  {
-    id: 2,
-    telegramId: -1009876543210,
-    username: "ethio_sells",
-    title: "Ethio Sells",
-    active: true,
-    lastMessageId: 2107,
-    messageCount: 2107,
-    createdAt: "2026-08-16T00:00:00Z",
-  },
-]
+const FIXTURE_CHANNELS = fixtureChannels as unknown as AdminChannel[]
 
 /**
  * GET /api/admin/channels
  *
  * Returns the list of ingested channels with stats for the admin dashboard.
  */
-export async function GET(_req: NextRequest) {
+export async function GET() {
   return Response.json(FIXTURE_CHANNELS)
 }
 

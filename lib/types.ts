@@ -70,6 +70,63 @@ export type Listing = {
   extractionConfidence: number
   postedAt: string
   updatedAt: string
+  _note?: string
+}
+
+export type AdminChannel = {
+  id: number
+  telegramId: number
+  username: string
+  title: string
+  active: boolean
+  lastMessageId: number | null
+  messageCount: number
+  createdAt: string
+  _note?: string
+}
+
+export type ModerationRawMessage = {
+  id: number
+  channelId: number
+  channelUsername: string
+  messageId: number
+  rawText: string | null
+  mediaRefs: string[]
+  postedAt: string
+}
+
+export type ModerationExtraction = {
+  titleEn: string | null
+  titleAm: string | null
+  descriptionEn: string | null
+  descriptionAm: string | null
+  priceEtb: number | null
+  currency: string
+  categorySlug: string
+  categoryLabel: string
+  condition: ListingCondition
+  locationArea: string
+  locationCity: string
+  phoneRaw: string | null
+  phoneNormalized: string | null
+  confidenceScore: number
+}
+
+export type QueuedJob = {
+  id: number
+  type: string
+  status: "pending" | "running" | "done" | "failed"
+  listingId: string | null
+  rawMessageId: number | null
+  attempts: number
+  runAfter: string
+  createdAt: string
+  reason?: string
+  channel?: { id: number; username: string; title: string }
+  rawMessage?: ModerationRawMessage
+  extraction?: ModerationExtraction
+  payload: Record<string, unknown>
+  _note?: string
 }
 
 export type CategoryOption = { slug: string; label: string; labelAm: string }

@@ -1,0 +1,618 @@
+{
+  "items": [
+    {
+      "id": 1,
+      "type": "moderate",
+      "status": "pending",
+      "listingId": "lst_001",
+      "rawMessageId": 101,
+      "attempts": 0,
+      "runAfter": "2026-08-16T09:00:00Z",
+      "createdAt": "2026-08-16T08:30:00Z",
+      "reason": "low_confidence",
+      "channel": {
+        "id": 1,
+        "username": "addis_used_market",
+        "title": "Addis Used Market"
+      },
+      "rawMessage": {
+        "id": 101,
+        "channelId": 1,
+        "channelUsername": "addis_used_market",
+        "messageId": 4820,
+        "rawText": "ላፕቶፕ i5 8gb ram 256 ssd ዋጋ በውስጥ ወይም 0911223344 ቦሌ",
+        "mediaRefs": [
+          "/img/items/lst_010-1.jpg"
+        ],
+        "postedAt": "2026-08-16T08:25:00Z"
+      },
+      "extraction": {
+        "titleEn": "Laptop Core i5 8GB RAM 256GB SSD",
+        "titleAm": "ላፕቶፕ i5 8GB RAM 256GB SSD",
+        "descriptionEn": "Used Core i5 laptop with 8GB RAM and 256GB SSD. Contact seller for price.",
+        "descriptionAm": "ላፕቶፕ i5 8GB RAM 256GB SSD ዋጋ በውስጥ አናግሩኝ።",
+        "priceEtb": null,
+        "currency": "ETB",
+        "categorySlug": "computers",
+        "categoryLabel": "Computers",
+        "condition": "lightly_used",
+        "locationArea": "Bole",
+        "locationCity": "Addis Ababa",
+        "phoneRaw": "0911223344",
+        "phoneNormalized": "+251911223344",
+        "confidenceScore": 0.61
+      },
+      "payload": {
+        "reason": "low_confidence",
+        "confidence": 0.61,
+        "reasonDetails": "Low confidence score (0.61) due to vague model specs and missing price token in raw text.",
+        "rawText": "ላፕቶፕ i5 8gb ram 256 ssd ዋጋ በውስጥ ወይም 0911223344 ቦሌ",
+        "extraction": {
+          "categorySlug": "computers",
+          "condition": "lightly_used",
+          "locationArea": "Bole",
+          "priceEtb": null
+        }
+      },
+      "_note": "Queue case: Low confidence score (0.61) due to vague model specs and missing price"
+    },
+    {
+      "id": 2,
+      "type": "moderate",
+      "status": "pending",
+      "listingId": "lst_008",
+      "rawMessageId": 102,
+      "attempts": 0,
+      "runAfter": "2026-08-16T09:00:00Z",
+      "createdAt": "2026-08-16T08:35:00Z",
+      "reason": "price_outlier",
+      "channel": {
+        "id": 2,
+        "username": "ethio_brand_phones",
+        "title": "Ethio Brand Phones"
+      },
+      "rawMessage": {
+        "id": 102,
+        "channelId": 2,
+        "channelUsername": "ethio_brand_phones",
+        "messageId": 3118,
+        "rawText": "Brand new iPhone 14 Pro Max 256GB sealed with receipt and full warranty. Only 4,200 ETB. Urgent sale. Contact @quick_phone_deals or 0922334455 CMC.",
+        "mediaRefs": [
+          "/img/items/lst_008-1.jpg"
+        ],
+        "postedAt": "2026-08-16T08:30:00Z"
+      },
+      "extraction": {
+        "titleEn": "Apple iPhone 14 Pro Max 256GB Deep Purple Sealed",
+        "titleAm": "አይፎን ፲፬ ፕሮ ማክስ ፪፻፶፮ ጊጋ",
+        "descriptionEn": "Brand new iPhone 14 Pro Max 256GB sealed in box with international warranty.",
+        "descriptionAm": "አስቸኳይ ሽያጭ። አይፎን 14 ፕሮ ማክስ ያልተከፈተ በ4,200 ብር።",
+        "priceEtb": 4200,
+        "currency": "ETB",
+        "categorySlug": "phones",
+        "categoryLabel": "Phones & Tablets",
+        "condition": "brand_new",
+        "locationArea": "CMC",
+        "locationCity": "Addis Ababa",
+        "phoneRaw": "0922334455",
+        "phoneNormalized": "+251922334455",
+        "confidenceScore": 0.89
+      },
+      "payload": {
+        "reason": "price_outlier",
+        "confidence": 0.89,
+        "reasonDetails": "Price (4,200 ETB) is 81% below category median (22,000 ETB). Potential advance fee scam signal.",
+        "rawText": "Brand new iPhone 14 Pro Max 256GB sealed with receipt and full warranty. Only 4,200 ETB. Urgent sale. Contact @quick_phone_deals or 0922334455 CMC."
+      },
+      "_note": "Queue case: Price outlier (4,200 ETB vs 22,000 ETB category median) flagged by scam heuristic"
+    },
+    {
+      "id": 3,
+      "type": "moderate",
+      "status": "pending",
+      "listingId": "lst_032",
+      "rawMessageId": 103,
+      "attempts": 0,
+      "runAfter": "2026-08-16T09:00:00Z",
+      "createdAt": "2026-08-16T08:40:00Z",
+      "reason": "malformed_phone",
+      "channel": {
+        "id": 5,
+        "username": "gebeya_online_et",
+        "title": "Gebeya Online"
+      },
+      "rawMessage": {
+        "id": 103,
+        "channelId": 5,
+        "channelUsername": "gebeya_online_et",
+        "messageId": 5408,
+        "rawText": "LG 55 inch 4K Smart TV in perfect condition. Used 6 months. Price 38,000 ETB negotiable. For quick deal call 09112... or inbox @lg_seller Piassa.",
+        "mediaRefs": [
+          "/img/items/lst_030-1.jpg"
+        ],
+        "postedAt": "2026-08-16T08:35:00Z"
+      },
+      "extraction": {
+        "titleEn": "LG 55 inch 4K Smart TV",
+        "titleAm": "ኤልጂ ፶፭ ኢንች 4K ስማርት ቴሌቪዥን",
+        "descriptionEn": "LG 55 inch 4K Smart TV in perfect condition. Used 6 months. Price 38,000 ETB negotiable.",
+        "descriptionAm": "ኤልጂ 55 ኢንች ስማርት ቲቪ በደንብ የሚሰራ።",
+        "priceEtb": 38000,
+        "currency": "ETB",
+        "categorySlug": "tv-audio",
+        "categoryLabel": "TV & Audio",
+        "condition": "lightly_used",
+        "locationArea": "Piassa",
+        "locationCity": "Addis Ababa",
+        "phoneRaw": "09112...",
+        "phoneNormalized": null,
+        "confidenceScore": 0.68
+      },
+      "payload": {
+        "reason": "malformed_phone",
+        "confidence": 0.68,
+        "reasonDetails": "Phone number was truncated in post ('09112...'). Moderator to review contact fallback.",
+        "rawText": "LG 55 inch 4K Smart TV in perfect condition. Used 6 months. Price 38,000 ETB negotiable. For quick deal call 09112... or inbox @lg_seller Piassa."
+      },
+      "_note": "Queue case: Malformed / truncated phone number in original post"
+    },
+    {
+      "id": 4,
+      "type": "moderate",
+      "status": "pending",
+      "listingId": "lst_044",
+      "rawMessageId": 104,
+      "attempts": 0,
+      "runAfter": "2026-08-16T09:00:00Z",
+      "createdAt": "2026-08-16T08:42:00Z",
+      "reason": "user_reports",
+      "channel": {
+        "id": 3,
+        "username": "bole_market_et",
+        "title": "Bole Market ET"
+      },
+      "rawMessage": {
+        "id": 104,
+        "channelId": 3,
+        "channelUsername": "bole_market_et",
+        "messageId": 2884,
+        "rawText": "Nike Air Jordan 1 Retro High OG size 42 original with box. Price 4,500 ETB. Bole Medhanialem @sneaker_plug.",
+        "mediaRefs": [
+          "/img/items/lst_044-1.jpg"
+        ],
+        "postedAt": "2026-08-16T08:38:00Z"
+      },
+      "extraction": {
+        "titleEn": "Nike Air Jordan 1 Retro High OG Size 42",
+        "titleAm": "ናይክ ኤር ጆርዳን 1 ቁጥር 42",
+        "descriptionEn": "Nike Air Jordan 1 Retro High OG size 42 original with box. Price 4,500 ETB.",
+        "descriptionAm": "ናይክ ኤር ጆርዳን 1 ኦርጅናል ጫማ።",
+        "priceEtb": 4500,
+        "currency": "ETB",
+        "categorySlug": "fashion",
+        "categoryLabel": "Fashion",
+        "condition": "brand_new",
+        "locationArea": "Bole",
+        "locationCity": "Addis Ababa",
+        "phoneRaw": null,
+        "phoneNormalized": null,
+        "confidenceScore": 0.92
+      },
+      "payload": {
+        "reason": "user_reports",
+        "reportCount": 3,
+        "reportReasons": [
+          "Counterfeit replica advertised as original",
+          "Seller demanded prepayment before meeting",
+          "Misleading photo"
+        ],
+        "action": "auto_hidden_pending_moderation"
+      },
+      "_note": "Queue case: 3+ user reports received triggers auto-hide and moderation review"
+    },
+    {
+      "id": 5,
+      "type": "moderate",
+      "status": "pending",
+      "listingId": "lst_017",
+      "rawMessageId": 105,
+      "attempts": 0,
+      "runAfter": "2026-08-16T09:00:00Z",
+      "createdAt": "2026-08-16T08:45:00Z",
+      "reason": "missing_price",
+      "channel": {
+        "id": 4,
+        "username": "ethio_furniture_market",
+        "title": "Ethio Furniture Market"
+      },
+      "rawMessage": {
+        "id": 105,
+        "channelId": 4,
+        "channelUsername": "ethio_furniture_market",
+        "messageId": 1940,
+        "rawText": "ባለ 6 ወንበር የእንጨት ዲዛይን ያለው የመመገቢያ ጠረጴዛ በጣም ፅዱ። ዋጋ በስልክ ይደውሉልን 0933445566 ሰሚት አካባቢ።",
+        "mediaRefs": [
+          "/img/items/lst_017-1.jpg"
+        ],
+        "postedAt": "2026-08-16T08:40:00Z"
+      },
+      "extraction": {
+        "titleEn": "Solid Wood 6-Seater Dining Table Set",
+        "titleAm": "ባለ ፮ ወንበር የእንጨት የመመገቢያ ጠረጴዛ",
+        "descriptionEn": "Solid wood dining table set with 6 chairs. Contact seller on phone for price.",
+        "descriptionAm": "ባለ 6 ወንበር የእንጨት ዲዛይን ያለው የመመገቢያ ጠረጴዛ። ዋጋ በስልክ።",
+        "priceEtb": null,
+        "currency": "ETB",
+        "categorySlug": "furniture",
+        "categoryLabel": "Furniture",
+        "condition": "lightly_used",
+        "locationArea": "Summit",
+        "locationCity": "Addis Ababa",
+        "phoneRaw": "0933445566",
+        "phoneNormalized": "+251933445566",
+        "confidenceScore": 0.74
+      },
+      "payload": {
+        "reason": "missing_price",
+        "confidence": 0.74,
+        "reasonDetails": "Seller wrote 'ዋጋ በስልክ' (price by phone). Moderator can approve listing with null price.",
+        "rawText": "ባለ 6 ወንበር የእንጨት ዲዛይን ያለው የመመገቢያ ጠረጴዛ በጣም ፅዱ። ዋጋ በስልክ ይደውሉልን 0933445566 ሰሚት አካባቢ።"
+      },
+      "_note": "Queue case: Seller did not specify price ('ዋጋ በስልክ')"
+    },
+    {
+      "id": 6,
+      "type": "moderate",
+      "status": "pending",
+      "listingId": "lst_016",
+      "rawMessageId": 106,
+      "attempts": 0,
+      "runAfter": "2026-08-16T09:00:00Z",
+      "createdAt": "2026-08-16T08:48:00Z",
+      "reason": "duplicate_conflict",
+      "channel": {
+        "id": 1,
+        "username": "addis_used_market",
+        "title": "Addis Used Market"
+      },
+      "rawMessage": {
+        "id": 106,
+        "channelId": 1,
+        "channelUsername": "addis_used_market",
+        "messageId": 4821,
+        "rawText": "L-shape gray fabric sofa with table and 4 cushions. Price 18,500 ETB. Call 0944556677 Gerji.",
+        "mediaRefs": [
+          "/img/items/lst_016-1.jpg"
+        ],
+        "postedAt": "2026-08-16T08:44:00Z"
+      },
+      "extraction": {
+        "titleEn": "L-shape Gray Fabric Sofa with Table",
+        "titleAm": "ኤል ቅርፅ ያለው የጨርቅ ሶፋ ከነ ጠረጴዛው",
+        "descriptionEn": "L-shaped gray sofa with coffee table and 4 cushions.",
+        "descriptionAm": "ኤል ቅርፅ ያለው ሶፋ ከነ ጠረጴዛው እና ትራሶች።",
+        "priceEtb": 18500,
+        "currency": "ETB",
+        "categorySlug": "furniture",
+        "categoryLabel": "Furniture",
+        "condition": "lightly_used",
+        "locationArea": "Gerji",
+        "locationCity": "Addis Ababa",
+        "phoneRaw": "0944556677",
+        "phoneNormalized": "+251944556677",
+        "confidenceScore": 0.88
+      },
+      "payload": {
+        "reason": "duplicate_conflict",
+        "targetClusterId": "lst_016",
+        "imageDistance": 0.04,
+        "phoneMismatch": "Extracted phone 0944556677 differs from cluster phone 0911554433",
+        "reasonDetails": "Perceptual image hash matches listing lst_016, but seller phone numbers differ."
+      },
+      "_note": "Queue case: Image hash match on duplicate sofa but differing phone numbers"
+    },
+    {
+      "id": 7,
+      "type": "moderate",
+      "status": "pending",
+      "listingId": "lst_057",
+      "rawMessageId": 107,
+      "attempts": 0,
+      "runAfter": "2026-08-16T09:00:00Z",
+      "createdAt": "2026-08-16T08:50:00Z",
+      "reason": "flagged_seller",
+      "channel": {
+        "id": 6,
+        "username": "merkato_deals",
+        "title": "Merkato Deals"
+      },
+      "rawMessage": {
+        "id": 107,
+        "channelId": 6,
+        "channelUsername": "merkato_deals",
+        "messageId": 6228,
+        "rawText": "Bosch cordless drill with 2 lithium batteries and charger. 7,500 ETB. Merkato @tool_mart or 0955667788.",
+        "mediaRefs": [
+          "/img/items/lst_057-1.jpg"
+        ],
+        "postedAt": "2026-08-16T08:46:00Z"
+      },
+      "extraction": {
+        "titleEn": "Bosch Cordless Drill with 2 Batteries",
+        "titleAm": "ቦሽ የእጅ መሰርሰሪያ ባለ ሁለት ባትሪ",
+        "descriptionEn": "Bosch cordless drill with 2 lithium batteries and charger.",
+        "descriptionAm": "ቦሽ የእጅ መሰርሰሪያ ከነ ባትሪው እና ቻርጀሩ።",
+        "priceEtb": 7500,
+        "currency": "ETB",
+        "categorySlug": "tools",
+        "categoryLabel": "Tools",
+        "condition": "brand_new",
+        "locationArea": "Merkato",
+        "locationCity": "Addis Ababa",
+        "phoneRaw": "0955667788",
+        "phoneNormalized": "+251955667788",
+        "confidenceScore": 0.91
+      },
+      "payload": {
+        "reason": "flagged_seller",
+        "flaggedPhone": "+251955667788",
+        "priorFlagCount": 2,
+        "reasonDetails": "Phone number +251955667788 is associated with 2 previously flagged suspicious posts."
+      },
+      "_note": "Queue case: Seller phone matches history of flagged listings"
+    },
+    {
+      "id": 8,
+      "type": "moderate",
+      "status": "pending",
+      "listingId": "lst_033",
+      "rawMessageId": 108,
+      "attempts": 0,
+      "runAfter": "2026-08-16T09:00:00Z",
+      "createdAt": "2026-08-16T08:52:00Z",
+      "reason": "new_native_user",
+      "channel": {
+        "id": 0,
+        "username": "gulit_native",
+        "title": "Gulit Direct Post"
+      },
+      "rawMessage": {
+        "id": 108,
+        "channelId": 0,
+        "channelUsername": "gulit_native",
+        "messageId": 12,
+        "rawText": "Sony PlayStation 5 Disc Edition with 2 DualSense controllers and FIFA 24. Used 3 months. Price 58,000 ETB. Location: Sarbet. Phone: 0966778899.",
+        "mediaRefs": [
+          "/img/items/lst_033-1.jpg"
+        ],
+        "postedAt": "2026-08-16T08:50:00Z"
+      },
+      "extraction": {
+        "titleEn": "Sony PlayStation 5 Disc Edition + 2 Controllers",
+        "titleAm": "ሶኒ ፕሌይስቴሽን 5 ከነ 2 ጆይስቲክ",
+        "descriptionEn": "Sony PS5 Disc Edition with 2 controllers and game. Mint condition.",
+        "descriptionAm": "ሶኒ ፕሌይስቴሽን 5 ከነ ሁለት ጆይስቲክ እና ጌም ጋር።",
+        "priceEtb": 58000,
+        "currency": "ETB",
+        "categorySlug": "tv-audio",
+        "categoryLabel": "TV & Audio",
+        "condition": "lightly_used",
+        "locationArea": "Sarbet",
+        "locationCity": "Addis Ababa",
+        "phoneRaw": "0966778899",
+        "phoneNormalized": "+251966778899",
+        "confidenceScore": 0.95
+      },
+      "payload": {
+        "reason": "new_native_user",
+        "userTrustLevel": "new",
+        "accountAgeHours": 3,
+        "reasonDetails": "Native post from newly registered account without verified history. Contact details held pending first post review."
+      },
+      "_note": "Queue case: First-time native post awaiting contact verification"
+    },
+    {
+      "id": 9,
+      "type": "moderate",
+      "status": "pending",
+      "listingId": "lst_048",
+      "rawMessageId": 109,
+      "attempts": 0,
+      "runAfter": "2026-08-16T09:00:00Z",
+      "createdAt": "2026-08-16T08:54:00Z",
+      "reason": "ambiguous_location",
+      "channel": {
+        "id": 8,
+        "username": "addis_kids_corner",
+        "title": "Addis Kids Corner"
+      },
+      "rawMessage": {
+        "id": 109,
+        "channelId": 8,
+        "channelUsername": "addis_kids_corner",
+        "messageId": 978,
+        "rawText": "የሕፃናት አልጋ ከነ ፍራሹ። መገናኛ ወይም ገርጂ ወይም ቦሌ መጥተው መውሰድ ይችላሉ። ዋጋ 8,000 ETB. 0977889900.",
+        "mediaRefs": [
+          "/img/items/lst_048-1.jpg"
+        ],
+        "postedAt": "2026-08-16T08:51:00Z"
+      },
+      "extraction": {
+        "titleEn": "Baby Crib with Mattress",
+        "titleAm": "የሕፃናት አልጋ ከነ ፍራሹ",
+        "descriptionEn": "Baby crib with mattress. Pick up available in Megenagna, Gerji or Bole.",
+        "descriptionAm": "የሕፃናት አልጋ ከነ ፍራሹ። ዋጋ 8,000 ብር።",
+        "priceEtb": 8000,
+        "currency": "ETB",
+        "categorySlug": "kids",
+        "categoryLabel": "Baby & Kids",
+        "condition": "lightly_used",
+        "locationArea": "Megenagna",
+        "locationCity": "Addis Ababa",
+        "phoneRaw": "0977889900",
+        "phoneNormalized": "+251977889900",
+        "confidenceScore": 0.65
+      },
+      "payload": {
+        "reason": "ambiguous_location",
+        "confidence": 0.65,
+        "detectedLocations": [
+          "Megenagna",
+          "Gerji",
+          "Bole"
+        ],
+        "reasonDetails": "Original post mentions 3 different pickup neighborhoods ('መገናኛ ወይም ገርጂ ወይም ቦሌ'). Extraction defaulted to Megenagna."
+      },
+      "_note": "Queue case: Multiple pickup locations mentioned in post ('መገናኛ ወይም ገርጂ ወይም ቦሌ')"
+    },
+    {
+      "id": 10,
+      "type": "moderate",
+      "status": "pending",
+      "listingId": "lst_036",
+      "rawMessageId": 110,
+      "attempts": 0,
+      "runAfter": "2026-08-16T09:00:00Z",
+      "createdAt": "2026-08-16T08:55:00Z",
+      "reason": "high_value_review",
+      "channel": {
+        "id": 7,
+        "username": "addis_auto_bazaar",
+        "title": "Addis Auto Bazaar"
+      },
+      "rawMessage": {
+        "id": 110,
+        "channelId": 7,
+        "channelUsername": "addis_auto_bazaar",
+        "messageId": 1418,
+        "rawText": "Toyota RAV4 2018 model, automatic, leather seats, 4WD, only 42,000 km. Full service history. Price 3,850,000 ETB. Call 0988990011 Kazanchis.",
+        "mediaRefs": [
+          "/img/items/lst_036-1.jpg"
+        ],
+        "postedAt": "2026-08-16T08:52:00Z"
+      },
+      "extraction": {
+        "titleEn": "Toyota RAV4 2018 Automatic 4WD",
+        "titleAm": "ቶዮታ RAV4 ፪ሺ፲፰ ሞዴል አውቶማቲክ",
+        "descriptionEn": "Toyota RAV4 2018 model, automatic, leather seats, 4WD, 42,000 km.",
+        "descriptionAm": "ቶዮታ RAV4 2018 ሞዴል አውቶማቲክ ባለ ሙሉ እቃ መኪና።",
+        "priceEtb": 3850000,
+        "currency": "ETB",
+        "categorySlug": "vehicles",
+        "categoryLabel": "Vehicles",
+        "condition": "lightly_used",
+        "locationArea": "Kazanchis",
+        "locationCity": "Addis Ababa",
+        "phoneRaw": "0988990011",
+        "phoneNormalized": "+251988990011",
+        "confidenceScore": 0.86
+      },
+      "payload": {
+        "reason": "high_value_review",
+        "priceEtb": 3850000,
+        "thresholdEtb": 3000000,
+        "reasonDetails": "Transaction value > 3,000,000 ETB. High-value transactions routed for moderator provenance check."
+      },
+      "_note": "Queue case: High-value vehicle listing (> 3M ETB) requiring provenance check"
+    },
+    {
+      "id": 11,
+      "type": "moderate",
+      "status": "pending",
+      "listingId": "lst_042",
+      "rawMessageId": 111,
+      "attempts": 0,
+      "runAfter": "2026-08-16T09:00:00Z",
+      "createdAt": "2026-08-16T08:56:00Z",
+      "reason": "mixed_language_extraction",
+      "channel": {
+        "id": 3,
+        "username": "bole_market_et",
+        "title": "Bole Market ET"
+      },
+      "rawMessage": {
+        "id": 111,
+        "channelId": 3,
+        "channelUsername": "bole_market_et",
+        "messageId": 2886,
+        "rawText": "ኦሪጅናል የሀበሻ ጥልፍ ቀሚስ ለሰርግ ወይም ለበዓል የሚሆን አንድ ጊዜ ብቻ የተደረገ hand woven habesha kemis size M ዋጋ 9,500 ብር 0911002233 ፒያሳ",
+        "mediaRefs": [
+          "/img/items/lst_042-1.jpg"
+        ],
+        "postedAt": "2026-08-16T08:53:00Z"
+      },
+      "extraction": {
+        "titleEn": "Hand-woven Traditional Habesha Kemis Size M",
+        "titleAm": "ኦሪጅናል የሀበሻ ጥልፍ ቀሚስ አንድ ጊዜ የተደረገ",
+        "descriptionEn": "Authentic hand-woven Habesha dress suitable for weddings or holidays. Size M. Worn once.",
+        "descriptionAm": "ኦሪጅናል የሀበሻ ጥልፍ ቀሚስ ለሰርግ ወይም ለበዓል የሚሆን አንድ ጊዜ ብቻ የተደረገ። ዋጋ 9,500 ብር።",
+        "priceEtb": 9500,
+        "currency": "ETB",
+        "categorySlug": "fashion",
+        "categoryLabel": "Fashion",
+        "condition": "lightly_used",
+        "locationArea": "Piassa",
+        "locationCity": "Addis Ababa",
+        "phoneRaw": "0911002233",
+        "phoneNormalized": "+251911002233",
+        "confidenceScore": 0.77
+      },
+      "payload": {
+        "reason": "mixed_language_extraction",
+        "confidence": 0.77,
+        "reasonDetails": "Heavy transliterated text ('hand woven habesha kemis') mixed with classical Ge'ez phrasing. Review bilingual field mapping."
+      },
+      "_note": "Queue case: Complex bilingual phrasing and transliteration requiring review"
+    },
+    {
+      "id": 12,
+      "type": "moderate",
+      "status": "pending",
+      "listingId": "lst_027",
+      "rawMessageId": 112,
+      "attempts": 0,
+      "runAfter": "2026-08-16T09:00:00Z",
+      "createdAt": "2026-08-16T08:58:00Z",
+      "reason": "prohibited_keyword_check",
+      "channel": {
+        "id": 6,
+        "username": "merkato_deals",
+        "title": "Merkato Deals"
+      },
+      "rawMessage": {
+        "id": 112,
+        "channelId": 6,
+        "channelUsername": "merkato_deals",
+        "messageId": 6229,
+        "rawText": "የህክምና እቃዎች - BP Digital Blood Pressure Monitor and Oximeter set. Brand new in box. 3,200 ETB. Call 0922114433 Kolfe.",
+        "mediaRefs": [
+          "/img/items/lst_027-1.jpg"
+        ],
+        "postedAt": "2026-08-16T08:55:00Z"
+      },
+      "extraction": {
+        "titleEn": "Digital Blood Pressure Monitor and Oximeter Set",
+        "titleAm": "የደም ግፊት መለኪያ ዲጂታል ሞኒተር",
+        "descriptionEn": "Digital blood pressure monitor and pulse oximeter set. Brand new in box.",
+        "descriptionAm": "የደም ግፊት መለኪያ ዲጂታል ሞኒተር። አዲስ በካርቶን ያለ። ዋጋ 3,200 ብር።",
+        "priceEtb": 3200,
+        "currency": "ETB",
+        "categorySlug": "appliances",
+        "categoryLabel": "Home Appliances",
+        "condition": "brand_new",
+        "locationArea": "Kolfe",
+        "locationCity": "Addis Ababa",
+        "phoneRaw": "0922114433",
+        "phoneNormalized": "+251922114433",
+        "confidenceScore": 0.72
+      },
+      "payload": {
+        "reason": "prohibited_keyword_check",
+        "matchedKeyword": "የህክምና እቃዎች",
+        "reasonDetails": "Keyword 'የህክምና እቃዎች' (medical equipment) triggered policy filter; moderator to confirm consumer wellness device vs regulated pharmacy item."
+      },
+      "_note": "Queue case: Prohibited goods / medical keyword policy false positive check"
+    }
+  ],
+  "total": 12
+}

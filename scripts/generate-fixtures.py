@@ -1,10 +1,23 @@
 #!/usr/bin/env python3
-"""Generate fixtures/listings.json and the placeholder imagery it references.
+"""Generate realistic fixture dataset for parallel development.
 
-Fixtures are deterministic: running this twice produces byte-identical output,
-so the JSON can be committed and diffed. Swap the whole file for real API data
-when the ingestion pipeline lands -- the shape is the contract, not the values.
+Generates:
+  - fixtures/listings.json  (60 listings matching A's schema exactly)
+  - fixtures/channels.json  (8 plausible source channels)
+  - fixtures/queue.json     (12 items awaiting moderation with side-by-side raw/extracted fields)
+  - public/img/items/*.jpg  (placeholder images at realistic dimensions and ~150-400KB file sizes)
 
+Edge Cases Included & Labelled in `_note`:
+  1. Listing with no image
+  2. Listing with 1 image AND listing with 8 images
+  3. Very long Amharic title (60+ characters) that tests card layout
+  4. Listing with no price (seller wrote "call me")
+  5. Dedup cluster: same sofa in 3 channels at slightly different prices
+  6. Price outlier 80% below category median (feeds scam heuristic UI)
+  7. One of each tier: indexed, claimed, native
+  8. Listing with a malformed/partial phone number
+
+Deterministic: Running this produces byte-identical output.
 Usage:  python3 scripts/generate-fixtures.py
 """
 
@@ -13,15 +26,16 @@ from __future__ import annotations
 import json
 import math
 import random
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parent.parent
 FIXTURES = ROOT / "fixtures"
 IMAGES = ROOT / "public" / "img" / "items"
 
-IMG_W, IMG_H = 800, 600
+IMG_W, IMG_H = 1000, 750
 
 # --------------------------------------------------------------------------
 # Reference data
@@ -40,19 +54,18 @@ CATEGORIES = [
     ("tools", "Tools", "የስራ መሳሪያ"),
 ]
 
-# Median / p25 / p75 price per category, in ETB. Rough Addis market figures --
-# replace with computed stats once we have real listing volume.
+# (median, p25, p75) in ETB
 CATEGORY_STATS = {
-    "phones": (18000, 11000, 32000),
-    "computers": (34000, 22000, 58000),
-    "furniture": (9500, 5000, 18000),
-    "appliances": (14000, 8000, 26000),
-    "tv-audio": (16000, 9000, 30000),
-    "vehicles": (950000, 620000, 1650000),
-    "fashion": (1800, 900, 3400),
-    "kids": (3200, 1600, 6500),
-    "books": (900, 400, 2200),
-    "tools": (5200, 2600, 11000),
+    "phones": (22000, 13000, 38000),
+    "computers": (38000, 26000, 62000),
+    "furniture": (16000, 8500, 25000),
+    "appliances": (18000, 9500, 36000),
+    "tv-audio": (21000, 12000, 38000),
+    "vehicles": (1100000, 750000, 1800000),
+    "fashion": (4500, 2400, 7200),
+    "kids": (5500, 3200, 9000),
+    "books": (3200, 1500, 6500),
+    "tools": (14500, 7800, 24000),
 }
 
 AREAS = [
@@ -60,8 +73,8 @@ AREAS = [
     ("Piassa", "ፒያሳ"),
     ("Megenagna", "መገናኛ"),
     ("CMC", "ሲኤምሲ"),
-    ("Kazanchis", "ካዛንቺስ"),
     ("Sarbet", "ሳርቤት"),
+    ("Kazanchis", "ካዛንቺስ"),
     ("Gerji", "ገርጂ"),
     ("Ayat", "አያት"),
     ("Summit", "ሰሚት"),
@@ -80,126 +93,96 @@ AREAS = [
     ("Torhailoch", "ቶር ሃይሎች"),
 ]
 
-# Fictional placeholder channels. The real allowlist lives in the ingestion
-# service config -- these exist only so the UI has plausible attribution to render.
-CHANNELS = [
-    ("addis_used_market", "Addis Used Market"),
-    ("ethio_second_hand", "Ethio Second Hand"),
-    ("bole_market_et", "Bole Market ET"),
-    ("gebeya_online_et", "Gebeya Online"),
-    ("merkato_deals", "Merkato Deals"),
-    ("addis_electronics_hub", "Addis Electronics Hub"),
-    ("ethio_furniture_market", "Ethio Furniture Market"),
-    ("kal_mobile_addis", "Kal Mobile Addis"),
-    ("addis_auto_bazaar", "Addis Auto Bazaar"),
-    ("ethio_home_appliance", "Ethio Home Appliance"),
-    ("addis_kids_corner", "Addis Kids Corner"),
-    ("tikur_sew_gebeya", "Tikur Sew Gebeya"),
+CHANNELS_DATA = [
+    {
+        "id": 1,
+        "telegramId": -1001589304921,
+        "username": "addis_used_market",
+        "title": "Addis Used Market",
+        "active": True,
+        "lastMessageId": 4823,
+        "messageCount": 4823,
+        "createdAt": "2026-08-01T00:00:00Z",
+        "_note": "Plausible source channel: General second-hand items across Addis",
+    },
+    {
+        "id": 2,
+        "telegramId": -1001894720184,
+        "username": "ethio_brand_phones",
+        "title": "Ethio Brand Phones",
+        "active": True,
+        "lastMessageId": 3120,
+        "messageCount": 3120,
+        "createdAt": "2026-08-01T00:00:00Z",
+        "_note": "Plausible source channel: Mobile phones, tablets & accessories",
+    },
+    {
+        "id": 3,
+        "telegramId": -1001732948192,
+        "username": "bole_market_et",
+        "title": "Bole Market ET",
+        "active": True,
+        "lastMessageId": 2890,
+        "messageCount": 2890,
+        "createdAt": "2026-08-02T00:00:00Z",
+        "_note": "Plausible source channel: High-end fashion, laptops, home goods",
+    },
+    {
+        "id": 4,
+        "telegramId": -1001648291047,
+        "username": "ethio_furniture_market",
+        "title": "Ethio Furniture Market",
+        "active": True,
+        "lastMessageId": 1945,
+        "messageCount": 1945,
+        "createdAt": "2026-08-02T00:00:00Z",
+        "_note": "Plausible source channel: Sofas, dining sets, beds, office furniture",
+    },
+    {
+        "id": 5,
+        "telegramId": -1001428592019,
+        "username": "gebeya_online_et",
+        "title": "Gebeya Online",
+        "active": True,
+        "lastMessageId": 5412,
+        "messageCount": 5412,
+        "createdAt": "2026-08-03T00:00:00Z",
+        "_note": "Plausible source channel: Home appliances, TVs, kitchenware, audio",
+    },
+    {
+        "id": 6,
+        "telegramId": -1001928374650,
+        "username": "merkato_deals",
+        "title": "Merkato Deals",
+        "active": True,
+        "lastMessageId": 6230,
+        "messageCount": 6230,
+        "createdAt": "2026-08-03T00:00:00Z",
+        "_note": "Plausible source channel: Electronics, tools, cameras & wholesale/retail",
+    },
+    {
+        "id": 7,
+        "telegramId": -1001394820159,
+        "username": "addis_auto_bazaar",
+        "title": "Addis Auto Bazaar",
+        "active": True,
+        "lastMessageId": 1420,
+        "messageCount": 1420,
+        "createdAt": "2026-08-04T00:00:00Z",
+        "_note": "Plausible source channel: Used cars, Bajaj, motorbikes & parts",
+    },
+    {
+        "id": 8,
+        "telegramId": -1001758392014,
+        "username": "addis_kids_corner",
+        "title": "Addis Kids Corner",
+        "active": True,
+        "lastMessageId": 980,
+        "messageCount": 980,
+        "createdAt": "2026-08-05T00:00:00Z",
+        "_note": "Plausible source channel: Baby & kids items, strollers, toys & bikes",
+    },
 ]
-
-CONDITIONS = ["brand_new", "lightly_used", "fair"]
-
-SELLER_NAMES = [
-    "Selam T.", "Dawit A.", "Hanna G.", "Yonas B.", "Meron K.", "Abel M.",
-    "Rahel S.", "Bereket H.", "Tigist W.", "Nahom D.", "Eden F.", "Samuel L.",
-    "Kalkidan Y.", "Henok Z.", "Feven R.", "Getachew N.", "Sara A.", "Mikiyas P.",
-]
-
-# (category, english title, amharic title | None, price | None, condition)
-ITEMS: list[tuple[str, str, str | None, int | None, str]] = [
-    ("phones", "Samsung Galaxy A54 5G, 128GB", "ሳምሱንግ ጋላክሲ A54 5G ፻፳፰ጊጋ", 24500, "lightly_used"),
-    ("phones", "iPhone 12 Pro 256GB, battery 89%", "አይፎን ፲፪ ፕሮ ፪፻፶፮ጊጋ", 47000, "lightly_used"),
-    ("phones", "Tecno Camon 20, dual SIM", "ቴክኖ ካሞን ፳ ባለ ሁለት ሲም", 12800, "brand_new"),
-    ("phones", "Infinix Hot 30i, screen has a hairline crack", "ኢንፊኒክስ ሆት ፴i", 7200, "fair"),
-    ("phones", "iPad 9th gen 64GB with case", None, 29500, "lightly_used"),
-    ("phones", "Redmi Note 12, sealed box", "ሬድሚ ኖት ፲፪ ያልተከፈተ", 16900, "brand_new"),
-    ("phones", "Samsung Galaxy S21 Ultra", None, 38000, "fair"),
-
-    ("computers", "MacBook Air M1 2020, 8GB / 256GB", "ማክቡክ ኤር M1 ፪ሺ፳", 62000, "lightly_used"),
-    ("computers", "HP EliteBook 840 G6, i5 8th gen", "ኤችፒ ኤሊትቡክ ላፕቶፕ", 31000, "fair"),
-    ("computers", "Dell Latitude 5420, i7 16GB RAM", None, 44500, "lightly_used"),
-    ("computers", "Lenovo ThinkPad T480, new battery", "ሌኖቮ ቲንክፓድ T480", 27000, "fair"),
-    ("computers", "Gaming desktop, RTX 3060 + 32GB RAM", None, 118000, "lightly_used"),
-    ("computers", "HP LaserJet Pro M404dn printer", "ኤችፒ ሌዘር ጄት ማተሚያ", 19500, "lightly_used"),
-
-    ("furniture", "Three-seater sofa with matching coffee table",
-     "ባለ ሶስት ሰው ሶፋ ከነ ጠረጴዛው በጣም ጥሩ ሁኔታ ላይ የሚገኝ ከውጭ ሀገር የመጣ ኦርጅናል ጨርቅ ያለው ለሽያጭ ቀርቧል ቦሌ አካባቢ",
-     14500, "lightly_used"),
-    ("furniture", "L-shaped sofa, grey fabric", "ኤል ቅርጽ ያለው ሶፋ", 22000, "lightly_used"),
-    ("furniture", "Solid wood dining table, seats six", "ባለ ስድስት ወንበር የእንጨት ጠረጴዛ", 18000, "fair"),
-    ("furniture", "Queen bed frame with mattress", "የአልጋ ፍሬም ከነ ፍራሽ", 16500, "lightly_used"),
-    ("furniture", "Two-door wardrobe", "ባለ ሁለት በር ቁም ሳጥን", 8900, "fair"),
-    ("furniture", "Office desk and swivel chair", None, 6800, "lightly_used"),
-    ("furniture", "Bookshelf, five shelves", "ባለ አምስት ደረጃ የመጽሐፍ መደርደሪያ", 4200, "fair"),
-    ("furniture", "Handmade traditional mesob", "በእጅ የተሰራ መሶብ", 3500, "brand_new"),
-
-    ("appliances", "LG double-door refrigerator, 340L", "ኤልጂ ባለ ሁለት በር ማቀዝቀዣ", 42000, "lightly_used"),
-    ("appliances", "Samsung front-load washing machine 7kg", "ሳምሱንግ ማጠቢያ ማሽን ፯ኪሎ", 34000, "lightly_used"),
-    ("appliances", "Four-burner gas stove with oven", "ባለ አራት ምድጃ ከነ ምጣድ", 12500, "fair"),
-    ("appliances", "Microwave oven 25L", "ማይክሮዌቭ ፳፭ ሊትር", 6500, "lightly_used"),
-    ("appliances", "Water dispenser, hot and cold", "የውሃ ማቀዝቀዣ ትኩስና ቀዝቃዛ", 7800, "brand_new"),
-    ("appliances", "Electric injera mitad, 60cm", "የኤሌክትሪክ ምጣድ ፷ሳ.ሜ", 5400, "brand_new"),
-
-    ("tv-audio", "Sony Bravia 55 inch 4K smart TV", "ሶኒ ብራቪያ ፶፭ ኢንች", 48000, "lightly_used"),
-    ("tv-audio", "Hisense 43 inch LED TV", "ሂሴንስ ፵፫ ኢንች ቴሌቪዥን", 21000, "fair"),
-    ("tv-audio", "JBL Charge 5 bluetooth speaker", None, 9500, "lightly_used"),
-    ("tv-audio", "Home theatre 5.1 with subwoofer", "ሆም ቲያትር ባለ ፭.፩", 15800, "fair"),
-    ("tv-audio", "Yamaha acoustic guitar F310", "ያማሃ ጊታር", 11000, "lightly_used"),
-
-    ("vehicles", "Toyota Vitz 2007, well maintained", "ቶዮታ ቪትዝ ፪ሺ፯ ሞዴል", 1150000, "fair"),
-    ("vehicles", "Suzuki Alto 2015, single owner", "ሱዙኪ አልቶ ፪ሺ፲፭", 890000, "lightly_used"),
-    ("vehicles", "Bajaj three-wheeler, 2019", "ባጃጅ ፪ሺ፲፱ ሞዴል", 420000, "fair"),
-    ("vehicles", "Mountain bike, 21 speed", "የተራራ ብስክሌት ፳፩ ጊር", 14000, "lightly_used"),
-    ("vehicles", "Motorcycle helmet and jacket set", None, 5600, "lightly_used"),
-
-    ("fashion", "Habesha kemis, hand-woven", "የሐበሻ ቀሚስ በእጅ የተሰራ", 6500, "brand_new"),
-    ("fashion", "Leather jacket, size L", "የቆዳ ጃኬት", 3800, "lightly_used"),
-    ("fashion", "Nike Air Force 1, size 42", "ናይክ ኤር ፎርስ ፩ ቁጥር ፵፪", 4200, "lightly_used"),
-    ("fashion", "Wedding suit, worn once", "የሰርግ ልብስ አንድ ጊዜ የተለበሰ", 5500, "lightly_used"),
-    ("fashion", "Netela, cotton with tilet border", "ነጠላ ከጥለት ጋር", 1900, "brand_new"),
-
-    ("kids", "Baby cot with mattress", "የሕፃናት አልጋ ከነ ፍራሽ", 7500, "lightly_used"),
-    ("kids", "Chicco stroller, folds flat", "ቺኮ የሕፃናት ጋሪ", 6200, "fair"),
-    ("kids", "Kids bicycle, ages 5 to 8", "የልጆች ብስክሌት ከ፭-፰ ዓመት", 3400, "fair"),
-    ("kids", "Wooden toy set, 40 pieces", None, 1200, "brand_new"),
-
-    ("books", "Ethiopian history collection, 12 volumes", "የኢትዮጵያ ታሪክ መጽሐፍት ፲፪ ጥራዝ", 2800, "fair"),
-    ("books", "Chess set, weighted pieces", "የቼዝ ጨዋታ", 1600, "lightly_used"),
-    ("books", "Canon EOS 700D with 18-55mm lens", "ካኖን EOS 700D ካሜራ", 28000, "lightly_used"),
-    ("books", "University engineering textbooks, lot of 9", None, None, "fair"),
-
-    ("tools", "Bosch cordless drill, two batteries", "ቦሽ የእጅ መሰርሰሪያ", 8900, "lightly_used"),
-    ("tools", "Generator 3.5kVA, petrol", "ጀነሬተር ፫.፭ኪቫ", 42000, "fair"),
-    ("tools", "Welding machine, 200A inverter", "የብየዳ ማሽን ፪፻ አምፔር", 16500, "lightly_used"),
-    ("tools", "Full mechanic tool box, 120 pieces", None, 11500, "brand_new"),
-]
-
-DESCRIPTIONS = {
-    "brand_new": [
-        "Bought last month and never used. Box, charger and receipt all included. Price is slightly negotiable for a serious buyer.",
-        "Sealed and unopened. I ordered two by mistake and only need one. Can meet anywhere around the area during the day.",
-        "Brand new, still under warranty. Happy to let you inspect everything before you pay.",
-    ],
-    "lightly_used": [
-        "Used for about eight months. No dents, no scratches worth mentioning. Everything works exactly as it should.",
-        "Second owner, kept in very good condition. Selling because I am moving out of Addis at the end of the month.",
-        "Light use only, mostly kept in storage. You are welcome to test it before buying.",
-    ],
-    "fair": [
-        "Works fine but shows its age. A few marks on the body which I have photographed honestly. Priced accordingly.",
-        "Fully functional with some cosmetic wear. Serviced two months ago and running well since.",
-        "Old but reliable. Selling as-is, no returns, but nothing is hidden from you.",
-    ],
-}
-
-AMHARIC_DESCRIPTIONS = [
-    "በጣም ጥሩ ሁኔታ ላይ ይገኛል። ዋጋው ትንሽ ማስተካከያ አለው። ለበለጠ መረጃ ይደውሉ።",
-    "ምንም አይነት ችግር የለበትም። መጥተው አይተው መግዛት ይችላሉ።",
-    "ለረጅም ጊዜ የተጠቀምኩበት ቢሆንም ሙሉ በሙሉ ይሰራል። ዋጋው የማይቀያየር ነው።",
-]
-
-SAFETY_TIP_COUNT = 3
-
 
 # --------------------------------------------------------------------------
 # Helpers
@@ -216,9 +199,6 @@ def slugify(text: str) -> str:
 
 
 def iso(day_offset: int, hour: int, minute: int) -> str:
-    """Dates relative to a fixed 'now' so fixtures stay deterministic."""
-    from datetime import datetime, timedelta, timezone
-
     base = datetime(2026, 8, 16, 9, 0, tzinfo=timezone.utc)
     stamp = base - timedelta(days=day_offset, hours=hour, minutes=minute)
     return stamp.isoformat().replace("+00:00", "Z")
@@ -238,220 +218,1866 @@ def price_verdict(price: int | None, stats: tuple[int, int, int]) -> str:
 
 
 # --------------------------------------------------------------------------
-# Placeholder imagery
+# Placeholder imagery generator (Target ~150-400KB per image)
 # --------------------------------------------------------------------------
 
-# Cool zinc + tarpaulin blues. Deliberately inside the product palette so a grid
-# of placeholders reads as a designed system rather than broken photography.
-# (ground, object, shadow)
-IMAGE_TONES = [
-    ((226, 230, 235), (86, 112, 148), (150, 162, 176)),
-    ((214, 222, 232), (44, 74, 112), (128, 144, 164)),
-    ((233, 235, 238), (120, 132, 146), (176, 184, 194)),
-    ((208, 219, 232), (32, 86, 150), (112, 134, 160)),
-    ((222, 226, 231), (72, 84, 98), (156, 166, 178)),
-    ((236, 238, 241), (140, 156, 176), (186, 194, 204)),
-    ((216, 224, 233), (58, 96, 138), (134, 150, 170)),
-    ((228, 234, 240), (96, 126, 164), (162, 176, 192)),
+PALETTES = [
+    ((224, 228, 234), (52, 84, 128), (140, 155, 175)),
+    ((235, 230, 222), (140, 92, 48), (185, 160, 135)),
+    ((226, 234, 228), (46, 112, 78), (135, 170, 150)),
+    ((232, 228, 236), (105, 62, 138), (165, 145, 180)),
+    ((236, 232, 224), (130, 80, 50), (175, 150, 130)),
+    ((222, 230, 236), (40, 100, 145), (130, 160, 185)),
+    ((230, 230, 232), (75, 85, 95), (150, 155, 162)),
+    ((238, 226, 226), (150, 60, 60), (185, 140, 140)),
 ]
 
 
 def make_image(seed: int, path: Path) -> None:
     rng = random.Random(seed)
-    ground, obj, shadow = IMAGE_TONES[seed % len(IMAGE_TONES)]
+    ground, obj, shadow = PALETTES[seed % len(PALETTES)]
 
     img = Image.new("RGB", (IMG_W, IMG_H), ground)
     draw = ImageDraw.Draw(img)
 
-    # Vertical wash, like a stall backdrop catching daylight from above.
+    # Vertical daylight gradient wash
     for y in range(IMG_H):
-        t = (y / IMG_H) ** 1.2
+        t = (y / IMG_H) ** 1.1
         draw.line(
             [(0, y), (IMG_W, y)],
-            fill=tuple(int(ground[i] + (shadow[i] - ground[i]) * t * 0.75) for i in range(3)),
+            fill=tuple(
+                int(ground[i] + (shadow[i] - ground[i]) * t * 0.7) for i in range(3)
+            ),
         )
 
-    def blob(colour, cx, cy, w, h, shape, blur, alpha):
-        overlay = Image.new("RGB", img.size, colour)
-        mask = Image.new("L", img.size, 0)
-        md = ImageDraw.Draw(mask)
-        if shape == 0:
-            md.rounded_rectangle([cx - w, cy - h, cx + w, cy + h], radius=42, fill=alpha)
-        elif shape == 1:
-            md.ellipse([cx - w, cy - h, cx + w, cy + h], fill=alpha)
-        else:
-            pts = []
-            for i in range(6):
-                a = math.tau * i / 6 + rng.random() * 0.35
-                pts.append((cx + math.cos(a) * w, cy + math.sin(a) * h))
-            md.polygon(pts, fill=alpha)
-        return Image.composite(overlay, img, mask.filter(ImageFilter.GaussianBlur(blur)))
-
-    cx = IMG_W // 2 + rng.randint(-70, 70)
-    cy = IMG_H // 2 + rng.randint(-30, 50)
-    w = rng.randint(160, 240)
-    h = rng.randint(130, 200)
+    cx = IMG_W // 2 + rng.randint(-80, 80)
+    cy = IMG_H // 2 + rng.randint(-40, 60)
+    bw = rng.randint(200, 320)
+    bh = rng.randint(160, 260)
     shape = seed % 3
 
-    # Contact shadow first, then the object mass sitting on top of it.
-    img = blob(shadow, cx + 26, cy + 46, int(w * 1.05), int(h * 0.9), shape, 46, 170)
-    img = blob(obj, cx, cy, w, h, shape, 14, 235)
-    # A second, smaller mass so tiles do not all read as one centred lump.
-    img = blob(
-        obj,
-        cx + rng.choice([-1, 1]) * rng.randint(120, 190),
-        cy + rng.randint(-40, 60),
-        rng.randint(60, 110),
-        rng.randint(50, 95),
-        (shape + 1) % 3,
-        18,
-        200,
+    # Primary object mass and inner shadow layer
+    if shape == 0:
+        draw.rounded_rectangle(
+            [cx - bw, cy - bh, cx + bw, cy + bh], radius=48, fill=obj
+        )
+        draw.rounded_rectangle(
+            [cx - bw + 45, cy - bh + 45, cx + bw - 45, cy + bh - 45],
+            radius=32,
+            fill=shadow,
+        )
+    elif shape == 1:
+        draw.ellipse([cx - bw, cy - bh, cx + bw, cy + bh], fill=obj)
+        draw.ellipse(
+            [cx - bw + 55, cy - bh + 55, cx + bw - 55, cy + bh - 55],
+            fill=shadow,
+        )
+    else:
+        pts = [
+            (
+                cx + math.cos(math.tau * i / 6 + rng.random() * 0.3) * bw,
+                cy + math.sin(math.tau * i / 6 + rng.random() * 0.3) * bh,
+            )
+            for i in range(6)
+        ]
+        draw.polygon(pts, fill=obj)
+
+    # Secondary offset accent mass
+    acx = cx + rng.choice([-1, 1]) * rng.randint(140, 220)
+    acy = cy + rng.randint(-60, 70)
+    abw = rng.randint(80, 140)
+    abh = rng.randint(70, 120)
+    draw.rounded_rectangle(
+        [acx - abw, acy - abh, acx + abw, acy + abh], radius=24, fill=obj
     )
 
-    # Tarpaulin weave: fine diagonal ribs across the whole frame.
-    rib = Image.new("RGB", img.size, (255, 255, 255))
-    rib_draw = ImageDraw.Draw(rib)
-    for x in range(-IMG_H, IMG_W + IMG_H, 11):
-        rib_draw.line([(x, 0), (x + IMG_H, IMG_H)], fill=(0, 0, 0), width=4)
-    img = Image.blend(img, rib, 0.035)
+    # Canvas weave texture across frame (gives photo tactile depth and realistic 150-400KB file size)
+    weave = Image.new("RGB", (IMG_W, IMG_H), (255, 255, 255))
+    wdraw = ImageDraw.Draw(weave)
+    for x in range(-IMG_H, IMG_W + IMG_H, 7):
+        wdraw.line([(x, 0), (x + IMG_H, IMG_H)], fill=(30, 40, 50), width=2)
+    for x in range(0, IMG_W + 2 * IMG_H, 7):
+        wdraw.line([(x, 0), (x - IMG_H, IMG_H)], fill=(30, 40, 50), width=1)
+    img = Image.blend(img, weave, 0.08)
 
-    # Vignette so cards have a settled edge instead of a flat colour bleed.
-    vign = Image.new("L", img.size, 0)
-    ImageDraw.Draw(vign).ellipse(
-        [-IMG_W * 0.2, -IMG_H * 0.2, IMG_W * 1.2, IMG_H * 1.2], fill=255
-    )
-    vign = vign.filter(ImageFilter.GaussianBlur(110))
-    img = Image.composite(img, Image.new("RGB", img.size, shadow), vign)
-
-    img = img.filter(ImageFilter.GaussianBlur(1.6))
     path.parent.mkdir(parents=True, exist_ok=True)
-    img.save(path, "JPEG", quality=62, optimize=True, progressive=True)
+    img.save(path, "JPEG", quality=92, optimize=True)
 
 
 # --------------------------------------------------------------------------
-# Build
+# 60 Detailed Real-world Listings
+# --------------------------------------------------------------------------
+
+RAW_LISTINGS = [
+    # ---------------- PHONES & TABLETS (8) ----------------
+    {
+        "id": "lst_001",
+        "title": "Samsung Galaxy A54 5G 128GB Awesome Graphite",
+        "titleAm": "ሳምሱንግ ጋላክሲ A54 5G ፻፳፰ ጊጋ",
+        "desc": "Samsung Galaxy A54 5G 128GB. Used for 8 months. ስክሪኑ ላይ tempered glass አለው ምንም ጭረት የሌለበት። Battery health በጣም አሪፍ ነው። Comes with original fast charger. ዋጋ 24,500 ብር ድርድር አለው። CMC አካባቢ።",
+        "descAm": "ለ8 ወር ያህል የተጠቀምኩበት በጣም ንፁህ ስልክ። ስክሪን ፕሮቴክተር አለው። ዋጋ 24,500 ብር ትንሽ ድርድር አለው።",
+        "price": 24500,
+        "cat": "phones",
+        "cond": "lightly_used",
+        "area": ("CMC", "ሲኤምሲ"),
+        "tier": "indexed",
+        "img_count": 3,
+        "channels": [("addis_used_market", 24500), ("ethio_brand_phones", 25000)],
+        "seller": ("addis_used_market", "+251 90 *** ** 10", False, None, None, None, None),
+        "confidence": 0.88,
+        "negotiable": True,
+        "_note": "Category: Phones & Tablets · Mixed language · CMC area · Lightly used",
+    },
+    {
+        "id": "lst_002",
+        "title": "iPhone 12 Pro 256GB Pacific Blue Battery 88%",
+        "titleAm": "አይፎን ፲፪ ፕሮ ፪፻፶፮ ጊጋ ፓሲፊክ ብሉ",
+        "desc": "Factory unlocked iPhone 12 Pro 256GB. Battery health at 88%. No cracks, Face ID and cameras working 100%. Comes with original cable.",
+        "descAm": "ኦርጅናል አይፎን 12 ፕሮ 256GB ባትሪ 88% ንፁህ ስልክ።",
+        "price": 46000,
+        "cat": "phones",
+        "cond": "lightly_used",
+        "area": ("Bole", "ቦሌ"),
+        "tier": "claimed",
+        "img_count": 3,
+        "channels": [("ethio_brand_phones", 46000)],
+        "seller": ("ethio_brand_phones", "+251 91 *** ** 22", True, "Dawit A.", 4.8, 19, "2025-11-10T00:00:00Z"),
+        "confidence": 0.94,
+        "negotiable": True,
+        "_note": "Edge case: Listing tier = claimed (seller OTP-verified phone number) · Bole area",
+    },
+    {
+        "id": "lst_003",
+        "title": "ቴክኖ ካሞን 20 ፕሮ 256GB ባለ ሁለት ሲም",
+        "titleAm": "ቴክኖ ካሞን ፳ ፕሮ ፪፻፶፮ ጊጋ ባለ ሁለት ሲም",
+        "desc": "ያልተከፈተ በካርቶን ያለ አዲስ ስልክ ነው። ካሜራው 64MP በጣም ጥራት ያለው። ዋጋ 13,800 ብር።",
+        "descAm": "ያልተከፈተ በካርቶን ያለ አዲስ ስልክ ነው። ካሜራው 64MP በጣም ጥራት ያለው። ዋጋ 13,800 ብር።",
+        "price": 13800,
+        "cat": "phones",
+        "cond": "brand_new",
+        "area": ("Merkato", "መርካቶ"),
+        "tier": "indexed",
+        "img_count": 2,
+        "channels": [("merkato_deals", 13800), ("addis_used_market", 14000)],
+        "seller": ("merkato_deals", "+251 92 *** ** 33", False, None, None, None, None),
+        "confidence": 0.91,
+        "negotiable": False,
+        "_note": "Pure Amharic listing · Merkato area · Brand new",
+    },
+    {
+        "id": "lst_004",
+        "title": "Infinix Hot 30i 128GB 4GB RAM Black",
+        "titleAm": "ኢንፊኒክስ ሆት ፴i ፻፳፰ ጊጋ",
+        "desc": "Infinix Hot 30i 128GB storage 4GB RAM. ስክሪኑ ጫፍ ላይ ትንሽ hairline crack አለው ግን touch 100% ይሰራል. Battery 2 full days ይቆያል። ዋጋ 7,200 ETB. ኮልፌ።",
+        "descAm": "ኢንፊኒክስ ሆት 30i ስክሪኑ ላይ ትንሽ ጭረት አለው ግን ሙሉ በሙሉ ይሰራል። ዋጋ 7,200 ብር።",
+        "price": 7200,
+        "cat": "phones",
+        "cond": "fair",
+        "area": ("Kolfe", "ኮልፌ"),
+        "tier": "indexed",
+        "img_count": 0,  # EDGE CASE 1: NO IMAGE
+        "channels": [("addis_used_market", 7200)],
+        "seller": ("addis_used_market", "+251 93 *** ** 44", False, None, None, None, None),
+        "confidence": 0.79,
+        "negotiable": True,
+        "_note": "Edge case: Listing with no image (images array is empty) · Kolfe area",
+    },
+    {
+        "id": "lst_005",
+        "title": "Apple iPad 9th Gen 64GB Space Grey Wi-Fi",
+        "titleAm": "አፕል አይፓድ ፱ኛ ጄነሬሽን ፷፬ ጊጋ",
+        "desc": "Barely used Apple iPad 9th Gen with magnetic flip case. Excellent for school or reading. Clean retina display, no blemishes.",
+        "descAm": "አፕል አይፓድ 9ኛ ትውልድ 64GB ከነ ከቨሩ። ለትምህርትና ለስራ የሚሆን።",
+        "price": 29500,
+        "cat": "phones",
+        "cond": "lightly_used",
+        "area": ("Sarbet", "ሳርቤት"),
+        "tier": "indexed",
+        "img_count": 1,  # EDGE CASE 2: EXACTLY 1 IMAGE
+        "channels": [("bole_market_et", 29500)],
+        "seller": ("bole_market_et", "+251 94 *** ** 55", False, None, None, None, None),
+        "confidence": 0.92,
+        "negotiable": True,
+        "_note": "Edge case: Listing with exactly one image · Sarbet area",
+    },
+    {
+        "id": "lst_006",
+        "title": "ሬድሚ ኖት 12 128GB 8GB RAM ያልተከፈተ",
+        "titleAm": "ሬድሚ ኖት ፲፪ ፻፳፰ ጊጋ ፰ ጊጋ ራም ያልተከፈተ",
+        "desc": "ኦርጅናል ሬድሚ ኖት 12 በፓኬት ያለ ስልክ። 33W ቻርጀር አለው። ዋጋ 16,500 ብር። ጀሞ አካባቢ።",
+        "descAm": "ኦርጅናል ሬድሚ ኖት 12 በፓኬት ያለ ስልክ። 33W ቻርጀር አለው። ዋጋ 16,500 ብር። ጀሞ አካባቢ።",
+        "price": 16500,
+        "cat": "phones",
+        "cond": "brand_new",
+        "area": ("Jemo", "ጀሞ"),
+        "tier": "indexed",
+        "img_count": 2,
+        "channels": [("ethio_brand_phones", 16500), ("addis_used_market", 16800)],
+        "seller": ("ethio_brand_phones", "+251 95 *** ** 66", False, None, None, None, None),
+        "confidence": 0.89,
+        "negotiable": False,
+        "_note": "Pure Amharic listing · Jemo area · Brand new",
+    },
+    {
+        "id": "lst_007",
+        "title": "Samsung Galaxy S22 Ultra 256GB Phantom Black",
+        "titleAm": "ሳምሱንግ ጋላክሲ S22 አልትራ ፪፻፶፮ ጊጋ",
+        "desc": "Samsung Galaxy S22 Ultra 256GB Phantom Black. With S-Pen, 108MP camera, 120Hz display. ምንም ያልተፈታ ኦርጅናል ስልክ። Serious buyer ብቻ ይደውሉ። ዋጋ 52,000 ብር ድርድር አለው። ካዛንቺስ።",
+        "descAm": "በጉሊት በቀጥታ የተለጠፈ። ሳምሱንግ S22 አልትራ ከነ እስክሪብቶው። በጣም ንፁህ።",
+        "price": 52000,
+        "cat": "phones",
+        "cond": "lightly_used",
+        "area": ("Kazanchis", "ካዛንቺስ"),
+        "tier": "native",  # EDGE CASE 7: NATIVE TIER
+        "img_count": 4,
+        "channels": [],
+        "seller": ("gulit_selam", "+251 96 *** ** 77", True, "Selam T.", 4.9, 28, "2025-09-15T00:00:00Z"),
+        "confidence": 0.96,
+        "negotiable": True,
+        "_note": "Edge case: Listing tier = native (posted directly on Gulit platform with verified seller profile) · Kazanchis area",
+    },
+    {
+        "id": "lst_008",
+        "title": "Apple iPhone 14 Pro Max 256GB Deep Purple Sealed",
+        "titleAm": "አይፎን ፲፬ ፕሮ ማክስ ፪፻፶፮ ጊጋ",
+        "desc": "Urgent relocation sale. Brand new iPhone 14 Pro Max 256GB sealed in box with international warranty. First come first served at 4,200 ETB.",
+        "descAm": "አስቸኳይ ሽያጭ። አይፎን 14 ፕሮ ማክስ ያልተከፈተ በ4,200 ብር።",
+        "price": 4200,  # EDGE CASE 6: PRICE OUTLIER (80% BELOW MEDIAN)
+        "cat": "phones",
+        "cond": "brand_new",
+        "area": ("Piassa", "ፒያሳ"),
+        "tier": "indexed",
+        "img_count": 2,
+        "channels": [("ethio_brand_phones", 4200)],
+        "seller": ("ethio_brand_phones", "+251 97 *** ** 88", False, None, None, None, None),
+        "confidence": 0.48,
+        "negotiable": False,
+        "_note": "Edge case: Price outlier 80% below category median (4,200 ETB vs 22,000 ETB median) for scam heuristic testing · Piassa area",
+    },
+
+    # ---------------- COMPUTERS & LAPTOPS (6) ----------------
+    {
+        "id": "lst_009",
+        "title": "Apple MacBook Air M1 2020 8GB RAM 256GB SSD Space Grey",
+        "titleAm": "አፕል ማክቡክ ኤር M1 ፪ሺ፳ ፰ ጊጋ ፪፻፶፮ ጊጋ",
+        "desc": "MacBook Air M1 in pristine shape. Battery cycle count only 84, capacity 96%. Comes with original 30W USB-C brick and cable. Clean keyboard.",
+        "descAm": "ማክቡክ ኤር M1 በጣም ንፁህ ባትሪው 96% ጤናማ። ከነ ኦርጅናል ቻርጀሩ።",
+        "price": 58000,
+        "cat": "computers",
+        "cond": "lightly_used",
+        "area": ("Bole", "ቦሌ"),
+        "tier": "claimed",
+        "img_count": 3,
+        "channels": [("bole_market_et", 58000), ("merkato_deals", 59500)],
+        "seller": ("bole_market_et", "+251 91 *** ** 90", True, "Hanna G.", 4.7, 12, "2026-01-20T00:00:00Z"),
+        "confidence": 0.95,
+        "negotiable": True,
+        "_note": "Category: Computers · Claimed tier · Bole area · Lightly used",
+    },
+    {
+        "id": "lst_010",
+        "title": "HP EliteBook 840 G7 Core i5 10th Gen 16GB RAM 512GB SSD",
+        "titleAm": "ኤችፒ ኤሊትቡክ 840 G7 ኮር i5 ፲፮ ጊጋ ራም",
+        "desc": "HP EliteBook 840 G7 Core i5 10th Gen 16GB RAM 512GB SSD. Backlit keyboard, fingerprint sensor, FHD display. ለስራና ለኮዲንግ የሚሆን አሪፍ ላፕቶፕ። Battery backup 4+ hours. ዋጋ 38,500 ETB. ገርጂ።",
+        "descAm": "ኤችፒ ኤሊትቡክ ላፕቶፕ ለስራና ለኮዲንግ የሚሆን አሪፍ አቅም ያለው። ባትሪው ከ4 ሰዓት በላይ ይቆያል።",
+        "price": 38500,
+        "cat": "computers",
+        "cond": "lightly_used",
+        "area": ("Gerji", "ገርጂ"),
+        "tier": "indexed",
+        "img_count": 3,
+        "channels": [("addis_used_market", 38500), ("merkato_deals", 39000), ("bole_market_et", 39500)],
+        "seller": ("addis_used_market", "+251 92 *** ** 01", False, None, None, None, None),
+        "confidence": 0.91,
+        "negotiable": True,
+        "_note": "Category: Computers · Mixed language · Gerji area · Lightly used",
+    },
+    {
+        "id": "lst_011",
+        "title": "ሌኖቮ ቲንክፓድ T480 ኮር i5 8ኛ ትውልድ 16GB ራም 256GB ኤስኤስዲ",
+        "titleAm": "ሌኖቮ ቲንክፓድ T480 ኮር i5 ፰ኛ ትውልድ ፲፮ ጊጋ ራም ፪፻፶፮ ጊጋ ኤስኤስዲ",
+        "desc": "በጉሊት የቀረበ። ሌኖቮ ቲንክፓድ T480 ባለ ሁለት ባትሪ። ጠንካራና ለረጅም ሰዓት ስራ የሚሆን። ዋጋ 27,000 ብር ድርድር አለው።",
+        "descAm": "በጉሊት የቀረበ። ሌኖቮ ቲንክፓድ T480 ባለ ሁለት ባትሪ። ጠንካራና ለረጅም ሰዓት ስራ የሚሆን። ዋጋ 27,000 ብር ድርድር አለው።",
+        "price": 27000,
+        "cat": "computers",
+        "cond": "fair",
+        "area": ("Megenagna", "መገናኛ"),
+        "tier": "native",
+        "img_count": 3,
+        "channels": [],
+        "seller": ("gulit_yonas", "+251 93 *** ** 12", True, "Yonas B.", 4.5, 9, "2026-02-14T00:00:00Z"),
+        "confidence": 0.93,
+        "negotiable": True,
+        "_note": "Pure Amharic listing · Native tier · Megenagna area",
+    },
+    {
+        "id": "lst_012",
+        "title": "Dell Latitude 5420 Core i7 11th Gen 16GB RAM 512GB NVMe",
+        "titleAm": "ዴል ላቲቲዩድ 5420 ኮር i7 ፲፩ኛ ትውልድ",
+        "desc": "Corporate Dell Latitude laptop. Powerful i7 processor, 16GB DDR4, Thunderbolt port, webcam shutter. Includes genuine Dell 65W charger.",
+        "descAm": "ዴል ላቲቲዩድ i7 ላፕቶፕ በጣም ፈጣን።",
+        "price": 44000,
+        "cat": "computers",
+        "cond": "lightly_used",
+        "area": ("Kazanchis", "ካዛንቺስ"),
+        "tier": "indexed",
+        "img_count": 3,
+        "channels": [("merkato_deals", 44000), ("bole_market_et", 44500)],
+        "seller": ("merkato_deals", "+251 94 *** ** 23", False, None, None, None, None),
+        "confidence": 0.89,
+        "negotiable": False,
+        "_note": "Category: Computers · English · Kazanchis area · Lightly used",
+    },
+    {
+        "id": "lst_013",
+        "title": "Custom Gaming PC Desktop Core i7 RTX 3060 32GB RAM 1TB SSD",
+        "titleAm": "የጌሚንግ ዴስክቶፕ ኮምፒውተር RTX 3060",
+        "desc": "Custom Gaming PC Desktop Core i7 RTX 3060 32GB RAM 1TB SSD. ለጌሚንግ እና ለ 3D rendering የሚሆን አውሬ ማሽን። RGB case ከ 4 fans ጋር። ዋጋ 115,000 ብር ድርድር አለው። ቦሌ።",
+        "descAm": "ለጌሚንግ እና ለግራፊክስ ዲዛይን የሚሆን ኃይለኛ ዴስክቶፕ ኮምፒውተር። ዋጋ 115,000 ብር። ቦሌ አካባቢ።",
+        "price": 115000,
+        "cat": "computers",
+        "cond": "lightly_used",
+        "area": ("Bole", "ቦሌ"),
+        "tier": "indexed",
+        "img_count": 4,
+        "channels": [("bole_market_et", 115000), ("addis_used_market", 118000)],
+        "seller": ("bole_market_et", "+251 95 *** ** 34", False, None, None, None, None),
+        "confidence": 0.94,
+        "negotiable": True,
+        "_note": "Category: Computers · Mixed language · High-end gaming PC · Bole area",
+    },
+    {
+        "id": "lst_014",
+        "title": "ኤችፒ ሌዘርጄት ፕሮ M404dn የቢሮ ማተሚያ ፕሪንተር",
+        "titleAm": "ኤችፒ ሌዘርጄት ፕሮ M404dn የቢሮ ማተሚያ ፕሪንተር",
+        "desc": "ሁለት ጎን አታሚ (Duplex) የኔትወርክ ፕሪንተር። ሙሉ ቶነር አለው። ለቢሮ ወይም ለድርጅት የሚሆን ፈጣን ማተሚያ። ዋጋ 19,500 ብር።",
+        "descAm": "ሁለት ጎን አታሚ (Duplex) የኔትወርክ ፕሪንተር። ሙሉ ቶነር አለው። ለቢሮ ወይም ለድርጅት የሚሆን ፈጣን ማተሚያ። ዋጋ 19,500 ብር።",
+        "price": 19500,
+        "cat": "computers",
+        "cond": "lightly_used",
+        "area": ("Piassa", "ፒያሳ"),
+        "tier": "indexed",
+        "img_count": 2,
+        "channels": [("merkato_deals", 19500)],
+        "seller": ("merkato_deals", "+251 96 *** ** 45", False, None, None, None, None),
+        "confidence": 0.87,
+        "negotiable": True,
+        "_note": "Pure Amharic listing · Office printer · Piassa area",
+    },
+
+    # ---------------- FURNITURE (8) ----------------
+    {
+        "id": "lst_015",
+        # EDGE CASE 3: VERY LONG AMHARIC TITLE (86 chars)
+        "title": "ባለ ሶስት ሰው L-ቅርፅ ያለው ዘመናዊ የሳሎን ሶፋ ከነ ጠረጴዛው እና ከነ ትራሱ በጣም ፅዱ የሆነ ለሽያጭ ቀርቧል ቦሌ አካባቢ",
+        "titleAm": "ባለ ሶስት ሰው L-ቅርፅ ያለው ዘመናዊ የሳሎን ሶፋ ከነ ጠረጴዛው እና ከነ ትራሱ በጣም ፅዱ የሆነ ለሽያጭ ቀርቧል ቦሌ አካባቢ",
+        "desc": "ከውጭ ሀገር የመጣ ኦርጅናል የሳሎን ሶፋ። ጨርቁ የማይቆሽሽና በቀላሉ የሚፀዳ ነው። ጠንካራ የእንጨት ፍሬም አለው። ዋጋ 23,500 ብር ድርድር አለው።",
+        "descAm": "ከውጭ ሀገር የመጣ ኦርጅናል የሳሎን ሶፋ። ጨርቁ የማይቆሽሽና በቀላሉ የሚፀዳ ነው። ጠንካራ የእንጨት ፍሬም አለው። ዋጋ 23,500 ብር ድርድር አለው።",
+        "price": 23500,
+        "cat": "furniture",
+        "cond": "lightly_used",
+        "area": ("Bole", "ቦሌ"),
+        "tier": "indexed",
+        "img_count": 3,
+        "channels": [("ethio_furniture_market", 23500), ("addis_used_market", 24000)],
+        "seller": ("ethio_furniture_market", "+251 97 *** ** 56", False, None, None, None, None),
+        "confidence": 0.89,
+        "negotiable": True,
+        "_note": "Edge case: Very long Amharic title (85+ characters) that tests card wrapping and line-clamp behavior · Bole area",
+    },
+    {
+        "id": "lst_016",
+        # EDGE CASE 5: DEDUP CLUSTER (3 channels with drift)
+        "title": "Three-seater Italian Leather Sofa Brown with Matching Table",
+        "titleAm": "ባለ ሶስት ሰው የጣሊያን ቆዳ ሶፋ ከነ ጠረጴዛው",
+        "desc": "Three-seater Italian Leather Sofa in rich brown with matching table. ከጣሊያን የመጣ እውነተኛ የቆዳ ሶፋ። Solid wood frame, በጣም ምቹ foam. ዋጋ 18,500 ETB ድርድር አለው። ሳርቤት።",
+        "descAm": "ከጣሊያን የመጣ እውነተኛ የቆዳ ሶፋ። በጣም ምቹ እና ጥንካሬ ያለው። ዋጋ ድርድር አለው።",
+        "price": 18500,
+        "cat": "furniture",
+        "cond": "lightly_used",
+        "area": ("Sarbet", "ሳርቤት"),
+        "tier": "indexed",
+        "img_count": 3,
+        "channels": [
+            ("addis_used_market", 18500),
+            ("ethio_furniture_market", 19000),
+            ("bole_market_et", 19500),
+        ],
+        "seller": ("addis_used_market", "+251 98 *** ** 67", False, None, None, None, None),
+        "confidence": 0.92,
+        "negotiable": True,
+        "_note": "Edge case: Dedup cluster - same sofa cross-posted across 3 channels at slightly different prices (18500, 19000, 19500 ETB) · Sarbet area",
+    },
+    {
+        "id": "lst_017",
+        "title": "Solid Mahogany Dining Table Set with 6 Upholstered Chairs",
+        "titleAm": "ባለ ስድስት ወንበር የፅኑ እንጨት የመመገቢያ ጠረጴዛ",
+        "desc": "Genuine solid mahogany dining table with six matching cushioned chairs. Heavy and sturdy construction. Minor signs of use on chair fabric. 21,000 ETB.",
+        "descAm": "ከጠንካራ እንጨት የተሰራ 6 ወንበር ያለው የመመገቢያ ጠረጴዛ። ዋጋ 21,000 ብር።",
+        "price": 21000,
+        "cat": "furniture",
+        "cond": "fair",
+        "area": ("Ayat", "አያት"),
+        "tier": "claimed",
+        "img_count": 4,
+        "channels": [("ethio_furniture_market", 21000)],
+        "seller": ("ethio_furniture_market", "+251 99 *** ** 78", True, "Meron K.", 4.6, 14, "2025-12-05T00:00:00Z"),
+        "confidence": 0.90,
+        "negotiable": True,
+        "_note": "Category: Furniture · Claimed tier · Ayat area · Dining set",
+    },
+    {
+        "id": "lst_018",
+        # EDGE CASE 2: EIGHT IMAGES
+        "title": "Queen Size Bed Frame with High-Density Medical Mattress and Side Tables",
+        "titleAm": "ባለ ፭/፮ የአልጋ ፍሬም ከነ ሜዲካል ፍራሹ እና ሁለት ኮሞዲኖዎች",
+        "desc": "Queen Size Bed Frame with High-Density Medical Mattress. ጠንካራ የእንጨት ፍሬም ከነ ሜዲካል ስፕሪንግ ፍራሹ እና 2 side tables. ዋጋ 19,800 ብር። CMC አካባቢ።",
+        "descAm": "ሙሉ የመኝታ ቤት እቃ አልጋ፣ ሜዲካል ፍራሽ እና 2 ኮሞዲኖ። በሙሉ ፎቶዎች የተካተቱበት። ዋጋ 19,800 ብር።",
+        "price": 19800,
+        "cat": "furniture",
+        "cond": "lightly_used",
+        "area": ("CMC", "ሲኤምሲ"),
+        "tier": "indexed",
+        "img_count": 8,  # 8 IMAGES
+        "channels": [("ethio_furniture_market", 19800), ("addis_used_market", 20500)],
+        "seller": ("ethio_furniture_market", "+251 90 *** ** 89", False, None, None, None, None),
+        "confidence": 0.95,
+        "negotiable": True,
+        "_note": "Edge case: Listing with eight images to test gallery carousel and thumbnail strip · CMC area",
+    },
+    {
+        "id": "lst_019",
+        "title": "ባለ ሶስት በር ዘመናዊ ቁም ሳጥን ከመስታወት ጋር",
+        "titleAm": "ባለ ፫ በር ዘመናዊ ቁም ሳጥን ከመስታወት ጋር",
+        "desc": "ሰፊና ጥራት ካለው ኤምዲኤፍ የተሰራ ባለ 3 በር ቁም ሳጥን። መሀሉ ላይ ሙሉ መስታወት አለው። ዋጋ 11,500 ብር።",
+        "descAm": "ሰፊና ጥራት ካለው ኤምዲኤፍ የተሰራ ባለ 3 በር ቁም ሳጥን። መሀሉ ላይ ሙሉ መስታወት አለው። ዋጋ 11,500 ብር።",
+        "price": 11500,
+        "cat": "furniture",
+        "cond": "fair",
+        "area": ("Saris", "ሳሪስ"),
+        "tier": "indexed",
+        "img_count": 3,
+        "channels": [("addis_used_market", 11500)],
+        "seller": ("addis_used_market", "+251 91 *** ** 02", False, None, None, None, None),
+        "confidence": 0.86,
+        "negotiable": True,
+        "_note": "Pure Amharic listing · Saris area · Wardrobe",
+    },
+    {
+        "id": "lst_020",
+        "title": "Ergonomic Mesh Office Chair with Lumbar Support and Adjustable Armrests",
+        "titleAm": "የቢሮ ወንበር ergonomic mesh",
+        "desc": "Commercial grade office swivel chair. Breathable mesh backrest, pneumatic height adjustment, smooth 360 caster wheels. Great for remote work.",
+        "descAm": "ለቢሮ እና ለቤት ስራ የሚሆን ምቹ የሚሽከረከር ወንበር።",
+        "price": 7800,
+        "cat": "furniture",
+        "cond": "lightly_used",
+        "area": ("Kazanchis", "ካዛንቺስ"),
+        "tier": "native",
+        "img_count": 3,
+        "channels": [],
+        "seller": ("gulit_abel", "+251 92 *** ** 13", True, "Abel M.", 4.8, 16, "2026-03-01T00:00:00Z"),
+        "confidence": 0.94,
+        "negotiable": False,
+        "_note": "Native tier · Kazanchis area · Office furniture",
+    },
+    {
+        "id": "lst_021",
+        "title": "ባለ አምስት ደረጃ የእንጨት የመጽሐፍ እና የጌጥ መደርደሪያ",
+        "titleAm": "ባለ ፭ ደረጃ የእንጨት የመጽሐፍ እና የጌጥ መደርደሪያ",
+        "desc": "ለሳሎን ወይም ለቢሮ የሚሆን ጠንካራ የመጽሐፍ መደርደሪያ። 4,800 ብር። ገርጂ መጥተው መውሰድ ይችላሉ።",
+        "descAm": "ለሳሎን ወይም ለቢሮ የሚሆን ጠንካራ የመጽሐፍ መደርደሪያ። 4,800 ብር። ገርጂ መጥተው መውሰድ ይችላሉ።",
+        "price": 4800,
+        "cat": "furniture",
+        "cond": "fair",
+        "area": ("Gerji", "ገርጂ"),
+        "tier": "indexed",
+        "img_count": 2,
+        "channels": [("ethio_furniture_market", 4800)],
+        "seller": ("ethio_furniture_market", "+251 93 *** ** 24", False, None, None, None, None),
+        "confidence": 0.83,
+        "negotiable": True,
+        "_note": "Pure Amharic listing · Gerji area · Bookshelf",
+    },
+    {
+        "id": "lst_022",
+        "title": "Handmade Traditional Mesob with Colorful Tilet Border",
+        "titleAm": "በእጅ የተሰራ ባህላዊ መሶብ ከነ ጥለቱ",
+        "desc": "Handmade large traditional Ethiopian mesob with colorful tilet border. በእጅ በጥንቃቄ የተሰራ ባህላዊ መሶብ። ለቤት ጌጥ ወይም ለእንጀራ ማቅረቢያ። Brand new condition. ዋጋ 3,800 ETB. ሽሮ ሜዳ።",
+        "descAm": "በእጅ በጥንቃቄ የተሰራ ባህላዊ የኢትዮጵያ መሶብ። በጣም ያማረ ለቤት ጌጥ ወይም ለእንጀራ ማቅረቢያ የሚሆን። ዋጋ 3,800 ብር።",
+        "price": 3800,
+        "cat": "furniture",
+        "cond": "brand_new",
+        "area": ("Shiro Meda", "ሽሮ ሜዳ"),
+        "tier": "claimed",
+        "img_count": 2,
+        "channels": [("bole_market_et", 3800), ("addis_used_market", 4000)],
+        "seller": ("bole_market_et", "+251 94 *** ** 35", True, "Rahel S.", 5.0, 31, "2025-08-10T00:00:00Z"),
+        "confidence": 0.95,
+        "negotiable": False,
+        "_note": "Traditional craft · Claimed tier · Shiro Meda area",
+    },
+
+    # ---------------- HOME APPLIANCES (7) ----------------
+    {
+        "id": "lst_023",
+        "title": "LG Double Door Inverter Refrigerator 340 Litres No Frost",
+        "titleAm": "ኤልጂ ባለ ሁለት በር ማቀዝቀዣ ፫፻፵ ሊትር",
+        "desc": "Energy-efficient LG Smart Inverter fridge. Multi airflow cooling, tempered glass shelves, deodorizer filter. Perfect working condition, no noise.",
+        "descAm": "ኤልጂ ባለ ሁለት በር ፍሪጅ ምንም እንከን የሌለበት። ዋጋ 44,000 ብር።",
+        "price": 44000,
+        "cat": "appliances",
+        "cond": "lightly_used",
+        "area": ("Bole", "ቦሌ"),
+        "tier": "indexed",
+        "img_count": 3,
+        "channels": [("gebeya_online_et", 44000), ("addis_used_market", 45000), ("bole_market_et", 45500)],
+        "seller": ("gebeya_online_et", "+251 95 *** ** 46", False, None, None, None, None),
+        "confidence": 0.93,
+        "negotiable": True,
+        "_note": "Category: Appliances · English · Bole area · Refrigerator",
+    },
+    {
+        "id": "lst_024",
+        "title": "ሳምሱንግ ማጠቢያ ማሽን 7 ኪሎ ፍሮንት ሎድ ዲጂታል ኢንቨርተር",
+        "titleAm": "ሳምሱንግ ማጠቢያ ማሽን ፯ ኪሎ ፍሮንት ሎድ",
+        "desc": "ሳምሱንግ ኦርጅናል የልብስ ማጠቢያ ማሽን። 15 ደቂቃ ፈጣን እጥበት አለው። ውሃና መብራት ቆጣቢ ነው። ዋጋ 36,000 ብር ድርድር አለው። መገናኛ።",
+        "descAm": "ሳምሱንግ ኦርጅናል የልብስ ማጠቢያ ማሽን። 15 ደቂቃ ፈጣን እጥበት አለው። ውሃና መብራት ቆጣቢ ነው። ዋጋ 36,000 ብር ድርድር አለው። መገናኛ።",
+        "price": 36000,
+        "cat": "appliances",
+        "cond": "lightly_used",
+        "area": ("Megenagna", "መገናኛ"),
+        "tier": "claimed",
+        "img_count": 3,
+        "channels": [("gebeya_online_et", 36000), ("addis_used_market", 37000)],
+        "seller": ("gebeya_online_et", "+251 96 *** ** 57", True, "Bereket H.", 4.7, 21, "2025-10-18T00:00:00Z"),
+        "confidence": 0.92,
+        "negotiable": True,
+        "_note": "Pure Amharic listing · Claimed tier · Megenagna area · Washing machine",
+    },
+    {
+        "id": "lst_025",
+        "title": "Four-Burner Stainless Steel Gas Stove with Gas Oven & Grill",
+        "titleAm": "ባለ 4 ዓይን የጋዝ ምድጃ ከነ ኦቨኑ ስቴይንለስ ስቲል",
+        "desc": "Four-Burner Stainless Steel Gas Stove with oven and grill. 4 ዓይን የጋዝ ምድጃ ከነ መጋገሪያው እና rotisserie። Electric ignition ይሰራል. ዋጋ 14,500 ብር ድርድር አለው። ሰሚት።",
+        "descAm": "ባለ 4 አይን የጋዝ ምድጃ ከነ መጋገሪያው። በጣም ፅዱ። ዋጋ 14,500 ብር። ሰሚት አካባቢ።",
+        "price": 14500,
+        "cat": "appliances",
+        "cond": "fair",
+        "area": ("Summit", "ሰሚት"),
+        "tier": "native",
+        "img_count": 3,
+        "channels": [],
+        "seller": ("gulit_tigist", "+251 97 *** ** 68", True, "Tigist W.", 4.9, 15, "2026-01-05T00:00:00Z"),
+        "confidence": 0.94,
+        "negotiable": True,
+        "_note": "Native tier · Summit area · Gas stove",
+    },
+    {
+        "id": "lst_026",
+        "title": "የኤሌክትሪክ የእንጀራ ምጣድ 60 ሳ.ሜ ከነ ክዳኑ እና መስቀያው",
+        "titleAm": "የኤሌክትሪክ የእንጀራ ምጣድ ፷ ሳ.ሜ",
+        "desc": "አዲስ ያልተጋገረበት የኤሌክትሪክ ምጣድ። እኩል ሙቀት የሚያስተላልፍ ጠንካራ ሽቦ ያለው። ዋጋ 5,800 ብር። መርካቶ።",
+        "descAm": "አዲስ ያልተጋገረበት የኤሌክትሪክ ምጣድ። እኩል ሙቀት የሚያስተላልፍ ጠንካራ ሽቦ ያለው። ዋጋ 5,800 ብር። መርካቶ።",
+        "price": 5800,
+        "cat": "appliances",
+        "cond": "brand_new",
+        "area": ("Merkato", "መርካቶ"),
+        "tier": "indexed",
+        "img_count": 2,
+        "channels": [("merkato_deals", 5800), ("addis_used_market", 6000)],
+        "seller": ("merkato_deals", "+251 98 *** ** 79", False, None, None, None, None),
+        "confidence": 0.88,
+        "negotiable": False,
+        "_note": "Pure Amharic listing · Merkato area · Injera mitad",
+    },
+    {
+        "id": "lst_027",
+        "title": "Digital Microwave Oven 25 Litres with Grill Function Black",
+        "titleAm": "ማይክሮዌቭ ኦቨን ፳፭ ሊትር",
+        "desc": "Sharp 25L digital microwave with 8 auto menus and child lock safety. Fast defrost and reheat. Clean turntable tray included.",
+        "descAm": "ማይክሮዌቭ 25 ሊትር በደንብ የሚሰራ። ዋጋ 6,800 ብር።",
+        "price": 6800,
+        "cat": "appliances",
+        "cond": "lightly_used",
+        "area": ("Piassa", "ፒያሳ"),
+        "tier": "indexed",
+        "img_count": 2,
+        "channels": [("gebeya_online_et", 6800)],
+        "seller": ("gebeya_online_et", "+251 99 *** ** 80", False, None, None, None, None),
+        "confidence": 0.90,
+        "negotiable": True,
+        "_note": "Category: Appliances · English · Piassa area",
+    },
+    {
+        "id": "lst_028",
+        "title": "Water Dispenser Hot and Cold with Small Lower Refrigerator Compartment",
+        "titleAm": "የውሃ ማቀዝቀዣ ትኩስና ቀዝቃዛ ከነ ታችኛው ፍሪጁ",
+        "desc": "Water Dispenser Hot and Cold with lower refrigerator compartment. ትኩስና ቀዝቃዛ ውሃ የሚሰጥ የውሃ ማቀዝቀዣ ከነ ታችኛው ፍሪጁ። ዋጋ 8,200 ETB. ጀሞ።",
+        "descAm": "የውሃ ማቀዝቀዣ ትኩስ እና ቀዝቃዛ ውሃ የሚሰጥ። ዋጋ 8,200 ብር። ጀሞ አካባቢ።",
+        "price": 8200,
+        "cat": "appliances",
+        "cond": "lightly_used",
+        "area": ("Jemo", "ጀሞ"),
+        "tier": "indexed",
+        "img_count": 2,
+        "channels": [("gebeya_online_et", 8200), ("addis_used_market", 8500)],
+        "seller": ("gebeya_online_et", "+251 90 *** ** 91", False, None, None, None, None),
+        "confidence": 0.89,
+        "negotiable": True,
+        "_note": "Category: Appliances · Mixed language · Jemo area",
+    },
+    {
+        "id": "lst_029",
+        "title": "ፊሊፕስ የኤር ፍራየር 4.1 ሊትር ዲጂታል ንክኪ",
+        "titleAm": "ፊሊፕስ የኤር ፍራየር ፬.፩ ሊትር ዲጂታል ንክኪ",
+        "desc": "ያለ ዘይት በንፁህ አየር የሚጠብስ ፊሊፕስ ኤር ፍራየር። ጤናማ ምግብ ለማዘጋጀት የሚሆን። ዋጋ 7,500 ብር። ሳርቤት።",
+        "descAm": "ያለ ዘይት በንፁህ አየር የሚጠብስ ፊሊፕስ ኤር ፍራየር። ጤናማ ምግብ ለማዘጋጀት የሚሆን። ዋጋ 7,500 ብር። ሳርቤት።",
+        "price": 7500,
+        "cat": "appliances",
+        "cond": "brand_new",
+        "area": ("Sarbet", "ሳርቤት"),
+        "tier": "claimed",
+        "img_count": 2,
+        "channels": [("bole_market_et", 7500)],
+        "seller": ("bole_market_et", "+251 91 *** ** 03", True, "Nahom D.", 4.7, 18, "2026-02-01T00:00:00Z"),
+        "confidence": 0.94,
+        "negotiable": False,
+        "_note": "Pure Amharic listing · Claimed tier · Sarbet area",
+    },
+
+    # ---------------- TV & AUDIO (6) ----------------
+    {
+        "id": "lst_030",
+        "title": "Sony Bravia 55 Inch 4K HDR Google Smart TV with Remote",
+        "titleAm": "ሶኒ ብራቪያ ፶፭ ኢንች 4K ስማርት ቴሌቪዥን",
+        "desc": "Original Sony Bravia 55\" UHD smart television. Built-in Netflix, YouTube, Chromecast, Dolby Audio. Crisp display with no dead pixels. 49,000 ETB.",
+        "descAm": "ሶኒ ብራቪያ 55 ኢንች ስማርት ቲቪ ኦርጅናል የጃፓን። ዋጋ 49,000 ብር።",
+        "price": 49000,
+        "cat": "tv-audio",
+        "cond": "lightly_used",
+        "area": ("Bole", "ቦሌ"),
+        "tier": "indexed",
+        "img_count": 3,
+        "channels": [("gebeya_online_et", 49000), ("bole_market_et", 50000), ("merkato_deals", 51000)],
+        "seller": ("gebeya_online_et", "+251 92 *** ** 14", False, None, None, None, None),
+        "confidence": 0.95,
+        "negotiable": True,
+        "_note": "Category: TV & Audio · English · Bole area",
+    },
+    {
+        "id": "lst_031",
+        "title": "ሂሴንስ 43 ኢንች ስማርት ቴሌቪዥን ፍሬምለስ ዲዛይን",
+        "titleAm": "ሂሴንስ ፵፫ ኢንች ስማርት ቴሌቪዥን",
+        "desc": "ሂሴንስ 43 ኢንች ባለ ሙሉ HD ስማርት ቲቪ። ዋይፋይና ዩቲዩብ የሚሰራ። ከነ ሪሞቱና እግሩ። ዋጋ 22,500 ብር። መገናኛ አካባቢ።",
+        "descAm": "ሂሴንስ 43 ኢንች ባለ ሙሉ HD ስማርት ቲቪ። ዋይፋይና ዩቲዩብ የሚሰራ። ከነ ሪሞቱና እግሩ። ዋጋ 22,500 ብር። መገናኛ አካባቢ።",
+        "price": 22500,
+        "cat": "tv-audio",
+        "cond": "lightly_used",
+        "area": ("Megenagna", "መገናኛ"),
+        "tier": "claimed",
+        "img_count": 3,
+        "channels": [("gebeya_online_et", 22500), ("addis_used_market", 23000)],
+        "seller": ("gebeya_online_et", "+251 93 *** ** 25", True, "Eden F.", 4.6, 11, "2025-11-28T00:00:00Z"),
+        "confidence": 0.91,
+        "negotiable": True,
+        "_note": "Pure Amharic listing · Claimed tier · Megenagna area",
+    },
+    {
+        "id": "lst_032",
+        # EDGE CASE 8: MALFORMED / PARTIAL PHONE NUMBER
+        "title": "JBL PartyBox 110 Portable Bluetooth Speaker 160W with Dynamic Light Show",
+        "titleAm": "ጄቢኤል ፓርቲ ቦክስ 110 ብሉቱዝ ስፒከር",
+        "desc": "JBL PartyBox 110 portable bluetooth speaker 160W with dynamic lights. Splash-proof IPX4, 12 hours battery. ከፍተኛ ጥራት ያለው ድምፅ። ዋጋ 28,000 ETB. CMC.",
+        "descAm": "ጄቢኤል ፓርቲ ቦክስ 110 ከፍተኛ ድምፅ ያለው። ዋጋ 28,000 ብር ድርድር አለው።",
+        "price": 28000,
+        "cat": "tv-audio",
+        "cond": "lightly_used",
+        "area": ("CMC", "ሲኤምሲ"),
+        "tier": "indexed",
+        "img_count": 2,
+        "channels": [("addis_used_market", 28000)],
+        "seller": ("addis_used_market", "+251 91 *** (incomplete)", False, None, None, None, None),
+        "confidence": 0.72,
+        "negotiable": True,
+        "_note": "Edge case: Malformed / partial phone number in seller contact data · CMC area",
+    },
+    {
+        "id": "lst_033",
+        "title": "Sony 5.1 Channel Home Theatre System with Subwoofer and Tallboy Speakers",
+        "titleAm": "ሶኒ ባለ ፭.፩ ሆም ቲያትር ሲስተም",
+        "desc": "1000W output surround sound Sony home theatre. Bluetooth, optical input, HDMI ARC, USB playback. Crystal clear high notes and deep bass.",
+        "descAm": "ሶኒ ባለ 5.1 ሆም ቲያትር ድምፅ ማጉያ። ለሳሎን ወይም ለፊልም ማየት የሚሆን።",
+        "price": 16500,
+        "cat": "tv-audio",
+        "cond": "fair",
+        "area": ("Kazanchis", "ካዛንቺስ"),
+        "tier": "native",
+        "img_count": 3,
+        "channels": [],
+        "seller": ("gulit_samuel", "+251 95 *** ** 47", True, "Samuel L.", 4.7, 23, "2025-12-12T00:00:00Z"),
+        "confidence": 0.94,
+        "negotiable": True,
+        "_note": "Native tier · Kazanchis area · Sound system",
+    },
+    {
+        "id": "lst_034",
+        "title": "ያማሃ F310 አኮስቲክ ጊታር ከነ ሻንጣው እና ፒክ",
+        "titleAm": "ያማሃ F310 አኮስቲክ ጊታር ከነ ሻንጣው",
+        "desc": "ኦርጅናል ያማሃ አኮስቲክ ጊታር። ድምፁ በጣም ጥርት ያለ ነው። ለጀማሪዎችም ሆነ ለሙያተኞች የሚሆን። ዋጋ 11,500 ብር። ፒያሳ።",
+        "descAm": "ኦርጅናል ያማሃ አኮስቲክ ጊታር። ድምፁ በጣም ጥርት ያለ ነው። ለጀማሪዎችም ሆነ ለሙያተኞች የሚሆን። ዋጋ 11,500 ብር። ፒያሳ።",
+        "price": 11500,
+        "cat": "tv-audio",
+        "cond": "lightly_used",
+        "area": ("Piassa", "ፒያሳ"),
+        "tier": "indexed",
+        "img_count": 2,
+        "channels": [("addis_used_market", 11500)],
+        "seller": ("addis_used_market", "+251 96 *** ** 58", False, None, None, None, None),
+        "confidence": 0.90,
+        "negotiable": False,
+        "_note": "Pure Amharic listing · Piassa area · Musical instrument",
+    },
+    {
+        "id": "lst_035",
+        "title": "Apple AirPods Pro 2nd Gen with MagSafe USB-C Case Active Noise Cancelling",
+        "titleAm": "አፕል ኤርፖድስ ፕሮ ፪ኛ ጄነሬሽን",
+        "desc": "Apple AirPods Pro 2nd Gen with MagSafe USB-C case. Active noise cancellation እና transparency mode 100% ይሰራል. Comes with silicone ear tips. ዋጋ 14,000 ብር። ሰሚት።",
+        "descAm": "አፕል ኤርፖድስ ፕሮ 2 ኦርጅናል የጆሮ ማዳመጫ። ዋጋ 14,000 ብር። ሰሚት።",
+        "price": 14000,
+        "cat": "tv-audio",
+        "cond": "lightly_used",
+        "area": ("Summit", "ሰሚት"),
+        "tier": "indexed",
+        "img_count": 2,
+        "channels": [("ethio_brand_phones", 14000), ("bole_market_et", 14500)],
+        "seller": ("ethio_brand_phones", "+251 97 *** ** 69", False, None, None, None, None),
+        "confidence": 0.92,
+        "negotiable": True,
+        "_note": "Category: TV & Audio · Mixed language · Summit area",
+    },
+
+    # ---------------- VEHICLES & AUTOMOTIVE (6) ----------------
+    {
+        "id": "lst_036",
+        "title": "Toyota Vitz 2008 Automatic Transmission 1.0L Engine Well Maintained",
+        "titleAm": "ቶዮታ ቪትዝ ፪ሺ፰ ሞዴል አውቶማቲክ",
+        "desc": "Toyota Vitz 2008 Automatic Transmission 1.0L engine. Silver color, accident free, original engine & transmission, cold AC. Mileage 135,000 km. ዋጋ 1,180,000 ብር ድርድር አለው። ቦሌ።",
+        "descAm": "ቶዮታ ቪትዝ 2008 ሞዴል በጣም ንፁህ መኪና። አደጋ የሌለበት። ዋጋ 1,180,000 ብር። ቦሌ አካባቢ።",
+        "price": 1180000,
+        "cat": "vehicles",
+        "cond": "fair",
+        "area": ("Bole", "ቦሌ"),
+        "tier": "indexed",
+        "img_count": 4,
+        "channels": [("addis_auto_bazaar", 1180000), ("addis_used_market", 1200000), ("bole_market_et", 1220000)],
+        "seller": ("addis_auto_bazaar", "+251 98 *** ** 70", False, None, None, None, None),
+        "confidence": 0.91,
+        "negotiable": True,
+        "_note": "Category: Vehicles · Mixed language · Bole area · Used car",
+    },
+    {
+        "id": "lst_037",
+        "title": "Suzuki Alto 2016 Single Owner Low Mileage Excellent Condition",
+        "titleAm": "ሱዙኪ አልቶ ፪ሺ፲፮ ሞዴል",
+        "desc": "Single owner Suzuki Alto 2016. High fuel efficiency (20+ km/l), serviced regularly at authorized dealership, clean interior. 920,000 ETB negotiable.",
+        "descAm": "ሱዙኪ አልቶ 2016 ነዳጅ ቆጣቢ መኪና። ዋጋ 920,000 ብር።",
+        "price": 920000,
+        "cat": "vehicles",
+        "cond": "lightly_used",
+        "area": ("Sarbet", "ሳርቤት"),
+        "tier": "claimed",
+        "img_count": 4,
+        "channels": [("addis_auto_bazaar", 920000), ("addis_used_market", 940000)],
+        "seller": ("addis_auto_bazaar", "+251 99 *** ** 81", True, "Kalkidan Y.", 4.9, 17, "2025-07-22T00:00:00Z"),
+        "confidence": 0.93,
+        "negotiable": True,
+        "_note": "Claimed tier · Sarbet area · Used vehicle",
+    },
+    {
+        "id": "lst_038",
+        "title": "ባጃጅ 2019 ሞዴል 4-ስትሮክ ንፁህ ሞተር የታደሰ ቦሎ",
+        "titleAm": "ባጃጅ ፪ሺ፲፱ ሞዴል ፬-ስትሮክ",
+        "desc": "ባጃጅ 2019 ሞዴል ምንም አይነት ችግር የሌለበት። ሰሌዳ ቁጥር 3 የታደሰ ቦሎ እና ኢንሹራንስ ያለው። ዋጋ 440,000 ብር። ጀሞ አካባቢ።",
+        "descAm": "ባጃጅ 2019 ሞዴል ምንም አይነት ችግር የሌለበት። ሰሌዳ ቁጥር 3 የታደሰ ቦሎ እና ኢንሹራንስ ያለው። ዋጋ 440,000 ብር። ጀሞ አካባቢ።",
+        "price": 440000,
+        "cat": "vehicles",
+        "cond": "fair",
+        "area": ("Jemo", "ጀሞ"),
+        "tier": "indexed",
+        "img_count": 3,
+        "channels": [("addis_auto_bazaar", 440000), ("addis_used_market", 450000)],
+        "seller": ("addis_auto_bazaar", "+251 90 *** ** 92", False, None, None, None, None),
+        "confidence": 0.88,
+        "negotiable": True,
+        "_note": "Pure Amharic listing · Jemo area · Bajaj three-wheeler",
+    },
+    {
+        "id": "lst_039",
+        "title": "Trek Marlin 6 Mountain Bike 29-Inch Wheels Hydraulic Disc Brakes",
+        "titleAm": "ትሬክ የተራራ ብስክሌት ፳፱ ኢንች",
+        "desc": "Original Trek Marlin 6 mountain bicycle. Lightweight Alpha Silver Aluminium frame, Shimano 2x8 gearing, front suspension lockout. 18,500 ETB.",
+        "descAm": "ትሬክ ማውንቴን ባይክ ኦርጅናል ብስክሌት። ዋጋ 18,500 ብር። ገርጂ።",
+        "price": 18500,
+        "cat": "vehicles",
+        "cond": "lightly_used",
+        "area": ("Gerji", "ገርጂ"),
+        "tier": "native",
+        "img_count": 3,
+        "channels": [],
+        "seller": ("gulit_henok", "+251 91 *** ** 04", True, "Henok Z.", 4.8, 14, "2026-02-18T00:00:00Z"),
+        "confidence": 0.95,
+        "negotiable": False,
+        "_note": "Native tier · Gerji area · Mountain bicycle",
+    },
+    {
+        "id": "lst_040",
+        "title": "የሞተር ሳይክል ጃኬት እና ሄልሜት ከነ ጓንቱ",
+        "titleAm": "የሞተር ሳይክል ጃኬት እና ሄልሜት",
+        "desc": "ጥራት ያለው የሞተር ሳይክል መከላከያ ጃኬት እና DOT ሰርተፊኬት ያለው ሄልሜት። ዋጋ 6,500 ብር። ኮልፌ አካባቢ።",
+        "descAm": "ጥራት ያለው የሞተር ሳይክል መከላከያ ጃኬት እና DOT ሰርተፊኬት ያለው ሄልሜት። ዋጋ 6,500 ብር። ኮልፌ አካባቢ።",
+        "price": 6500,
+        "cat": "vehicles",
+        "cond": "lightly_used",
+        "area": ("Kolfe", "ኮልፌ"),
+        "tier": "indexed",
+        "img_count": 2,
+        "channels": [("addis_auto_bazaar", 6500)],
+        "seller": ("addis_auto_bazaar", "+251 92 *** ** 15", False, None, None, None, None),
+        "confidence": 0.85,
+        "negotiable": True,
+        "_note": "Pure Amharic listing · Kolfe area · Motorcycle accessories",
+    },
+    {
+        "id": "lst_041",
+        "title": "Hyundai Grand i10 2017 Automatic Petrol Clean City Car",
+        "titleAm": "ሀዩንዳይ ግራንድ i10 ፪ሺ፲፯ ሞዴል",
+        "desc": "Hyundai Grand i10 2017 Automatic Petrol. Cold AC, touch screen infotainment, power mirrors. ለከተማ ትራፊክ በጣም ምቹና ነዳጅ ቆጣቢ መኪና። ዋጋ 1,350,000 ETB. ካዛንቺስ።",
+        "descAm": "ሀዩንዳይ ግራንድ i10 2017 አውቶማቲክ ንፁህ መኪና። ዋጋ 1,350,000 ብር። ካዛንቺስ።",
+        "price": 1350000,
+        "cat": "vehicles",
+        "cond": "lightly_used",
+        "area": ("Kazanchis", "ካዛንቺስ"),
+        "tier": "indexed",
+        "img_count": 4,
+        "channels": [("addis_auto_bazaar", 1350000), ("bole_market_et", 1380000)],
+        "seller": ("addis_auto_bazaar", "+251 93 *** ** 26", False, None, None, None, None),
+        "confidence": 0.92,
+        "negotiable": True,
+        "_note": "Category: Vehicles · Mixed language · Kazanchis area",
+    },
+
+    # ---------------- FASHION & APPAREL (6) ----------------
+    {
+        "id": "lst_042",
+        "title": "የሐበሻ ጥልፍ ቀሚስ በእጅ የተሰራ ጥራት ካለው ጥጥ",
+        "titleAm": "የሐበሻ ጥልፍ ቀሚስ በእጅ የተሰራ ጥራት ካለው ጥጥ",
+        "desc": "ለሰርግ ወይም ለበዓል የሚሆን ያማረ የሐበሻ ቀሚስ። ከነ ሙሉ ነጠላውና ቀበቶው። ዋጋ 8,500 ብር ድርድር አለው። ሽሮ ሜዳ።",
+        "descAm": "ለሰርግ ወይም ለበዓል የሚሆን ያማረ የሐበሻ ቀሚስ። ከነ ሙሉ ነጠላውና ቀበቶው። ዋጋ 8,500 ብር ድርድር አለው። ሽሮ ሜዳ።",
+        "price": 8500,
+        "cat": "fashion",
+        "cond": "brand_new",
+        "area": ("Shiro Meda", "ሽሮ ሜዳ"),
+        "tier": "claimed",
+        "img_count": 3,
+        "channels": [("bole_market_et", 8500), ("addis_used_market", 8800)],
+        "seller": ("bole_market_et", "+251 94 *** ** 37", True, "Feven R.", 4.9, 24, "2025-09-02T00:00:00Z"),
+        "confidence": 0.94,
+        "negotiable": True,
+        "_note": "Traditional fashion · Claimed tier · Shiro Meda area",
+    },
+    {
+        "id": "lst_043",
+        "title": "Genuine Cowhide Leather Jacket Men Size L Dark Brown",
+        "titleAm": "የቆዳ ጃኬት የወንዶች ሳይዝ L",
+        "desc": "Authentic heavy leather jacket made in Ethiopia. YKK brass zippers, quilted inner lining, 4 pockets. Kept in excellent condition.",
+        "descAm": "የወንዶች እውነተኛ የቆዳ ጃኬት። ዋጋ 4,800 ብር። ፒያሳ።",
+        "price": 4800,
+        "cat": "fashion",
+        "cond": "lightly_used",
+        "area": ("Piassa", "ፒያሳ"),
+        "tier": "indexed",
+        "img_count": 2,
+        "channels": [("bole_market_et", 4800), ("addis_used_market", 5000)],
+        "seller": ("bole_market_et", "+251 95 *** ** 48", False, None, None, None, None),
+        "confidence": 0.89,
+        "negotiable": True,
+        "_note": "Category: Fashion · English · Piassa area · Leather jacket",
+    },
+    {
+        "id": "lst_044",
+        "title": "Nike Air Force 1 '07 Triple White Size 42 Original with Box",
+        "titleAm": "ናይክ ኤር ፎርስ 1 ነጭ ቁጥር 42",
+        "desc": "Nike Air Force 1 '07 Triple White size 42 original. 2 ጊዜ ብቻ የተደረገ ንፁህ ጫማ ከነ ኦርጅናል ካርቶኑ። ዋጋ 4,500 ETB. ቦሌ።",
+        "descAm": "ናይክ ኤር ፎርስ 1 ነጭ ቁጥር 42 ኦርጅናል ጫማ። ዋጋ 4,500 ብር። ቦሌ።",
+        "price": 4500,
+        "cat": "fashion",
+        "cond": "lightly_used",
+        "area": ("Bole", "ቦሌ"),
+        "tier": "indexed",
+        "img_count": 3,
+        "channels": [("bole_market_et", 4500), ("addis_used_market", 4700)],
+        "seller": ("bole_market_et", "+251 96 *** ** 59", False, None, None, None, None),
+        "confidence": 0.91,
+        "negotiable": False,
+        "_note": "Category: Fashion · Mixed language · Bole area · Sneakers",
+    },
+    {
+        "id": "lst_045",
+        "title": "የወንዶች የሰርግ ልብስ ሱፍ ቱክሲዶ ሳይዝ 48 ከነ ሸሚዙ እና ከነ ክራቫቱ",
+        "titleAm": "የወንዶች የሰርግ ልብስ ሱፍ ቱክሲዶ",
+        "desc": "አንድ ጊዜ ለሰርግ የተለበሰ ጥቁር ሱፍ ልብስ። ከነ ነጭ ሸሚዙ እና ከነ ክራቫቱ። ዋጋ 6,500 ብር። ሲኤምሲ አካባቢ።",
+        "descAm": "አንድ ጊዜ ለሰርግ የተለበሰ ጥቁር ሱፍ ልብስ። ከነ ነጭ ሸሚዙ እና ከነ ክራቫቱ። ዋጋ 6,500 ብር። ሲኤምሲ አካባቢ።",
+        "price": 6500,
+        "cat": "fashion",
+        "cond": "lightly_used",
+        "area": ("CMC", "ሲኤምሲ"),
+        "tier": "native",
+        "img_count": 3,
+        "channels": [],
+        "seller": ("gulit_getachew", "+251 97 *** ** 60", True, "Getachew N.", 4.7, 10, "2026-01-15T00:00:00Z"),
+        "confidence": 0.93,
+        "negotiable": True,
+        "_note": "Native tier · CMC area · Wedding suit",
+    },
+    {
+        "id": "lst_046",
+        "title": "Ethiopian Cotton Netela with Vibrant Traditional Tilet Border",
+        "titleAm": "የጥጥ ነጠላ ከነ ጥለቱ",
+        "desc": "Ethiopian Cotton Netela with vibrant traditional tilet border. በእጅ የተፈተለ የጥጥ ነጠላ ከነ ጥለቱ። Brand new. ዋጋ 2,200 ብር። መገናኛ።",
+        "descAm": "የጥጥ ነጠላ ከነ ጥለቱ ያማረ ባህላዊ ልብስ። ዋጋ 2,200 ብር። መገናኛ።",
+        "price": 2200,
+        "cat": "fashion",
+        "cond": "brand_new",
+        "area": ("Megenagna", "መገናኛ"),
+        "tier": "indexed",
+        "img_count": 2,
+        "channels": [("bole_market_et", 2200)],
+        "seller": ("bole_market_et", "+251 98 *** ** 71", False, None, None, None, None),
+        "confidence": 0.88,
+        "negotiable": False,
+        "_note": "Category: Fashion · Mixed language · Megenagna area",
+    },
+    {
+        "id": "lst_047",
+        "title": "Women's Samsonite Hard Shell Travel Luggage Suitcase Medium 24-Inch",
+        "titleAm": "የጉዞ ሻንጣ ፳፬ ኢንች",
+        "desc": "Durable Samsonite spinner suitcase with TSA combination lock and 4 dual spinner wheels. Expandable zipper compartment. 5,600 ETB.",
+        "descAm": "የጉዞ ሻንጣ ባለ 4 ጎማ በጣም ጠንካራ። ዋጋ 5,600 ብር። ሳርቤት።",
+        "price": 5600,
+        "cat": "fashion",
+        "cond": "lightly_used",
+        "area": ("Sarbet", "ሳርቤት"),
+        "tier": "claimed",
+        "img_count": 2,
+        "channels": [("bole_market_et", 5600), ("addis_used_market", 5800)],
+        "seller": ("bole_market_et", "+251 99 *** ** 82", True, "Sara A.", 4.8, 19, "2025-10-10T00:00:00Z"),
+        "confidence": 0.90,
+        "negotiable": True,
+        "_note": "Claimed tier · Sarbet area · Travel luggage",
+    },
+
+    # ---------------- BABY & KIDS (6) ----------------
+    {
+        "id": "lst_048",
+        "title": "የሕፃናት የእንጨት አልጋ ከነ ሜዲካል ፍራሹ እና ከነ መጋረጃው",
+        "titleAm": "የሕፃናት የእንጨት አልጋ ከነ ሜዲካል ፍራሹ",
+        "desc": "ለህፃናት የሚሆን ጠንካራ የእንጨት አልጋ። ከነ ፍራሹ እና ከነ አልጋ ልብሱ። ዋጋ 8,200 ብር ድርድር አለው። ሰሚት አካባቢ።",
+        "descAm": "ለህፃናት የሚሆን ጠንካራ የእንጨት አልጋ። ከነ ፍራሹ እና ከነ አልጋ ልብሱ። ዋጋ 8,200 ብር ድርድር አለው። ሰሚት አካባቢ።",
+        "price": 8200,
+        "cat": "kids",
+        "cond": "lightly_used",
+        "area": ("Summit", "ሰሚት"),
+        "tier": "indexed",
+        "img_count": 3,
+        "channels": [("addis_kids_corner", 8200), ("addis_used_market", 8500)],
+        "seller": ("addis_kids_corner", "+251 90 *** ** 93", False, None, None, None, None),
+        "confidence": 0.91,
+        "negotiable": True,
+        "_note": "Pure Amharic listing · Summit area · Baby crib",
+    },
+    {
+        "id": "lst_049",
+        "title": "Chicco Foldable Baby Stroller with Sun Canopy and Storage Basket",
+        "titleAm": "ቺኮ የሕፃናት ጋሪ የሚታጠፍ",
+        "desc": "Lightweight Chicco stroller. One-hand quick fold mechanism, reclining seat, rear wheel brakes, 5-point safety harness. 6,800 ETB.",
+        "descAm": "ቺኮ የሕፃናት ጋሪ የሚታጠፍ ንፁህ። ዋጋ 6,800 ብር። ቦሌ።",
+        "price": 6800,
+        "cat": "kids",
+        "cond": "fair",
+        "area": ("Bole", "ቦሌ"),
+        "tier": "claimed",
+        "img_count": 3,
+        "channels": [("addis_kids_corner", 6800), ("bole_market_et", 7000)],
+        "seller": ("addis_kids_corner", "+251 91 *** ** 05", True, "Mikiyas P.", 4.7, 13, "2025-11-15T00:00:00Z"),
+        "confidence": 0.93,
+        "negotiable": True,
+        "_note": "Claimed tier · Bole area · Stroller",
+    },
+    {
+        "id": "lst_050",
+        "title": "Kids Bicycle 16-Inch with Training Wheels Ages 4 to 7 Years Old",
+        "titleAm": "የልጆች ብስክሌት ፲፮ ኢንች ከነ ረዳት ጎማው",
+        "desc": "Kids Bicycle 16-inch with training wheels ages 4 to 7 years old. የልጆች ብስክሌት ከነ ረዳት ጎማው፣ ቅርጫት እና ደውል። ዋጋ 3,800 ብር። ጀሞ።",
+        "descAm": "የልጆች ብስክሌት ከነ ረዳት ጎማው ከ4 እስከ 7 አመት ለሚሆኑ ልጆች። ዋጋ 3,800 ብር። ጀሞ።",
+        "price": 3800,
+        "cat": "kids",
+        "cond": "fair",
+        "area": ("Jemo", "ጀሞ"),
+        "tier": "indexed",
+        "img_count": 2,
+        "channels": [("addis_kids_corner", 3800)],
+        "seller": ("addis_kids_corner", "+251 92 *** ** 16", False, None, None, None, None),
+        "confidence": 0.86,
+        "negotiable": True,
+        "_note": "Category: Kids · Mixed language · Jemo area · Bicycle",
+    },
+    {
+        "id": "lst_051",
+        "title": "የእንጨት ሞንቴሶሪ የልጆች መማሪያ መጫወቻዎች 40 ቁራጭ",
+        "titleAm": "የእንጨት ሞንቴሶሪ የልጆች መማሪያ መጫወቻዎች",
+        "desc": "የህፃናት አእምሮ የሚያዳብሩ የእንጨት ቅርጾች እና ቀለማት መማሪያ። አዲስ በካርቶን ያለ። ዋጋ 1,600 ብር። አያት።",
+        "descAm": "የህፃናት አእምሮ የሚያዳብሩ የእንጨት ቅርጾች እና ቀለማት መማሪያ። አዲስ በካርቶን ያለ። ዋጋ 1,600 ብር። አያት።",
+        "price": 1600,
+        "cat": "kids",
+        "cond": "brand_new",
+        "area": ("Ayat", "አያት"),
+        "tier": "native",
+        "img_count": 2,
+        "channels": [],
+        "seller": ("gulit_selam", "+251 93 *** ** 27", True, "Selam T.", 4.9, 28, "2025-09-15T00:00:00Z"),
+        "confidence": 0.95,
+        "negotiable": False,
+        "_note": "Native tier · Ayat area · Educational toys",
+    },
+    {
+        "id": "lst_052",
+        "title": "Graco 4-in-1 Convertible Baby Car Seat with Latch System",
+        "titleAm": "የመኪና ውስጥ የሕፃናት መቀመጫ",
+        "desc": "Safety tested Graco car seat suitable from infant to booster stages. Side impact protection, washable cover. 5,200 ETB.",
+        "descAm": "የህፃናት መኪና ወንበር በጣም አስተማማኝ። ዋጋ 5,200 ብር። ሳሪስ።",
+        "price": 5200,
+        "cat": "kids",
+        "cond": "lightly_used",
+        "area": ("Saris", "ሳሪስ"),
+        "tier": "indexed",
+        "img_count": 2,
+        "channels": [("addis_kids_corner", 5200)],
+        "seller": ("addis_kids_corner", "+251 94 *** ** 38", False, None, None, None, None),
+        "confidence": 0.89,
+        "negotiable": True,
+        "_note": "Category: Kids · English · Saris area",
+    },
+    {
+        "id": "lst_053",
+        "title": "የኤሌክትሪክ የሕፃናት ዥዋዥዌ ማወዛወዣ ሙዚቃ ያለው",
+        "titleAm": "የኤሌክትሪክ የሕፃናት ዥዋዥዌ ማወዛወዣ",
+        "desc": "በሪሞት የሚሰራ የህፃናት ማወዛወዣ ዥዋዥዌ። የተለያየ የፍጥነት መጠን እና የሚያረጋጋ ሙዚቃ አለው። ዋጋ 4,900 ብር። ገርጂ።",
+        "descAm": "በሪሞት የሚሰራ የህፃናት ማወዛወዣ ዥዋዥዌ። የተለያየ የፍጥነት መጠን እና የሚያረጋጋ ሙዚቃ አለው። ዋጋ 4,900 ብር። ገርጂ።",
+        "price": 4900,
+        "cat": "kids",
+        "cond": "lightly_used",
+        "area": ("Gerji", "ገርጂ"),
+        "tier": "claimed",
+        "img_count": 2,
+        "channels": [("addis_kids_corner", 4900), ("addis_used_market", 5200)],
+        "seller": ("addis_kids_corner", "+251 95 *** ** 49", True, "Hanna G.", 4.7, 12, "2026-01-20T00:00:00Z"),
+        "confidence": 0.92,
+        "negotiable": True,
+        "_note": "Pure Amharic listing · Claimed tier · Gerji area",
+    },
+
+    # ---------------- BOOKS & HOBBIES (3) ----------------
+    {
+        "id": "lst_054",
+        # EDGE CASE 4: NO PRICE (SELLER WROTE "CALL ME")
+        "title": "Civil Engineering & Architecture University Textbooks Complete Lot of 9 Books",
+        "titleAm": "የሲቪል ምህንድስና እና አርክቴክቸር መጽሐፍት ፱ ጥራዝ",
+        "desc": "Civil Engineering & Architecture University Textbooks lot of 9 books. የዩኒቨርሲቲ ምህንድስና መጽሐፍት ስብስብ። Seller wrote call me for price / ዋጋ በስልክ ይደውሉ። ፒያሳ።",
+        "descAm": "የምህንድስና መጽሐፍት ሙሉ 9 መጽሐፍት። ዋጋ በስልክ ይደውሉ። ፒያሳ።",
+        "price": None,  # NULL PRICE
+        "cat": "books",
+        "cond": "fair",
+        "area": ("Piassa", "ፒያሳ"),
+        "tier": "indexed",
+        "img_count": 2,
+        "channels": [("addis_used_market", None)],
+        "seller": ("addis_used_market", "+251 96 *** ** 50", False, None, None, None, None),
+        "confidence": 0.76,
+        "negotiable": True,
+        "_note": "Edge case: Listing with no price (seller wrote 'call me' / negotiable on phone) · Piassa area",
+    },
+    {
+        "id": "lst_055",
+        "title": "የኢትዮጵያ የታሪክ መጽሐፍት ስብስብ 12 ጥራዞች በፕሮፌሰር ባህሩ ዘውዴ እና ተክለፃዲቅ መኩሪያ",
+        "titleAm": "የኢትዮጵያ የታሪክ መጽሐፍት ስብስብ ፲፪ ጥራዞች",
+        "desc": "የኢትዮጵያ ታሪክ ጥልቅ ጥናት የያዙ 12 ጥራዝ ጠንካራ ሽፋን ያላቸው መጽሐፍት። ዋጋ 3,200 ብር። አራት ኪሎ።",
+        "descAm": "የኢትዮጵያ የታሪክ መጽሐፍት ስብስብ 12 ጥራዞች በፕሮፌሰር ባህሩ ዘውዴ እና ተክለፃዲቅ መኩሪያ። ዋጋ 3,200 ብር።",
+        "price": 3200,
+        "cat": "books",
+        "cond": "fair",
+        "area": ("Arat Kilo", "አራት ኪሎ"),
+        "tier": "claimed",
+        "img_count": 2,
+        "channels": [("merkato_deals", 3200)],
+        "seller": ("merkato_deals", "+251 97 *** ** 61", True, "Dawit A.", 4.8, 19, "2025-11-10T00:00:00Z"),
+        "confidence": 0.91,
+        "negotiable": False,
+        "_note": "Pure Amharic listing · Claimed tier · Arat Kilo area",
+    },
+    {
+        "id": "lst_056",
+        "title": "Canon EOS 700D DSLR Camera with 18-55mm IS STM Lens Bag and 32GB SD Card",
+        "titleAm": "ካኖን EOS 700D ካሜራ ከነ ሌንሱ",
+        "desc": "Clean Canon EOS 700D DSLR camera. 18MP sensor, touch articulating screen, full HD video, battery, charger, neck strap and camera bag. 31,000 ETB.",
+        "descAm": "ካኖን 700D ካሜራ ለፎቶ እና ለቪዲዮ ስራ የሚሆን። ዋጋ 31,000 ብር። ቦሌ።",
+        "price": 31000,
+        "cat": "books",
+        "cond": "lightly_used",
+        "area": ("Bole", "ቦሌ"),
+        "tier": "native",
+        "img_count": 3,
+        "channels": [],
+        "seller": ("gulit_yonas", "+251 98 *** ** 72", True, "Yonas B.", 4.5, 9, "2026-02-14T00:00:00Z"),
+        "confidence": 0.94,
+        "negotiable": True,
+        "_note": "Native tier · Bole area · DSLR camera",
+    },
+
+    # ---------------- TOOLS & HARDWARE (4) ----------------
+    {
+        "id": "lst_057",
+        "title": "Bosch Professional Cordless Hammer Drill GSB 18V-50 with 2x 2.0Ah Batteries & L-BOXX",
+        "titleAm": "ቦሽ ፕሮፌሽናል መሰርሰሪያ 18V",
+        "desc": "Bosch Professional Cordless Hammer Drill GSB 18V-50 with 2x batteries & L-BOXX. ቦሽ ብሩሽለስ የእጅ መሰርሰሪያ ከ 2 ሊቲየም ባትሪ እና ቻርጀር ጋር። ዋጋ 9,800 ETB. መርካቶ።",
+        "descAm": "ቦሽ ኦርጅናል የእጅ መሰርሰሪያ ባለ ሁለት ባትሪ። ዋጋ 9,800 ብር። መርካቶ።",
+        "price": 9800,
+        "cat": "tools",
+        "cond": "lightly_used",
+        "area": ("Merkato", "መርካቶ"),
+        "tier": "indexed",
+        "img_count": 3,
+        "channels": [("merkato_deals", 9800), ("addis_used_market", 10200)],
+        "seller": ("merkato_deals", "+251 99 *** ** 83", False, None, None, None, None),
+        "confidence": 0.92,
+        "negotiable": True,
+        "_note": "Category: Tools · Mixed language · Merkato area",
+    },
+    {
+        "id": "lst_058",
+        "title": "ጀነሬተር 3.5kVA ቤንዚን በቁልፍ እና በእጅ የሚነሳ ፀጥተኛ ሞተር",
+        "titleAm": "ጀነሬተር ፫.፭ ኪቫ ቤንዚን",
+        "desc": "ለቤት ወይም ለሱቅ መብራት የሚሆን 3.5kVA ጀነሬተር። ቤንዚን ቆጣቢና ፀጥ ያለ ድምፅ ያለው። ዋጋ 46,000 ብር ድርድር አለው። ኮልፌ።",
+        "descAm": "ለቤት ወይም ለሱቅ መብራት የሚሆን 3.5kVA ጀነሬተር። ቤንዚን ቆጣቢና ፀጥ ያለ ድምፅ ያለው። ዋጋ 46,000 ብር ድርድር አለው። ኮልፌ።",
+        "price": 46000,
+        "cat": "tools",
+        "cond": "fair",
+        "area": ("Kolfe", "ኮልፌ"),
+        "tier": "claimed",
+        "img_count": 3,
+        "channels": [("merkato_deals", 46000), ("addis_used_market", 47500)],
+        "seller": ("merkato_deals", "+251 90 *** ** 94", True, "Abel M.", 4.8, 16, "2026-03-01T00:00:00Z"),
+        "confidence": 0.90,
+        "negotiable": True,
+        "_note": "Pure Amharic listing · Claimed tier · Kolfe area · Power generator",
+    },
+    {
+        "id": "lst_059",
+        "title": "Inverter ARC Welding Machine 200Amp with Welding Cables and Helmet",
+        "titleAm": "የብየዳ ማሽን ፪፻ አምፔር",
+        "desc": "Portable IGBT inverter welding machine 200A. Over-voltage protection, digital amperage display, copper ground clamp and electrode holder. 17,500 ETB.",
+        "descAm": "የብየዳ ማሽን 200 አምፔር ከነ ኬብሉ እና መከላከያ ማስኩ። ዋጋ 17,500 ብር። ሳሪስ።",
+        "price": 17500,
+        "cat": "tools",
+        "cond": "lightly_used",
+        "area": ("Saris", "ሳሪስ"),
+        "tier": "indexed",
+        "img_count": 2,
+        "channels": [("merkato_deals", 17500)],
+        "seller": ("merkato_deals", "+251 91 *** ** 06", False, None, None, None, None),
+        "confidence": 0.88,
+        "negotiable": True,
+        "_note": "Category: Tools · English · Saris area",
+    },
+    {
+        "id": "lst_060",
+        "title": "Professional Mechanic Hand Tool Set 150 Pieces in Sturdy Steel Toolbox",
+        "titleAm": "የእጅ መሳሪያዎች ስብስብ 150 እቃ በብረት ሳጥን",
+        "desc": "Professional Mechanic Hand Tool Set 150 pieces in steel toolbox. የመካኒክ የእጅ መሳሪያዎች 150 እቃዎች በብረት ሳጥን። Chrome vanadium, brand new. ዋጋ 12,500 ብር። ጉርድ ሾላ።",
+        "descAm": "የመካኒክ የእጅ መሳሪያዎች 150 እቃ በብረት ሳጥን። አዲስ። ዋጋ 12,500 ብር። ጉርድ ሾላ።",
+        "price": 12500,
+        "cat": "tools",
+        "cond": "brand_new",
+        "area": ("Gurd Shola", "ጉርድ ሾላ"),
+        "tier": "native",
+        "img_count": 3,
+        "channels": [],
+        "seller": ("gulit_meron", "+251 92 *** ** 17", True, "Meron K.", 4.6, 14, "2025-12-05T00:00:00Z"),
+        "confidence": 0.95,
+        "negotiable": False,
+        "_note": "Native tier · Gurd Shola area · Mechanic tool box",
+    },
+]
+
+# --------------------------------------------------------------------------
+# 12 Moderation Queue Items
+# --------------------------------------------------------------------------
+
+QUEUE_ITEMS = [
+    {
+        "id": 1,
+        "type": "moderate",
+        "status": "pending",
+        "listingId": "lst_001",
+        "rawMessageId": 101,
+        "attempts": 0,
+        "runAfter": "2026-08-16T09:00:00Z",
+        "createdAt": "2026-08-16T08:30:00Z",
+        "reason": "low_confidence",
+        "channel": {"id": 1, "username": "addis_used_market", "title": "Addis Used Market"},
+        "rawMessage": {
+            "id": 101,
+            "channelId": 1,
+            "channelUsername": "addis_used_market",
+            "messageId": 4820,
+            "rawText": "ላፕቶፕ i5 8gb ram 256 ssd ዋጋ በውስጥ ወይም 0911223344 ቦሌ",
+            "mediaRefs": ["/img/items/lst_010-1.jpg"],
+            "postedAt": "2026-08-16T08:25:00Z",
+        },
+        "extraction": {
+            "titleEn": "Laptop Core i5 8GB RAM 256GB SSD",
+            "titleAm": "ላፕቶፕ i5 8GB RAM 256GB SSD",
+            "descriptionEn": "Used Core i5 laptop with 8GB RAM and 256GB SSD. Contact seller for price.",
+            "descriptionAm": "ላፕቶፕ i5 8GB RAM 256GB SSD ዋጋ በውስጥ አናግሩኝ።",
+            "priceEtb": None,
+            "currency": "ETB",
+            "categorySlug": "computers",
+            "categoryLabel": "Computers",
+            "condition": "lightly_used",
+            "locationArea": "Bole",
+            "locationCity": "Addis Ababa",
+            "phoneRaw": "0911223344",
+            "phoneNormalized": "+251911223344",
+            "confidenceScore": 0.61,
+        },
+        "payload": {
+            "reason": "low_confidence",
+            "confidence": 0.61,
+            "reasonDetails": "Low confidence score (0.61) due to vague model specs and missing price token in raw text.",
+            "rawText": "ላፕቶፕ i5 8gb ram 256 ssd ዋጋ በውስጥ ወይም 0911223344 ቦሌ",
+            "extraction": {
+                "categorySlug": "computers",
+                "condition": "lightly_used",
+                "locationArea": "Bole",
+                "priceEtb": None,
+            },
+        },
+        "_note": "Queue case: Low confidence score (0.61) due to vague model specs and missing price",
+    },
+    {
+        "id": 2,
+        "type": "moderate",
+        "status": "pending",
+        "listingId": "lst_008",
+        "rawMessageId": 102,
+        "attempts": 0,
+        "runAfter": "2026-08-16T09:00:00Z",
+        "createdAt": "2026-08-16T08:35:00Z",
+        "reason": "price_outlier",
+        "channel": {"id": 2, "username": "ethio_brand_phones", "title": "Ethio Brand Phones"},
+        "rawMessage": {
+            "id": 102,
+            "channelId": 2,
+            "channelUsername": "ethio_brand_phones",
+            "messageId": 3118,
+            "rawText": "Brand new iPhone 14 Pro Max 256GB sealed with receipt and full warranty. Only 4,200 ETB. Urgent sale. Contact @quick_phone_deals or 0922334455 CMC.",
+            "mediaRefs": ["/img/items/lst_008-1.jpg"],
+            "postedAt": "2026-08-16T08:30:00Z",
+        },
+        "extraction": {
+            "titleEn": "Apple iPhone 14 Pro Max 256GB Deep Purple Sealed",
+            "titleAm": "አይፎን ፲፬ ፕሮ ማክስ ፪፻፶፮ ጊጋ",
+            "descriptionEn": "Brand new iPhone 14 Pro Max 256GB sealed in box with international warranty.",
+            "descriptionAm": "አስቸኳይ ሽያጭ። አይፎን 14 ፕሮ ማክስ ያልተከፈተ በ4,200 ብር።",
+            "priceEtb": 4200,
+            "currency": "ETB",
+            "categorySlug": "phones",
+            "categoryLabel": "Phones & Tablets",
+            "condition": "brand_new",
+            "locationArea": "CMC",
+            "locationCity": "Addis Ababa",
+            "phoneRaw": "0922334455",
+            "phoneNormalized": "+251922334455",
+            "confidenceScore": 0.89,
+        },
+        "payload": {
+            "reason": "price_outlier",
+            "confidence": 0.89,
+            "reasonDetails": "Price (4,200 ETB) is 81% below category median (22,000 ETB). Potential advance fee scam signal.",
+            "rawText": "Brand new iPhone 14 Pro Max 256GB sealed with receipt and full warranty. Only 4,200 ETB. Urgent sale. Contact @quick_phone_deals or 0922334455 CMC.",
+        },
+        "_note": "Queue case: Price outlier (4,200 ETB vs 22,000 ETB category median) flagged by scam heuristic",
+    },
+    {
+        "id": 3,
+        "type": "moderate",
+        "status": "pending",
+        "listingId": "lst_032",
+        "rawMessageId": 103,
+        "attempts": 0,
+        "runAfter": "2026-08-16T09:00:00Z",
+        "createdAt": "2026-08-16T08:40:00Z",
+        "reason": "malformed_phone",
+        "channel": {"id": 5, "username": "gebeya_online_et", "title": "Gebeya Online"},
+        "rawMessage": {
+            "id": 103,
+            "channelId": 5,
+            "channelUsername": "gebeya_online_et",
+            "messageId": 5408,
+            "rawText": "LG 55 inch 4K Smart TV in perfect condition. Used 6 months. Price 38,000 ETB negotiable. For quick deal call 09112... or inbox @lg_seller Piassa.",
+            "mediaRefs": ["/img/items/lst_030-1.jpg"],
+            "postedAt": "2026-08-16T08:35:00Z",
+        },
+        "extraction": {
+            "titleEn": "LG 55 inch 4K Smart TV",
+            "titleAm": "ኤልጂ ፶፭ ኢንች 4K ስማርት ቴሌቪዥን",
+            "descriptionEn": "LG 55 inch 4K Smart TV in perfect condition. Used 6 months. Price 38,000 ETB negotiable.",
+            "descriptionAm": "ኤልጂ 55 ኢንች ስማርት ቲቪ በደንብ የሚሰራ።",
+            "priceEtb": 38000,
+            "currency": "ETB",
+            "categorySlug": "tv-audio",
+            "categoryLabel": "TV & Audio",
+            "condition": "lightly_used",
+            "locationArea": "Piassa",
+            "locationCity": "Addis Ababa",
+            "phoneRaw": "09112...",
+            "phoneNormalized": None,
+            "confidenceScore": 0.68,
+        },
+        "payload": {
+            "reason": "malformed_phone",
+            "confidence": 0.68,
+            "reasonDetails": "Phone number was truncated in post ('09112...'). Moderator to review contact fallback.",
+            "rawText": "LG 55 inch 4K Smart TV in perfect condition. Used 6 months. Price 38,000 ETB negotiable. For quick deal call 09112... or inbox @lg_seller Piassa.",
+        },
+        "_note": "Queue case: Malformed / truncated phone number in original post",
+    },
+    {
+        "id": 4,
+        "type": "moderate",
+        "status": "pending",
+        "listingId": "lst_044",
+        "rawMessageId": 104,
+        "attempts": 0,
+        "runAfter": "2026-08-16T09:00:00Z",
+        "createdAt": "2026-08-16T08:42:00Z",
+        "reason": "user_reports",
+        "channel": {"id": 3, "username": "bole_market_et", "title": "Bole Market ET"},
+        "rawMessage": {
+            "id": 104,
+            "channelId": 3,
+            "channelUsername": "bole_market_et",
+            "messageId": 2884,
+            "rawText": "Nike Air Jordan 1 Retro High OG size 42 original with box. Price 4,500 ETB. Bole Medhanialem @sneaker_plug.",
+            "mediaRefs": ["/img/items/lst_044-1.jpg"],
+            "postedAt": "2026-08-16T08:38:00Z",
+        },
+        "extraction": {
+            "titleEn": "Nike Air Jordan 1 Retro High OG Size 42",
+            "titleAm": "ናይክ ኤር ጆርዳን 1 ቁጥር 42",
+            "descriptionEn": "Nike Air Jordan 1 Retro High OG size 42 original with box. Price 4,500 ETB.",
+            "descriptionAm": "ናይክ ኤር ጆርዳን 1 ኦርጅናል ጫማ።",
+            "priceEtb": 4500,
+            "currency": "ETB",
+            "categorySlug": "fashion",
+            "categoryLabel": "Fashion",
+            "condition": "brand_new",
+            "locationArea": "Bole",
+            "locationCity": "Addis Ababa",
+            "phoneRaw": None,
+            "phoneNormalized": None,
+            "confidenceScore": 0.92,
+        },
+        "payload": {
+            "reason": "user_reports",
+            "reportCount": 3,
+            "reportReasons": [
+                "Counterfeit replica advertised as original",
+                "Seller demanded prepayment before meeting",
+                "Misleading photo",
+            ],
+            "action": "auto_hidden_pending_moderation",
+        },
+        "_note": "Queue case: 3+ user reports received triggers auto-hide and moderation review",
+    },
+    {
+        "id": 5,
+        "type": "moderate",
+        "status": "pending",
+        "listingId": "lst_017",
+        "rawMessageId": 105,
+        "attempts": 0,
+        "runAfter": "2026-08-16T09:00:00Z",
+        "createdAt": "2026-08-16T08:45:00Z",
+        "reason": "missing_price",
+        "channel": {"id": 4, "username": "ethio_furniture_market", "title": "Ethio Furniture Market"},
+        "rawMessage": {
+            "id": 105,
+            "channelId": 4,
+            "channelUsername": "ethio_furniture_market",
+            "messageId": 1940,
+            "rawText": "ባለ 6 ወንበር የእንጨት ዲዛይን ያለው የመመገቢያ ጠረጴዛ በጣም ፅዱ። ዋጋ በስልክ ይደውሉልን 0933445566 ሰሚት አካባቢ።",
+            "mediaRefs": ["/img/items/lst_017-1.jpg"],
+            "postedAt": "2026-08-16T08:40:00Z",
+        },
+        "extraction": {
+            "titleEn": "Solid Wood 6-Seater Dining Table Set",
+            "titleAm": "ባለ ፮ ወንበር የእንጨት የመመገቢያ ጠረጴዛ",
+            "descriptionEn": "Solid wood dining table set with 6 chairs. Contact seller on phone for price.",
+            "descriptionAm": "ባለ 6 ወንበር የእንጨት ዲዛይን ያለው የመመገቢያ ጠረጴዛ። ዋጋ በስልክ።",
+            "priceEtb": None,
+            "currency": "ETB",
+            "categorySlug": "furniture",
+            "categoryLabel": "Furniture",
+            "condition": "lightly_used",
+            "locationArea": "Summit",
+            "locationCity": "Addis Ababa",
+            "phoneRaw": "0933445566",
+            "phoneNormalized": "+251933445566",
+            "confidenceScore": 0.74,
+        },
+        "payload": {
+            "reason": "missing_price",
+            "confidence": 0.74,
+            "reasonDetails": "Seller wrote 'ዋጋ በስልክ' (price by phone). Moderator can approve listing with null price.",
+            "rawText": "ባለ 6 ወንበር የእንጨት ዲዛይን ያለው የመመገቢያ ጠረጴዛ በጣም ፅዱ። ዋጋ በስልክ ይደውሉልን 0933445566 ሰሚት አካባቢ።",
+        },
+        "_note": "Queue case: Seller did not specify price ('ዋጋ በስልክ')",
+    },
+    {
+        "id": 6,
+        "type": "moderate",
+        "status": "pending",
+        "listingId": "lst_016",
+        "rawMessageId": 106,
+        "attempts": 0,
+        "runAfter": "2026-08-16T09:00:00Z",
+        "createdAt": "2026-08-16T08:48:00Z",
+        "reason": "duplicate_conflict",
+        "channel": {"id": 1, "username": "addis_used_market", "title": "Addis Used Market"},
+        "rawMessage": {
+            "id": 106,
+            "channelId": 1,
+            "channelUsername": "addis_used_market",
+            "messageId": 4821,
+            "rawText": "L-shape gray fabric sofa with table and 4 cushions. Price 18,500 ETB. Call 0944556677 Gerji.",
+            "mediaRefs": ["/img/items/lst_016-1.jpg"],
+            "postedAt": "2026-08-16T08:44:00Z",
+        },
+        "extraction": {
+            "titleEn": "L-shape Gray Fabric Sofa with Table",
+            "titleAm": "ኤል ቅርፅ ያለው የጨርቅ ሶፋ ከነ ጠረጴዛው",
+            "descriptionEn": "L-shaped gray sofa with coffee table and 4 cushions.",
+            "descriptionAm": "ኤል ቅርፅ ያለው ሶፋ ከነ ጠረጴዛው እና ትራሶች።",
+            "priceEtb": 18500,
+            "currency": "ETB",
+            "categorySlug": "furniture",
+            "categoryLabel": "Furniture",
+            "condition": "lightly_used",
+            "locationArea": "Gerji",
+            "locationCity": "Addis Ababa",
+            "phoneRaw": "0944556677",
+            "phoneNormalized": "+251944556677",
+            "confidenceScore": 0.88,
+        },
+        "payload": {
+            "reason": "duplicate_conflict",
+            "targetClusterId": "lst_016",
+            "imageDistance": 0.04,
+            "phoneMismatch": "Extracted phone 0944556677 differs from cluster phone 0911554433",
+            "reasonDetails": "Perceptual image hash matches listing lst_016, but seller phone numbers differ.",
+        },
+        "_note": "Queue case: Image hash match on duplicate sofa but differing phone numbers",
+    },
+    {
+        "id": 7,
+        "type": "moderate",
+        "status": "pending",
+        "listingId": "lst_057",
+        "rawMessageId": 107,
+        "attempts": 0,
+        "runAfter": "2026-08-16T09:00:00Z",
+        "createdAt": "2026-08-16T08:50:00Z",
+        "reason": "flagged_seller",
+        "channel": {"id": 6, "username": "merkato_deals", "title": "Merkato Deals"},
+        "rawMessage": {
+            "id": 107,
+            "channelId": 6,
+            "channelUsername": "merkato_deals",
+            "messageId": 6228,
+            "rawText": "Bosch cordless drill with 2 lithium batteries and charger. 7,500 ETB. Merkato @tool_mart or 0955667788.",
+            "mediaRefs": ["/img/items/lst_057-1.jpg"],
+            "postedAt": "2026-08-16T08:46:00Z",
+        },
+        "extraction": {
+            "titleEn": "Bosch Cordless Drill with 2 Batteries",
+            "titleAm": "ቦሽ የእጅ መሰርሰሪያ ባለ ሁለት ባትሪ",
+            "descriptionEn": "Bosch cordless drill with 2 lithium batteries and charger.",
+            "descriptionAm": "ቦሽ የእጅ መሰርሰሪያ ከነ ባትሪው እና ቻርጀሩ።",
+            "priceEtb": 7500,
+            "currency": "ETB",
+            "categorySlug": "tools",
+            "categoryLabel": "Tools",
+            "condition": "brand_new",
+            "locationArea": "Merkato",
+            "locationCity": "Addis Ababa",
+            "phoneRaw": "0955667788",
+            "phoneNormalized": "+251955667788",
+            "confidenceScore": 0.91,
+        },
+        "payload": {
+            "reason": "flagged_seller",
+            "flaggedPhone": "+251955667788",
+            "priorFlagCount": 2,
+            "reasonDetails": "Phone number +251955667788 is associated with 2 previously flagged suspicious posts.",
+        },
+        "_note": "Queue case: Seller phone matches history of flagged listings",
+    },
+    {
+        "id": 8,
+        "type": "moderate",
+        "status": "pending",
+        "listingId": "lst_033",
+        "rawMessageId": 108,
+        "attempts": 0,
+        "runAfter": "2026-08-16T09:00:00Z",
+        "createdAt": "2026-08-16T08:52:00Z",
+        "reason": "new_native_user",
+        "channel": {"id": 0, "username": "gulit_native", "title": "Gulit Direct Post"},
+        "rawMessage": {
+            "id": 108,
+            "channelId": 0,
+            "channelUsername": "gulit_native",
+            "messageId": 12,
+            "rawText": "Sony PlayStation 5 Disc Edition with 2 DualSense controllers and FIFA 24. Used 3 months. Price 58,000 ETB. Location: Sarbet. Phone: 0966778899.",
+            "mediaRefs": ["/img/items/lst_033-1.jpg"],
+            "postedAt": "2026-08-16T08:50:00Z",
+        },
+        "extraction": {
+            "titleEn": "Sony PlayStation 5 Disc Edition + 2 Controllers",
+            "titleAm": "ሶኒ ፕሌይስቴሽን 5 ከነ 2 ጆይስቲክ",
+            "descriptionEn": "Sony PS5 Disc Edition with 2 controllers and game. Mint condition.",
+            "descriptionAm": "ሶኒ ፕሌይስቴሽን 5 ከነ ሁለት ጆይስቲክ እና ጌም ጋር።",
+            "priceEtb": 58000,
+            "currency": "ETB",
+            "categorySlug": "tv-audio",
+            "categoryLabel": "TV & Audio",
+            "condition": "lightly_used",
+            "locationArea": "Sarbet",
+            "locationCity": "Addis Ababa",
+            "phoneRaw": "0966778899",
+            "phoneNormalized": "+251966778899",
+            "confidenceScore": 0.95,
+        },
+        "payload": {
+            "reason": "new_native_user",
+            "userTrustLevel": "new",
+            "accountAgeHours": 3,
+            "reasonDetails": "Native post from newly registered account without verified history. Contact details held pending first post review.",
+        },
+        "_note": "Queue case: First-time native post awaiting contact verification",
+    },
+    {
+        "id": 9,
+        "type": "moderate",
+        "status": "pending",
+        "listingId": "lst_048",
+        "rawMessageId": 109,
+        "attempts": 0,
+        "runAfter": "2026-08-16T09:00:00Z",
+        "createdAt": "2026-08-16T08:54:00Z",
+        "reason": "ambiguous_location",
+        "channel": {"id": 8, "username": "addis_kids_corner", "title": "Addis Kids Corner"},
+        "rawMessage": {
+            "id": 109,
+            "channelId": 8,
+            "channelUsername": "addis_kids_corner",
+            "messageId": 978,
+            "rawText": "የሕፃናት አልጋ ከነ ፍራሹ። መገናኛ ወይም ገርጂ ወይም ቦሌ መጥተው መውሰድ ይችላሉ። ዋጋ 8,000 ETB. 0977889900.",
+            "mediaRefs": ["/img/items/lst_048-1.jpg"],
+            "postedAt": "2026-08-16T08:51:00Z",
+        },
+        "extraction": {
+            "titleEn": "Baby Crib with Mattress",
+            "titleAm": "የሕፃናት አልጋ ከነ ፍራሹ",
+            "descriptionEn": "Baby crib with mattress. Pick up available in Megenagna, Gerji or Bole.",
+            "descriptionAm": "የሕፃናት አልጋ ከነ ፍራሹ። ዋጋ 8,000 ብር።",
+            "priceEtb": 8000,
+            "currency": "ETB",
+            "categorySlug": "kids",
+            "categoryLabel": "Baby & Kids",
+            "condition": "lightly_used",
+            "locationArea": "Megenagna",
+            "locationCity": "Addis Ababa",
+            "phoneRaw": "0977889900",
+            "phoneNormalized": "+251977889900",
+            "confidenceScore": 0.65,
+        },
+        "payload": {
+            "reason": "ambiguous_location",
+            "confidence": 0.65,
+            "detectedLocations": ["Megenagna", "Gerji", "Bole"],
+            "reasonDetails": "Original post mentions 3 different pickup neighborhoods ('መገናኛ ወይም ገርጂ ወይም ቦሌ'). Extraction defaulted to Megenagna.",
+        },
+        "_note": "Queue case: Multiple pickup locations mentioned in post ('መገናኛ ወይም ገርጂ ወይም ቦሌ')",
+    },
+    {
+        "id": 10,
+        "type": "moderate",
+        "status": "pending",
+        "listingId": "lst_036",
+        "rawMessageId": 110,
+        "attempts": 0,
+        "runAfter": "2026-08-16T09:00:00Z",
+        "createdAt": "2026-08-16T08:55:00Z",
+        "reason": "high_value_review",
+        "channel": {"id": 7, "username": "addis_auto_bazaar", "title": "Addis Auto Bazaar"},
+        "rawMessage": {
+            "id": 110,
+            "channelId": 7,
+            "channelUsername": "addis_auto_bazaar",
+            "messageId": 1418,
+            "rawText": "Toyota RAV4 2018 model, automatic, leather seats, 4WD, only 42,000 km. Full service history. Price 3,850,000 ETB. Call 0988990011 Kazanchis.",
+            "mediaRefs": ["/img/items/lst_036-1.jpg"],
+            "postedAt": "2026-08-16T08:52:00Z",
+        },
+        "extraction": {
+            "titleEn": "Toyota RAV4 2018 Automatic 4WD",
+            "titleAm": "ቶዮታ RAV4 ፪ሺ፲፰ ሞዴል አውቶማቲክ",
+            "descriptionEn": "Toyota RAV4 2018 model, automatic, leather seats, 4WD, 42,000 km.",
+            "descriptionAm": "ቶዮታ RAV4 2018 ሞዴል አውቶማቲክ ባለ ሙሉ እቃ መኪና።",
+            "priceEtb": 3850000,
+            "currency": "ETB",
+            "categorySlug": "vehicles",
+            "categoryLabel": "Vehicles",
+            "condition": "lightly_used",
+            "locationArea": "Kazanchis",
+            "locationCity": "Addis Ababa",
+            "phoneRaw": "0988990011",
+            "phoneNormalized": "+251988990011",
+            "confidenceScore": 0.86,
+        },
+        "payload": {
+            "reason": "high_value_review",
+            "priceEtb": 3850000,
+            "thresholdEtb": 3000000,
+            "reasonDetails": "Transaction value > 3,000,000 ETB. High-value transactions routed for moderator provenance check.",
+        },
+        "_note": "Queue case: High-value vehicle listing (> 3M ETB) requiring provenance check",
+    },
+    {
+        "id": 11,
+        "type": "moderate",
+        "status": "pending",
+        "listingId": "lst_042",
+        "rawMessageId": 111,
+        "attempts": 0,
+        "runAfter": "2026-08-16T09:00:00Z",
+        "createdAt": "2026-08-16T08:56:00Z",
+        "reason": "mixed_language_extraction",
+        "channel": {"id": 3, "username": "bole_market_et", "title": "Bole Market ET"},
+        "rawMessage": {
+            "id": 111,
+            "channelId": 3,
+            "channelUsername": "bole_market_et",
+            "messageId": 2886,
+            "rawText": "ኦሪጅናል የሀበሻ ጥልፍ ቀሚስ ለሰርግ ወይም ለበዓል የሚሆን አንድ ጊዜ ብቻ የተደረገ hand woven habesha kemis size M ዋጋ 9,500 ብር 0911002233 ፒያሳ",
+            "mediaRefs": ["/img/items/lst_042-1.jpg"],
+            "postedAt": "2026-08-16T08:53:00Z",
+        },
+        "extraction": {
+            "titleEn": "Hand-woven Traditional Habesha Kemis Size M",
+            "titleAm": "ኦሪጅናል የሀበሻ ጥልፍ ቀሚስ አንድ ጊዜ የተደረገ",
+            "descriptionEn": "Authentic hand-woven Habesha dress suitable for weddings or holidays. Size M. Worn once.",
+            "descriptionAm": "ኦሪጅናል የሀበሻ ጥልፍ ቀሚስ ለሰርግ ወይም ለበዓል የሚሆን አንድ ጊዜ ብቻ የተደረገ። ዋጋ 9,500 ብር።",
+            "priceEtb": 9500,
+            "currency": "ETB",
+            "categorySlug": "fashion",
+            "categoryLabel": "Fashion",
+            "condition": "lightly_used",
+            "locationArea": "Piassa",
+            "locationCity": "Addis Ababa",
+            "phoneRaw": "0911002233",
+            "phoneNormalized": "+251911002233",
+            "confidenceScore": 0.77,
+        },
+        "payload": {
+            "reason": "mixed_language_extraction",
+            "confidence": 0.77,
+            "reasonDetails": "Heavy transliterated text ('hand woven habesha kemis') mixed with classical Ge'ez phrasing. Review bilingual field mapping.",
+        },
+        "_note": "Queue case: Complex bilingual phrasing and transliteration requiring review",
+    },
+    {
+        "id": 12,
+        "type": "moderate",
+        "status": "pending",
+        "listingId": "lst_027",
+        "rawMessageId": 112,
+        "attempts": 0,
+        "runAfter": "2026-08-16T09:00:00Z",
+        "createdAt": "2026-08-16T08:58:00Z",
+        "reason": "prohibited_keyword_check",
+        "channel": {"id": 6, "username": "merkato_deals", "title": "Merkato Deals"},
+        "rawMessage": {
+            "id": 112,
+            "channelId": 6,
+            "channelUsername": "merkato_deals",
+            "messageId": 6229,
+            "rawText": "የህክምና እቃዎች - BP Digital Blood Pressure Monitor and Oximeter set. Brand new in box. 3,200 ETB. Call 0922114433 Kolfe.",
+            "mediaRefs": ["/img/items/lst_027-1.jpg"],
+            "postedAt": "2026-08-16T08:55:00Z",
+        },
+        "extraction": {
+            "titleEn": "Digital Blood Pressure Monitor and Oximeter Set",
+            "titleAm": "የደም ግፊት መለኪያ ዲጂታል ሞኒተር",
+            "descriptionEn": "Digital blood pressure monitor and pulse oximeter set. Brand new in box.",
+            "descriptionAm": "የደም ግፊት መለኪያ ዲጂታል ሞኒተር። አዲስ በካርቶን ያለ። ዋጋ 3,200 ብር።",
+            "priceEtb": 3200,
+            "currency": "ETB",
+            "categorySlug": "appliances",
+            "categoryLabel": "Home Appliances",
+            "condition": "brand_new",
+            "locationArea": "Kolfe",
+            "locationCity": "Addis Ababa",
+            "phoneRaw": "0922114433",
+            "phoneNormalized": "+251922114433",
+            "confidenceScore": 0.72,
+        },
+        "payload": {
+            "reason": "prohibited_keyword_check",
+            "matchedKeyword": "የህክምና እቃዎች",
+            "reasonDetails": "Keyword 'የህክምና እቃዎች' (medical equipment) triggered policy filter; moderator to confirm consumer wellness device vs regulated pharmacy item.",
+        },
+        "_note": "Queue case: Prohibited goods / medical keyword policy false positive check",
+    },
+]
+
+
+# --------------------------------------------------------------------------
+# Main Build Routine
 # --------------------------------------------------------------------------
 
 def build() -> None:
-    rng = random.Random(20260816)
     cat_lookup = {slug: (en, am) for slug, en, am in CATEGORIES}
+    channels_lookup = {c["username"]: c["title"] for c in CHANNELS_DATA}
 
     listings = []
     image_seed = 0
 
-    for index, (cat, title_en, title_am, price, condition) in enumerate(ITEMS):
-        listing_id = f"lst_{index + 1:03d}"
-        area_en, area_am = AREAS[(index * 7 + 3) % len(AREAS)]
+    for idx, item in enumerate(RAW_LISTINGS):
+        listing_id = item["id"]
+        cat = item["cat"]
         stats = CATEGORY_STATS[cat]
+        area_en, area_am = item["area"]
+        title = item["title"]
+        title_am = item["titleAm"]
+        price = item["price"]
+        condition = item["cond"]
+        tier = item["tier"]
 
-        # Tier mix: mostly scraped, a minority claimed, a handful native.
-        if index % 11 == 4:
-            tier = "native"
-        elif index % 7 == 2:
-            tier = "claimed"
-        else:
-            tier = "indexed"
-
-        # Dedup fan-out. Most items appear once; a meaningful slice are
-        # cross-posted, which is the whole reason this product exists.
-        if tier == "native":
-            channel_count = 0
-        elif index % 9 == 0:
-            channel_count = rng.choice([5, 6])
-        elif index % 3 == 0:
-            channel_count = rng.choice([2, 3, 4])
-        else:
-            channel_count = 1
-
+        # Sources construction
         sources = []
-        for n in range(channel_count):
-            handle, name = CHANNELS[(index * 5 + n * 3) % len(CHANNELS)]
-            if price is None:
-                source_price = None
-            else:
-                # Cross-posts drift a little; the first one is the cheapest sighting.
-                drift = 1.0 if n == 0 else 1 + (n * rng.uniform(0.02, 0.09))
-                source_price = int(round(price * drift / 50) * 50)
+        for n, (chan_user, chan_price) in enumerate(item["channels"]):
             sources.append(
                 {
-                    "channelHandle": handle,
-                    "channelTitle": name,
-                    "messageUrl": f"https://t.me/{handle}/{4000 + index * 13 + n}",
-                    "postedAt": iso(index % 12, n * 5, (index * 7 + n * 11) % 60),
-                    "priceEtb": source_price,
+                    "channelHandle": chan_user,
+                    "channelTitle": channels_lookup.get(chan_user, chan_user),
+                    "messageUrl": f"https://t.me/{chan_user}/{4000 + idx * 17 + n}",
+                    "postedAt": iso(idx % 12, n * 4, (idx * 9 + n * 13) % 60),
+                    "priceEtb": chan_price,
                 }
             )
 
         source_prices = [s["priceEtb"] for s in sources if s["priceEtb"] is not None]
         lowest = min(source_prices) if source_prices else price
 
-        # One listing per fixture set exercises the missing-image path.
-        has_image = index != 3
+        # Images construction
         images = []
-        if has_image:
-            image_count = 1 if index % 4 else rng.choice([2, 3, 4])
-            for n in range(image_count):
-                image_seed += 1
-                name = f"{listing_id}-{n + 1}.jpg"
-                img_dest = IMAGES / name
-                if not img_dest.exists():
-                    make_image(image_seed, img_dest)
-                images.append(
-                    {
-                        "url": f"/img/items/{name}",
-                        "width": IMG_W,
-                        "height": IMG_H,
-                        "alt": f"{title_en}, photo {n + 1}",
-                    }
-                )
+        for n in range(item["img_count"]):
+            image_seed += 1
+            filename = f"{listing_id}-{n + 1}.jpg"
+            img_dest = IMAGES / filename
+            if not img_dest.exists():
+                make_image(image_seed, img_dest)
+            images.append(
+                {
+                    "url": f"/img/items/{filename}",
+                    "width": IMG_W,
+                    "height": IMG_H,
+                    "alt": f"{title}, photo {n + 1}",
+                }
+            )
 
-        seller_name = SELLER_NAMES[index % len(SELLER_NAMES)]
+        # Seller construction
+        handle, phone, verified, dname, ravg, rcount, msince = item["seller"]
         seller = {
-            "displayName": seller_name if tier != "indexed" else None,
-            "telegramHandle": sources[0]["channelHandle"] if sources else f"gulit_{slugify(seller_name)}",
-            "phoneMasked": f"+251 9{(index * 37) % 10} *** ** {(index * 17) % 90 + 10}",
-            "phoneVerified": tier != "indexed",
-            "ratingAvg": round(3.8 + ((index * 13) % 12) / 10, 1) if tier != "indexed" else None,
-            "ratingCount": (index * 7) % 41 + 3 if tier != "indexed" else None,
-            "memberSince": iso(120 + index * 3, 0, 0) if tier != "indexed" else None,
+            "displayName": dname,
+            "telegramHandle": handle,
+            "phoneMasked": phone,
+            "phoneVerified": verified,
+            "ratingAvg": ravg,
+            "ratingCount": rcount,
+            "memberSince": msince,
         }
 
-        listings.append(
-            {
-                "id": listing_id,
-                "slug": slugify(title_en),
-                "title": title_en,
-                "titleAm": title_am,
-                "description": DESCRIPTIONS[condition][index % 3],
-                "descriptionAm": AMHARIC_DESCRIPTIONS[index % 3] if title_am else None,
-                "priceEtb": price,
-                "currency": "ETB",
-                "negotiable": index % 3 != 1,
-                "categorySlug": cat,
-                "categoryLabel": cat_lookup[cat][0],
-                "categoryLabelAm": cat_lookup[cat][1],
-                "condition": condition,
-                "location": {"area": area_en, "areaAm": area_am, "city": "Addis Ababa"},
-                "tier": tier,
-                "images": images,
-                "seller": seller,
-                "sources": sources,
-                "seenInChannels": channel_count,
-                "lowestPriceEtb": lowest,
-                "priceStats": {
-                    "categoryMedianEtb": stats[0],
-                    "p25Etb": stats[1],
-                    "p75Etb": stats[2],
-                    "verdict": price_verdict(price, stats),
-                    "sampleSize": 40 + (index * 11) % 260,
-                },
-                "extractionConfidence": round(0.62 + ((index * 23) % 37) / 100, 2),
-                "postedAt": iso(index % 12, (index * 3) % 20, (index * 7) % 60),
-                "updatedAt": iso(index % 12, (index * 3) % 20, (index * 7) % 60),
+        # Price stats
+        if price is not None:
+            p_stats = {
+                "categoryMedianEtb": stats[0],
+                "p25Etb": stats[1],
+                "p75Etb": stats[2],
+                "verdict": price_verdict(price, stats),
+                "sampleSize": 45 + (idx * 13) % 250,
             }
-        )
+        else:
+            p_stats = None
 
-    payload = {
+        listing_entry = {
+            "id": listing_id,
+            "slug": slugify(title),
+            "title": title,
+            "titleAm": title_am,
+            "description": item["desc"],
+            "descriptionAm": item["descAm"],
+            "priceEtb": price,
+            "currency": "ETB",
+            "negotiable": item["negotiable"],
+            "categorySlug": cat,
+            "categoryLabel": cat_lookup[cat][0],
+            "categoryLabelAm": cat_lookup[cat][1],
+            "condition": condition,
+            "location": {
+                "area": area_en,
+                "areaAm": area_am,
+                "city": "Addis Ababa",
+            },
+            "tier": tier,
+            "images": images,
+            "seller": seller,
+            "sources": sources,
+            "seenInChannels": len(sources),
+            "lowestPriceEtb": lowest,
+            "priceStats": p_stats,
+            "extractionConfidence": item["confidence"],
+            "postedAt": iso(idx % 12, (idx * 3) % 20, (idx * 7) % 60),
+            "updatedAt": iso(idx % 12, (idx * 3) % 20, (idx * 7) % 60),
+            "_note": item["_note"],
+        }
+        listings.append(listing_entry)
+
+    # 1. Output fixtures/listings.json
+    listings_payload = {
         "_note": (
             "Fixture data for UI development. Channel handles, sellers and phone "
             "numbers are invented. Replace this file wholesale with the API "
@@ -472,15 +2098,38 @@ def build() -> None:
             {"value": "native", "label": "On Gulit", "labelAm": "በጉሊት የተለጠፈ"},
         ],
         "areas": [{"area": en, "areaAm": am} for en, am in AREAS],
-        "channelCount": len(CHANNELS),
+        "channelCount": len(CHANNELS_DATA),
         "listings": listings,
     }
 
     FIXTURES.mkdir(parents=True, exist_ok=True)
     (FIXTURES / "listings.json").write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        json.dumps(listings_payload, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
     )
-    print(f"wrote {len(listings)} listings, {image_seed} images")
+
+    # 2. Output fixtures/channels.json
+    (FIXTURES / "channels.json").write_text(
+        json.dumps(CHANNELS_DATA, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+    # 3. Output fixtures/queue.json
+    queue_payload = {
+        "items": QUEUE_ITEMS,
+        "total": len(QUEUE_ITEMS),
+    }
+    (FIXTURES / "queue.json").write_text(
+        json.dumps(queue_payload, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+    print(
+        f"Generated {len(listings)} listings in fixtures/listings.json, "
+        f"{len(CHANNELS_DATA)} channels in fixtures/channels.json, "
+        f"{len(QUEUE_ITEMS)} queue items in fixtures/queue.json, "
+        f"and {image_seed} placeholder images in public/img/items/."
+    )
 
 
 if __name__ == "__main__":

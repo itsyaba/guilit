@@ -1,0 +1,90 @@
+[
+  {
+    "id": 1,
+    "telegramId": -1001589304921,
+    "username": "addis_used_market",
+    "title": "Addis Used Market",
+    "active": true,
+    "lastMessageId": 4823,
+    "messageCount": 4823,
+    "createdAt": "2026-08-01T00:00:00Z",
+    "_note": "Plausible source channel: General second-hand items across Addis"
+  },
+  {
+    "id": 2,
+    "telegramId": -1001894720184,
+    "username": "ethio_brand_phones",
+    "title": "Ethio Brand Phones",
+    "active": true,
+    "lastMessageId": 3120,
+    "messageCount": 3120,
+    "createdAt": "2026-08-01T00:00:00Z",
+    "_note": "Plausible source channel: Mobile phones, tablets & accessories"
+  },
+  {
+    "id": 3,
+    "telegramId": -1001732948192,
+    "username": "bole_market_et",
+    "title": "Bole Market ET",
+    "active": true,
+    "lastMessageId": 2890,
+    "messageCount": 2890,
+    "createdAt": "2026-08-02T00:00:00Z",
+    "_note": "Plausible source channel: High-end fashion, laptops, home goods"
+  },
+  {
+    "id": 4,
+    "telegramId": -1001648291047,
+    "username": "ethio_furniture_market",
+    "title": "Ethio Furniture Market",
+    "active": true,
+    "lastMessageId": 1945,
+    "messageCount": 1945,
+    "createdAt": "2026-08-02T00:00:00Z",
+    "_note": "Plausible source channel: Sofas, dining sets, beds, office furniture"
+  },
+  {
+    "id": 5,
+    "telegramId": -1001428592019,
+    "username": "gebeya_online_et",
+    "title": "Gebeya Online",
+    "active": true,
+    "lastMessageId": 5412,
+    "messageCount": 5412,
+    "createdAt": "2026-08-03T00:00:00Z",
+    "_note": "Plausible source channel: Home appliances, TVs, kitchenware, audio"
+  },
+  {
+    "id": 6,
+    "telegramId": -1001928374650,
+    "username": "merkato_deals",
+    "title": "Merkato Deals",
+    "active": true,
+    "lastMessageId": 6230,
+    "messageCount": 6230,
+    "createdAt": "2026-08-03T00:00:00Z",
+    "_note": "Plausible source channel: Electronics, tools, cameras & wholesale/retail"
+  },
+  {
+    "id": 7,
+    "telegramId": -1001394820159,
+    "username": "addis_auto_bazaar",
+    "title": "Addis Auto Bazaar",
+    "active": true,
+    "lastMessageId": 1420,
+    "messageCount": 1420,
+    "createdAt": "2026-08-04T00:00:00Z",
+    "_note": "Plausible source channel: Used cars, Bajaj, motorbikes & parts"
+  },
+  {
+    "id": 8,
+    "telegramId": -1001758392014,
+    "username": "addis_kids_corner",
+    "title": "Addis Kids Corner",
+    "active": true,
+    "lastMessageId": 980,
+    "messageCount": 980,
+    "createdAt": "2026-08-05T00:00:00Z",
+    "_note": "Plausible source channel: Baby & kids items, strollers, toys & bikes"
+  }
+]

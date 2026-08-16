@@ -1,0 +1,3785 @@
+{
+  "_note": "Fixture data for UI development. Channel handles, sellers and phone numbers are invented. Replace this file wholesale with the API response once ingestion lands -- the field shape is the contract.",
+  "generatedAt": "2026-08-16T09:00:00Z",
+  "categories": [
+    {
+      "slug": "phones",
+      "label": "Phones & Tablets",
+      "labelAm": "ስልክና ታብሌት"
+    },
+    {
+      "slug": "computers",
+      "label": "Computers",
+      "labelAm": "ኮምፒውተር"
+    },
+    {
+      "slug": "furniture",
+      "label": "Furniture",
+      "labelAm": "የቤት እቃ"
+    },
+    {
+      "slug": "appliances",
+      "label": "Home Appliances",
+      "labelAm": "የቤት መገልገያ"
+    },
+    {
+      "slug": "tv-audio",
+      "label": "TV & Audio",
+      "labelAm": "ቴሌቪዥንና ድምጽ"
+    },
+    {
+      "slug": "vehicles",
+      "label": "Vehicles",
+      "labelAm": "ተሽከርካሪ"
+    },
+    {
+      "slug": "fashion",
+      "label": "Fashion",
+      "labelAm": "አልባሳት"
+    },
+    {
+      "slug": "kids",
+      "label": "Baby & Kids",
+      "labelAm": "የሕፃናት እቃ"
+    },
+    {
+      "slug": "books",
+      "label": "Books & Hobbies",
+      "labelAm": "መጽሐፍትና መዝናኛ"
+    },
+    {
+      "slug": "tools",
+      "label": "Tools",
+      "labelAm": "የስራ መሳሪያ"
+    }
+  ],
+  "conditions": [
+    {
+      "value": "brand_new",
+      "label": "Brand New",
+      "labelAm": "አዲስ"
+    },
+    {
+      "value": "lightly_used",
+      "label": "Lightly Used",
+      "labelAm": "ትንሽ የተሰራበት"
+    },
+    {
+      "value": "fair",
+      "label": "Fair Condition",
+      "labelAm": "መካከለኛ"
+    }
+  ],
+  "tiers": [
+    {
+      "value": "indexed",
+      "label": "Indexed",
+      "labelAm": "የተሰበሰበ"
+    },
+    {
+      "value": "claimed",
+      "label": "Claimed",
+      "labelAm": "የተረጋገጠ"
+    },
+    {
+      "value": "native",
+      "label": "On Gulit",
+      "labelAm": "በጉሊት የተለጠፈ"
+    }
+  ],
+  "areas": [
+    {
+      "area": "Bole",
+      "areaAm": "ቦሌ"
+    },
+    {
+      "area": "Piassa",
+      "areaAm": "ፒያሳ"
+    },
+    {
+      "area": "Megenagna",
+      "areaAm": "መገናኛ"
+    },
+    {
+      "area": "CMC",
+      "areaAm": "ሲኤምሲ"
+    },
+    {
+      "area": "Kazanchis",
+      "areaAm": "ካዛንቺስ"
+    },
+    {
+      "area": "Sarbet",
+      "areaAm": "ሳርቤት"
+    },
+    {
+      "area": "Gerji",
+      "areaAm": "ገርጂ"
+    },
+    {
+      "area": "Ayat",
+      "areaAm": "አያት"
+    },
+    {
+      "area": "Summit",
+      "areaAm": "ሰሚት"
+    },
+    {
+      "area": "Lebu",
+      "areaAm": "ለቡ"
+    },
+    {
+      "area": "Saris",
+      "areaAm": "ሳሪስ"
+    },
+    {
+      "area": "Jemo",
+      "areaAm": "ጀሞ"
+    },
+    {
+      "area": "Kolfe",
+      "areaAm": "ኮልፌ"
+    },
+    {
+      "area": "Shiro Meda",
+      "areaAm": "ሽሮ ሜዳ"
+    },
+    {
+      "area": "Merkato",
+      "areaAm": "መርካቶ"
+    },
+    {
+      "area": "Arat Kilo",
+      "areaAm": "አራት ኪሎ"
+    },
+    {
+      "area": "Gurd Shola",
+      "areaAm": "ጉርድ ሾላ"
+    },
+    {
+      "area": "Hayahulet",
+      "areaAm": "ሃያሁለት"
+    },
+    {
+      "area": "Kality",
+      "areaAm": "ቃሊቲ"
+    },
+    {
+      "area": "Old Airport",
+      "areaAm": "ኦልድ ኤርፖርት"
+    },
+    {
+      "area": "Ayer Tena",
+      "areaAm": "አየር ጤና"
+    },
+    {
+      "area": "Torhailoch",
+      "areaAm": "ቶር ሃይሎች"
+    }
+  ],
+  "channelCount": 12,
+  "listings": [
+    {
+      "id": "lst_001",
+      "slug": "samsung-galaxy-a54-5g-128gb",
+      "title": "Samsung Galaxy A54 5G, 128GB",
+      "titleAm": "ሳምሱንግ ጋላክሲ A54 5G ፻፳፰ጊጋ",
+      "description": "Used for about eight months. No dents, no scratches worth mentioning. Everything works exactly as it should.",
+      "descriptionAm": "በጣም ጥሩ ሁኔታ ላይ ይገኛል። ዋጋው ትንሽ ማስተካከያ አለው። ለበለጠ መረጃ ይደውሉ።",
+      "priceEtb": 24500,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "phones",
+      "categoryLabel": "Phones & Tablets",
+      "categoryLabelAm": "ስልክና ታብሌት",
+      "condition": "lightly_used",
+      "location": {
+        "area": "CMC",
+        "areaAm": "ሲኤምሲ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_001-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Samsung Galaxy A54 5G, 128GB, photo 1"
+        },
+        {
+          "url": "/img/items/lst_001-2.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Samsung Galaxy A54 5G, 128GB, photo 2"
+        },
+        {
+          "url": "/img/items/lst_001-3.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Samsung Galaxy A54 5G, 128GB, photo 3"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "addis_used_market",
+        "phoneMasked": "+251 90 *** ** 10",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "addis_used_market",
+          "channelTitle": "Addis Used Market",
+          "messageUrl": "https://t.me/addis_used_market/4000",
+          "postedAt": "2026-08-16T09:00:00Z",
+          "priceEtb": 24500
+        },
+        {
+          "channelHandle": "gebeya_online_et",
+          "channelTitle": "Gebeya Online",
+          "messageUrl": "https://t.me/gebeya_online_et/4001",
+          "postedAt": "2026-08-16T03:49:00Z",
+          "priceEtb": 25600
+        },
+        {
+          "channelHandle": "ethio_furniture_market",
+          "channelTitle": "Ethio Furniture Market",
+          "messageUrl": "https://t.me/ethio_furniture_market/4002",
+          "postedAt": "2026-08-15T22:38:00Z",
+          "priceEtb": 28050
+        },
+        {
+          "channelHandle": "ethio_home_appliance",
+          "channelTitle": "Ethio Home Appliance",
+          "messageUrl": "https://t.me/ethio_home_appliance/4003",
+          "postedAt": "2026-08-15T17:27:00Z",
+          "priceEtb": 28350
+        },
+        {
+          "channelHandle": "addis_used_market",
+          "channelTitle": "Addis Used Market",
+          "messageUrl": "https://t.me/addis_used_market/4004",
+          "postedAt": "2026-08-15T12:16:00Z",
+          "priceEtb": 26550
+        },
+        {
+          "channelHandle": "gebeya_online_et",
+          "channelTitle": "Gebeya Online",
+          "messageUrl": "https://t.me/gebeya_online_et/4005",
+          "postedAt": "2026-08-15T07:05:00Z",
+          "priceEtb": 30150
+        }
+      ],
+      "seenInChannels": 6,
+      "lowestPriceEtb": 24500,
+      "priceStats": {
+        "categoryMedianEtb": 18000,
+        "p25Etb": 11000,
+        "p75Etb": 32000,
+        "verdict": "fair",
+        "sampleSize": 40
+      },
+      "extractionConfidence": 0.62,
+      "postedAt": "2026-08-16T09:00:00Z",
+      "updatedAt": "2026-08-16T09:00:00Z"
+    },
+    {
+      "id": "lst_002",
+      "slug": "iphone-12-pro-256gb-battery-89",
+      "title": "iPhone 12 Pro 256GB, battery 89%",
+      "titleAm": "አይፎን ፲፪ ፕሮ ፪፻፶፮ጊጋ",
+      "description": "Second owner, kept in very good condition. Selling because I am moving out of Addis at the end of the month.",
+      "descriptionAm": "ምንም አይነት ችግር የለበትም። መጥተው አይተው መግዛት ይችላሉ።",
+      "priceEtb": 47000,
+      "currency": "ETB",
+      "negotiable": false,
+      "categorySlug": "phones",
+      "categoryLabel": "Phones & Tablets",
+      "categoryLabelAm": "ስልክና ታብሌት",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Saris",
+        "areaAm": "ሳሪስ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_002-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "iPhone 12 Pro 256GB, battery 89%, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "addis_electronics_hub",
+        "phoneMasked": "+251 97 *** ** 27",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "addis_electronics_hub",
+          "channelTitle": "Addis Electronics Hub",
+          "messageUrl": "https://t.me/addis_electronics_hub/4013",
+          "postedAt": "2026-08-15T08:53:00Z",
+          "priceEtb": 47000
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 47000,
+      "priceStats": {
+        "categoryMedianEtb": 18000,
+        "p25Etb": 11000,
+        "p75Etb": 32000,
+        "verdict": "above",
+        "sampleSize": 51
+      },
+      "extractionConfidence": 0.85,
+      "postedAt": "2026-08-15T05:53:00Z",
+      "updatedAt": "2026-08-15T05:53:00Z"
+    },
+    {
+      "id": "lst_003",
+      "slug": "tecno-camon-20-dual-sim",
+      "title": "Tecno Camon 20, dual SIM",
+      "titleAm": "ቴክኖ ካሞን ፳ ባለ ሁለት ሲም",
+      "description": "Brand new, still under warranty. Happy to let you inspect everything before you pay.",
+      "descriptionAm": "ለረጅም ጊዜ የተጠቀምኩበት ቢሆንም ሙሉ በሙሉ ይሰራል። ዋጋው የማይቀያየር ነው።",
+      "priceEtb": 12800,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "phones",
+      "categoryLabel": "Phones & Tablets",
+      "categoryLabelAm": "ስልክና ታብሌት",
+      "condition": "brand_new",
+      "location": {
+        "area": "Hayahulet",
+        "areaAm": "ሃያሁለት",
+        "city": "Addis Ababa"
+      },
+      "tier": "claimed",
+      "images": [
+        {
+          "url": "/img/items/lst_003-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Tecno Camon 20, dual SIM, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": "Hanna G.",
+        "telegramHandle": "addis_kids_corner",
+        "phoneMasked": "+251 94 *** ** 44",
+        "phoneVerified": true,
+        "ratingAvg": 4.0,
+        "ratingCount": 17,
+        "memberSince": "2026-04-12T09:00:00Z"
+      },
+      "sources": [
+        {
+          "channelHandle": "addis_kids_corner",
+          "channelTitle": "Addis Kids Corner",
+          "messageUrl": "https://t.me/addis_kids_corner/4026",
+          "postedAt": "2026-08-14T08:46:00Z",
+          "priceEtb": 12800
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 12800,
+      "priceStats": {
+        "categoryMedianEtb": 18000,
+        "p25Etb": 11000,
+        "p75Etb": 32000,
+        "verdict": "fair",
+        "sampleSize": 62
+      },
+      "extractionConfidence": 0.71,
+      "postedAt": "2026-08-14T02:46:00Z",
+      "updatedAt": "2026-08-14T02:46:00Z"
+    },
+    {
+      "id": "lst_004",
+      "slug": "infinix-hot-30i-screen-has-a-hairline-crack",
+      "title": "Infinix Hot 30i, screen has a hairline crack",
+      "titleAm": "ኢንፊኒክስ ሆት ፴i",
+      "description": "Works fine but shows its age. A few marks on the body which I have photographed honestly. Priced accordingly.",
+      "descriptionAm": "በጣም ጥሩ ሁኔታ ላይ ይገኛል። ዋጋው ትንሽ ማስተካከያ አለው። ለበለጠ መረጃ ይደውሉ።",
+      "priceEtb": 7200,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "phones",
+      "categoryLabel": "Phones & Tablets",
+      "categoryLabelAm": "ስልክና ታብሌት",
+      "condition": "fair",
+      "location": {
+        "area": "Megenagna",
+        "areaAm": "መገናኛ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "gebeya_online_et",
+        "phoneMasked": "+251 91 *** ** 61",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "gebeya_online_et",
+          "channelTitle": "Gebeya Online",
+          "messageUrl": "https://t.me/gebeya_online_et/4039",
+          "postedAt": "2026-08-13T08:39:00Z",
+          "priceEtb": 7200
+        },
+        {
+          "channelHandle": "ethio_furniture_market",
+          "channelTitle": "Ethio Furniture Market",
+          "messageUrl": "https://t.me/ethio_furniture_market/4040",
+          "postedAt": "2026-08-13T03:28:00Z",
+          "priceEtb": 7650
+        }
+      ],
+      "seenInChannels": 2,
+      "lowestPriceEtb": 7200,
+      "priceStats": {
+        "categoryMedianEtb": 18000,
+        "p25Etb": 11000,
+        "p75Etb": 32000,
+        "verdict": "below",
+        "sampleSize": 73
+      },
+      "extractionConfidence": 0.94,
+      "postedAt": "2026-08-12T23:39:00Z",
+      "updatedAt": "2026-08-12T23:39:00Z"
+    },
+    {
+      "id": "lst_005",
+      "slug": "ipad-9th-gen-64gb-with-case",
+      "title": "iPad 9th gen 64GB with case",
+      "titleAm": null,
+      "description": "Second owner, kept in very good condition. Selling because I am moving out of Addis at the end of the month.",
+      "descriptionAm": null,
+      "priceEtb": 29500,
+      "currency": "ETB",
+      "negotiable": false,
+      "categorySlug": "phones",
+      "categoryLabel": "Phones & Tablets",
+      "categoryLabelAm": "ስልክና ታብሌት",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Lebu",
+        "areaAm": "ለቡ",
+        "city": "Addis Ababa"
+      },
+      "tier": "native",
+      "images": [
+        {
+          "url": "/img/items/lst_005-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "iPad 9th gen 64GB with case, photo 1"
+        },
+        {
+          "url": "/img/items/lst_005-2.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "iPad 9th gen 64GB with case, photo 2"
+        },
+        {
+          "url": "/img/items/lst_005-3.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "iPad 9th gen 64GB with case, photo 3"
+        }
+      ],
+      "seller": {
+        "displayName": "Meron K.",
+        "telegramHandle": "gulit_meron-k",
+        "phoneMasked": "+251 98 *** ** 78",
+        "phoneVerified": true,
+        "ratingAvg": 4.2,
+        "ratingCount": 31,
+        "memberSince": "2026-04-06T09:00:00Z"
+      },
+      "sources": [],
+      "seenInChannels": 0,
+      "lowestPriceEtb": 29500,
+      "priceStats": {
+        "categoryMedianEtb": 18000,
+        "p25Etb": 11000,
+        "p75Etb": 32000,
+        "verdict": "fair",
+        "sampleSize": 84
+      },
+      "extractionConfidence": 0.8,
+      "postedAt": "2026-08-11T20:32:00Z",
+      "updatedAt": "2026-08-11T20:32:00Z"
+    },
+    {
+      "id": "lst_006",
+      "slug": "redmi-note-12-sealed-box",
+      "title": "Redmi Note 12, sealed box",
+      "titleAm": "ሬድሚ ኖት ፲፪ ያልተከፈተ",
+      "description": "Brand new, still under warranty. Happy to let you inspect everything before you pay.",
+      "descriptionAm": "ለረጅም ጊዜ የተጠቀምኩበት ቢሆንም ሙሉ በሙሉ ይሰራል። ዋጋው የማይቀያየር ነው።",
+      "priceEtb": 16900,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "phones",
+      "categoryLabel": "Phones & Tablets",
+      "categoryLabelAm": "ስልክና ታብሌት",
+      "condition": "brand_new",
+      "location": {
+        "area": "Gurd Shola",
+        "areaAm": "ጉርድ ሾላ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_006-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Redmi Note 12, sealed box, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "ethio_second_hand",
+        "phoneMasked": "+251 95 *** ** 95",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "ethio_second_hand",
+          "channelTitle": "Ethio Second Hand",
+          "messageUrl": "https://t.me/ethio_second_hand/4065",
+          "postedAt": "2026-08-11T08:25:00Z",
+          "priceEtb": 16900
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 16900,
+      "priceStats": {
+        "categoryMedianEtb": 18000,
+        "p25Etb": 11000,
+        "p75Etb": 32000,
+        "verdict": "fair",
+        "sampleSize": 95
+      },
+      "extractionConfidence": 0.66,
+      "postedAt": "2026-08-10T17:25:00Z",
+      "updatedAt": "2026-08-10T17:25:00Z"
+    },
+    {
+      "id": "lst_007",
+      "slug": "samsung-galaxy-s21-ultra",
+      "title": "Samsung Galaxy S21 Ultra",
+      "titleAm": null,
+      "description": "Works fine but shows its age. A few marks on the body which I have photographed honestly. Priced accordingly.",
+      "descriptionAm": null,
+      "priceEtb": 38000,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "phones",
+      "categoryLabel": "Phones & Tablets",
+      "categoryLabelAm": "ስልክና ታብሌት",
+      "condition": "fair",
+      "location": {
+        "area": "Piassa",
+        "areaAm": "ፒያሳ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_007-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Samsung Galaxy S21 Ultra, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "ethio_furniture_market",
+        "phoneMasked": "+251 92 *** ** 22",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "ethio_furniture_market",
+          "channelTitle": "Ethio Furniture Market",
+          "messageUrl": "https://t.me/ethio_furniture_market/4078",
+          "postedAt": "2026-08-10T08:18:00Z",
+          "priceEtb": 38000
+        },
+        {
+          "channelHandle": "ethio_home_appliance",
+          "channelTitle": "Ethio Home Appliance",
+          "messageUrl": "https://t.me/ethio_home_appliance/4079",
+          "postedAt": "2026-08-10T03:07:00Z",
+          "priceEtb": 41200
+        },
+        {
+          "channelHandle": "addis_used_market",
+          "channelTitle": "Addis Used Market",
+          "messageUrl": "https://t.me/addis_used_market/4080",
+          "postedAt": "2026-08-09T22:56:00Z",
+          "priceEtb": 44300
+        }
+      ],
+      "seenInChannels": 3,
+      "lowestPriceEtb": 38000,
+      "priceStats": {
+        "categoryMedianEtb": 18000,
+        "p25Etb": 11000,
+        "p75Etb": 32000,
+        "verdict": "above",
+        "sampleSize": 106
+      },
+      "extractionConfidence": 0.89,
+      "postedAt": "2026-08-09T14:18:00Z",
+      "updatedAt": "2026-08-09T14:18:00Z"
+    },
+    {
+      "id": "lst_008",
+      "slug": "macbook-air-m1-2020-8gb-256gb",
+      "title": "MacBook Air M1 2020, 8GB / 256GB",
+      "titleAm": "ማክቡክ ኤር M1 ፪ሺ፳",
+      "description": "Second owner, kept in very good condition. Selling because I am moving out of Addis at the end of the month.",
+      "descriptionAm": "ምንም አይነት ችግር የለበትም። መጥተው አይተው መግዛት ይችላሉ።",
+      "priceEtb": 62000,
+      "currency": "ETB",
+      "negotiable": false,
+      "categorySlug": "computers",
+      "categoryLabel": "Computers",
+      "categoryLabelAm": "ኮምፒውተር",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Summit",
+        "areaAm": "ሰሚት",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_008-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "MacBook Air M1 2020, 8GB / 256GB, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "tikur_sew_gebeya",
+        "phoneMasked": "+251 99 *** ** 39",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "tikur_sew_gebeya",
+          "channelTitle": "Tikur Sew Gebeya",
+          "messageUrl": "https://t.me/tikur_sew_gebeya/4091",
+          "postedAt": "2026-08-09T08:11:00Z",
+          "priceEtb": 62000
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 62000,
+      "priceStats": {
+        "categoryMedianEtb": 34000,
+        "p25Etb": 22000,
+        "p75Etb": 58000,
+        "verdict": "above",
+        "sampleSize": 117
+      },
+      "extractionConfidence": 0.75,
+      "postedAt": "2026-08-09T07:11:00Z",
+      "updatedAt": "2026-08-09T07:11:00Z"
+    },
+    {
+      "id": "lst_009",
+      "slug": "hp-elitebook-840-g6-i5-8th-gen",
+      "title": "HP EliteBook 840 G6, i5 8th gen",
+      "titleAm": "ኤችፒ ኤሊትቡክ ላፕቶፕ",
+      "description": "Old but reliable. Selling as-is, no returns, but nothing is hidden from you.",
+      "descriptionAm": "ለረጅም ጊዜ የተጠቀምኩበት ቢሆንም ሙሉ በሙሉ ይሰራል። ዋጋው የማይቀያየር ነው።",
+      "priceEtb": 31000,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "computers",
+      "categoryLabel": "Computers",
+      "categoryLabelAm": "ኮምፒውተር",
+      "condition": "fair",
+      "location": {
+        "area": "Arat Kilo",
+        "areaAm": "አራት ኪሎ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_009-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "HP EliteBook 840 G6, i5 8th gen, photo 1"
+        },
+        {
+          "url": "/img/items/lst_009-2.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "HP EliteBook 840 G6, i5 8th gen, photo 2"
+        },
+        {
+          "url": "/img/items/lst_009-3.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "HP EliteBook 840 G6, i5 8th gen, photo 3"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "merkato_deals",
+        "phoneMasked": "+251 96 *** ** 56",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "merkato_deals",
+          "channelTitle": "Merkato Deals",
+          "messageUrl": "https://t.me/merkato_deals/4104",
+          "postedAt": "2026-08-08T08:04:00Z",
+          "priceEtb": 31000
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 31000,
+      "priceStats": {
+        "categoryMedianEtb": 34000,
+        "p25Etb": 22000,
+        "p75Etb": 58000,
+        "verdict": "fair",
+        "sampleSize": 128
+      },
+      "extractionConfidence": 0.98,
+      "postedAt": "2026-08-08T04:04:00Z",
+      "updatedAt": "2026-08-08T04:04:00Z"
+    },
+    {
+      "id": "lst_010",
+      "slug": "dell-latitude-5420-i7-16gb-ram",
+      "title": "Dell Latitude 5420, i7 16GB RAM",
+      "titleAm": null,
+      "description": "Used for about eight months. No dents, no scratches worth mentioning. Everything works exactly as it should.",
+      "descriptionAm": null,
+      "priceEtb": 44500,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "computers",
+      "categoryLabel": "Computers",
+      "categoryLabelAm": "ኮምፒውተር",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Bole",
+        "areaAm": "ቦሌ",
+        "city": "Addis Ababa"
+      },
+      "tier": "claimed",
+      "images": [
+        {
+          "url": "/img/items/lst_010-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Dell Latitude 5420, i7 16GB RAM, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": "Nahom D.",
+        "telegramHandle": "ethio_home_appliance",
+        "phoneMasked": "+251 93 *** ** 73",
+        "phoneVerified": true,
+        "ratingAvg": 4.7,
+        "ratingCount": 25,
+        "memberSince": "2026-03-22T09:00:00Z"
+      },
+      "sources": [
+        {
+          "channelHandle": "ethio_home_appliance",
+          "channelTitle": "Ethio Home Appliance",
+          "messageUrl": "https://t.me/ethio_home_appliance/4117",
+          "postedAt": "2026-08-07T08:57:00Z",
+          "priceEtb": 44500
+        },
+        {
+          "channelHandle": "addis_used_market",
+          "channelTitle": "Addis Used Market",
+          "messageUrl": "https://t.me/addis_used_market/4118",
+          "postedAt": "2026-08-07T03:46:00Z",
+          "priceEtb": 46000
+        },
+        {
+          "channelHandle": "gebeya_online_et",
+          "channelTitle": "Gebeya Online",
+          "messageUrl": "https://t.me/gebeya_online_et/4119",
+          "postedAt": "2026-08-06T22:35:00Z",
+          "priceEtb": 47650
+        },
+        {
+          "channelHandle": "ethio_furniture_market",
+          "channelTitle": "Ethio Furniture Market",
+          "messageUrl": "https://t.me/ethio_furniture_market/4120",
+          "postedAt": "2026-08-06T17:24:00Z",
+          "priceEtb": 50700
+        },
+        {
+          "channelHandle": "ethio_home_appliance",
+          "channelTitle": "Ethio Home Appliance",
+          "messageUrl": "https://t.me/ethio_home_appliance/4121",
+          "postedAt": "2026-08-06T12:13:00Z",
+          "priceEtb": 58550
+        },
+        {
+          "channelHandle": "addis_used_market",
+          "channelTitle": "Addis Used Market",
+          "messageUrl": "https://t.me/addis_used_market/4122",
+          "postedAt": "2026-08-06T07:02:00Z",
+          "priceEtb": 59350
+        }
+      ],
+      "seenInChannels": 6,
+      "lowestPriceEtb": 44500,
+      "priceStats": {
+        "categoryMedianEtb": 34000,
+        "p25Etb": 22000,
+        "p75Etb": 58000,
+        "verdict": "fair",
+        "sampleSize": 139
+      },
+      "extractionConfidence": 0.84,
+      "postedAt": "2026-08-07T01:57:00Z",
+      "updatedAt": "2026-08-07T01:57:00Z"
+    },
+    {
+      "id": "lst_011",
+      "slug": "lenovo-thinkpad-t480-new-battery",
+      "title": "Lenovo ThinkPad T480, new battery",
+      "titleAm": "ሌኖቮ ቲንክፓድ T480",
+      "description": "Fully functional with some cosmetic wear. Serviced two months ago and running well since.",
+      "descriptionAm": "ምንም አይነት ችግር የለበትም። መጥተው አይተው መግዛት ይችላሉ።",
+      "priceEtb": 27000,
+      "currency": "ETB",
+      "negotiable": false,
+      "categorySlug": "computers",
+      "categoryLabel": "Computers",
+      "categoryLabelAm": "ኮምፒውተር",
+      "condition": "fair",
+      "location": {
+        "area": "Ayat",
+        "areaAm": "አያት",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_011-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Lenovo ThinkPad T480, new battery, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "bole_market_et",
+        "phoneMasked": "+251 90 *** ** 90",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "bole_market_et",
+          "channelTitle": "Bole Market ET",
+          "messageUrl": "https://t.me/bole_market_et/4130",
+          "postedAt": "2026-08-06T08:50:00Z",
+          "priceEtb": 27000
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 27000,
+      "priceStats": {
+        "categoryMedianEtb": 34000,
+        "p25Etb": 22000,
+        "p75Etb": 58000,
+        "verdict": "fair",
+        "sampleSize": 150
+      },
+      "extractionConfidence": 0.7,
+      "postedAt": "2026-08-05T22:50:00Z",
+      "updatedAt": "2026-08-05T22:50:00Z"
+    },
+    {
+      "id": "lst_012",
+      "slug": "gaming-desktop-rtx-3060-32gb-ram",
+      "title": "Gaming desktop, RTX 3060 + 32GB RAM",
+      "titleAm": null,
+      "description": "Light use only, mostly kept in storage. You are welcome to test it before buying.",
+      "descriptionAm": null,
+      "priceEtb": 118000,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "computers",
+      "categoryLabel": "Computers",
+      "categoryLabelAm": "ኮምፒውተር",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Merkato",
+        "areaAm": "መርካቶ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_012-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Gaming desktop, RTX 3060 + 32GB RAM, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "kal_mobile_addis",
+        "phoneMasked": "+251 97 *** ** 17",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "kal_mobile_addis",
+          "channelTitle": "Kal Mobile Addis",
+          "messageUrl": "https://t.me/kal_mobile_addis/4143",
+          "postedAt": "2026-08-05T08:43:00Z",
+          "priceEtb": 118000
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 118000,
+      "priceStats": {
+        "categoryMedianEtb": 34000,
+        "p25Etb": 22000,
+        "p75Etb": 58000,
+        "verdict": "above",
+        "sampleSize": 161
+      },
+      "extractionConfidence": 0.93,
+      "postedAt": "2026-08-04T19:43:00Z",
+      "updatedAt": "2026-08-04T19:43:00Z"
+    },
+    {
+      "id": "lst_013",
+      "slug": "hp-laserjet-pro-m404dn-printer",
+      "title": "HP LaserJet Pro M404dn printer",
+      "titleAm": "ኤችፒ ሌዘር ጄት ማተሚያ",
+      "description": "Used for about eight months. No dents, no scratches worth mentioning. Everything works exactly as it should.",
+      "descriptionAm": "በጣም ጥሩ ሁኔታ ላይ ይገኛል። ዋጋው ትንሽ ማስተካከያ አለው። ለበለጠ መረጃ ይደውሉ።",
+      "priceEtb": 19500,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "computers",
+      "categoryLabel": "Computers",
+      "categoryLabelAm": "ኮምፒውተር",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Torhailoch",
+        "areaAm": "ቶር ሃይሎች",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_013-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "HP LaserJet Pro M404dn printer, photo 1"
+        },
+        {
+          "url": "/img/items/lst_013-2.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "HP LaserJet Pro M404dn printer, photo 2"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "addis_used_market",
+        "phoneMasked": "+251 94 *** ** 34",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "addis_used_market",
+          "channelTitle": "Addis Used Market",
+          "messageUrl": "https://t.me/addis_used_market/4156",
+          "postedAt": "2026-08-16T08:36:00Z",
+          "priceEtb": 19500
+        },
+        {
+          "channelHandle": "gebeya_online_et",
+          "channelTitle": "Gebeya Online",
+          "messageUrl": "https://t.me/gebeya_online_et/4157",
+          "postedAt": "2026-08-16T03:25:00Z",
+          "priceEtb": 20350
+        },
+        {
+          "channelHandle": "ethio_furniture_market",
+          "channelTitle": "Ethio Furniture Market",
+          "messageUrl": "https://t.me/ethio_furniture_market/4158",
+          "postedAt": "2026-08-15T22:14:00Z",
+          "priceEtb": 21050
+        },
+        {
+          "channelHandle": "ethio_home_appliance",
+          "channelTitle": "Ethio Home Appliance",
+          "messageUrl": "https://t.me/ethio_home_appliance/4159",
+          "postedAt": "2026-08-15T17:03:00Z",
+          "priceEtb": 24500
+        }
+      ],
+      "seenInChannels": 4,
+      "lowestPriceEtb": 19500,
+      "priceStats": {
+        "categoryMedianEtb": 34000,
+        "p25Etb": 22000,
+        "p75Etb": 58000,
+        "verdict": "below",
+        "sampleSize": 172
+      },
+      "extractionConfidence": 0.79,
+      "postedAt": "2026-08-15T16:36:00Z",
+      "updatedAt": "2026-08-15T16:36:00Z"
+    },
+    {
+      "id": "lst_014",
+      "slug": "three-seater-sofa-with-matching-coffee-table",
+      "title": "Three-seater sofa with matching coffee table",
+      "titleAm": "ባለ ሶስት ሰው ሶፋ ከነ ጠረጴዛው በጣም ጥሩ ሁኔታ ላይ የሚገኝ ከውጭ ሀገር የመጣ ኦርጅናል ጨርቅ ያለው ለሽያጭ ቀርቧል ቦሌ አካባቢ",
+      "description": "Second owner, kept in very good condition. Selling because I am moving out of Addis at the end of the month.",
+      "descriptionAm": "ምንም አይነት ችግር የለበትም። መጥተው አይተው መግዛት ይችላሉ።",
+      "priceEtb": 14500,
+      "currency": "ETB",
+      "negotiable": false,
+      "categorySlug": "furniture",
+      "categoryLabel": "Furniture",
+      "categoryLabelAm": "የቤት እቃ",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Gerji",
+        "areaAm": "ገርጂ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_014-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Three-seater sofa with matching coffee table, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "addis_electronics_hub",
+        "phoneMasked": "+251 91 *** ** 51",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "addis_electronics_hub",
+          "channelTitle": "Addis Electronics Hub",
+          "messageUrl": "https://t.me/addis_electronics_hub/4169",
+          "postedAt": "2026-08-15T08:29:00Z",
+          "priceEtb": 14500
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 14500,
+      "priceStats": {
+        "categoryMedianEtb": 9500,
+        "p25Etb": 5000,
+        "p75Etb": 18000,
+        "verdict": "fair",
+        "sampleSize": 183
+      },
+      "extractionConfidence": 0.65,
+      "postedAt": "2026-08-14T13:29:00Z",
+      "updatedAt": "2026-08-14T13:29:00Z"
+    },
+    {
+      "id": "lst_015",
+      "slug": "l-shaped-sofa-grey-fabric",
+      "title": "L-shaped sofa, grey fabric",
+      "titleAm": "ኤል ቅርጽ ያለው ሶፋ",
+      "description": "Light use only, mostly kept in storage. You are welcome to test it before buying.",
+      "descriptionAm": "ለረጅም ጊዜ የተጠቀምኩበት ቢሆንም ሙሉ በሙሉ ይሰራል። ዋጋው የማይቀያየር ነው።",
+      "priceEtb": 22000,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "furniture",
+      "categoryLabel": "Furniture",
+      "categoryLabelAm": "የቤት እቃ",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Shiro Meda",
+        "areaAm": "ሽሮ ሜዳ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_015-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "L-shaped sofa, grey fabric, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "addis_kids_corner",
+        "phoneMasked": "+251 98 *** ** 68",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "addis_kids_corner",
+          "channelTitle": "Addis Kids Corner",
+          "messageUrl": "https://t.me/addis_kids_corner/4182",
+          "postedAt": "2026-08-14T08:22:00Z",
+          "priceEtb": 22000
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 22000,
+      "priceStats": {
+        "categoryMedianEtb": 9500,
+        "p25Etb": 5000,
+        "p75Etb": 18000,
+        "verdict": "above",
+        "sampleSize": 194
+      },
+      "extractionConfidence": 0.88,
+      "postedAt": "2026-08-14T06:22:00Z",
+      "updatedAt": "2026-08-14T06:22:00Z"
+    },
+    {
+      "id": "lst_016",
+      "slug": "solid-wood-dining-table-seats-six",
+      "title": "Solid wood dining table, seats six",
+      "titleAm": "ባለ ስድስት ወንበር የእንጨት ጠረጴዛ",
+      "description": "Works fine but shows its age. A few marks on the body which I have photographed honestly. Priced accordingly.",
+      "descriptionAm": "በጣም ጥሩ ሁኔታ ላይ ይገኛል። ዋጋው ትንሽ ማስተካከያ አለው። ለበለጠ መረጃ ይደውሉ።",
+      "priceEtb": 18000,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "furniture",
+      "categoryLabel": "Furniture",
+      "categoryLabelAm": "የቤት እቃ",
+      "condition": "fair",
+      "location": {
+        "area": "Ayer Tena",
+        "areaAm": "አየር ጤና",
+        "city": "Addis Ababa"
+      },
+      "tier": "native",
+      "images": [
+        {
+          "url": "/img/items/lst_016-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Solid wood dining table, seats six, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": "Getachew N.",
+        "telegramHandle": "gulit_getachew-n",
+        "phoneMasked": "+251 95 *** ** 85",
+        "phoneVerified": true,
+        "ratingAvg": 4.1,
+        "ratingCount": 26,
+        "memberSince": "2026-03-04T09:00:00Z"
+      },
+      "sources": [],
+      "seenInChannels": 0,
+      "lowestPriceEtb": 18000,
+      "priceStats": {
+        "categoryMedianEtb": 9500,
+        "p25Etb": 5000,
+        "p75Etb": 18000,
+        "verdict": "fair",
+        "sampleSize": 205
+      },
+      "extractionConfidence": 0.74,
+      "postedAt": "2026-08-13T03:15:00Z",
+      "updatedAt": "2026-08-13T03:15:00Z"
+    },
+    {
+      "id": "lst_017",
+      "slug": "queen-bed-frame-with-mattress",
+      "title": "Queen bed frame with mattress",
+      "titleAm": "የአልጋ ፍሬም ከነ ፍራሽ",
+      "description": "Second owner, kept in very good condition. Selling because I am moving out of Addis at the end of the month.",
+      "descriptionAm": "ምንም አይነት ችግር የለበትም። መጥተው አይተው መግዛት ይችላሉ።",
+      "priceEtb": 16500,
+      "currency": "ETB",
+      "negotiable": false,
+      "categorySlug": "furniture",
+      "categoryLabel": "Furniture",
+      "categoryLabelAm": "የቤት እቃ",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Sarbet",
+        "areaAm": "ሳርቤት",
+        "city": "Addis Ababa"
+      },
+      "tier": "claimed",
+      "images": [
+        {
+          "url": "/img/items/lst_017-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Queen bed frame with mattress, photo 1"
+        },
+        {
+          "url": "/img/items/lst_017-2.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Queen bed frame with mattress, photo 2"
+        }
+      ],
+      "seller": {
+        "displayName": "Sara A.",
+        "telegramHandle": "addis_auto_bazaar",
+        "phoneMasked": "+251 92 *** ** 12",
+        "phoneVerified": true,
+        "ratingAvg": 4.2,
+        "ratingCount": 33,
+        "memberSince": "2026-03-01T09:00:00Z"
+      },
+      "sources": [
+        {
+          "channelHandle": "addis_auto_bazaar",
+          "channelTitle": "Addis Auto Bazaar",
+          "messageUrl": "https://t.me/addis_auto_bazaar/4208",
+          "postedAt": "2026-08-12T08:08:00Z",
+          "priceEtb": 16500
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 16500,
+      "priceStats": {
+        "categoryMedianEtb": 9500,
+        "p25Etb": 5000,
+        "p75Etb": 18000,
+        "verdict": "fair",
+        "sampleSize": 216
+      },
+      "extractionConfidence": 0.97,
+      "postedAt": "2026-08-12T00:08:00Z",
+      "updatedAt": "2026-08-12T00:08:00Z"
+    },
+    {
+      "id": "lst_018",
+      "slug": "two-door-wardrobe",
+      "title": "Two-door wardrobe",
+      "titleAm": "ባለ ሁለት በር ቁም ሳጥን",
+      "description": "Old but reliable. Selling as-is, no returns, but nothing is hidden from you.",
+      "descriptionAm": "ለረጅም ጊዜ የተጠቀምኩበት ቢሆንም ሙሉ በሙሉ ይሰራል። ዋጋው የማይቀያየር ነው።",
+      "priceEtb": 8900,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "furniture",
+      "categoryLabel": "Furniture",
+      "categoryLabelAm": "የቤት እቃ",
+      "condition": "fair",
+      "location": {
+        "area": "Kolfe",
+        "areaAm": "ኮልፌ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_018-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Two-door wardrobe, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "ethio_second_hand",
+        "phoneMasked": "+251 99 *** ** 29",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "ethio_second_hand",
+          "channelTitle": "Ethio Second Hand",
+          "messageUrl": "https://t.me/ethio_second_hand/4221",
+          "postedAt": "2026-08-11T08:01:00Z",
+          "priceEtb": 8900
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 8900,
+      "priceStats": {
+        "categoryMedianEtb": 9500,
+        "p25Etb": 5000,
+        "p75Etb": 18000,
+        "verdict": "fair",
+        "sampleSize": 227
+      },
+      "extractionConfidence": 0.83,
+      "postedAt": "2026-08-10T21:01:00Z",
+      "updatedAt": "2026-08-10T21:01:00Z"
+    },
+    {
+      "id": "lst_019",
+      "slug": "office-desk-and-swivel-chair",
+      "title": "Office desk and swivel chair",
+      "titleAm": null,
+      "description": "Used for about eight months. No dents, no scratches worth mentioning. Everything works exactly as it should.",
+      "descriptionAm": null,
+      "priceEtb": 6800,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "furniture",
+      "categoryLabel": "Furniture",
+      "categoryLabelAm": "የቤት እቃ",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Old Airport",
+        "areaAm": "ኦልድ ኤርፖርት",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_019-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Office desk and swivel chair, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "ethio_furniture_market",
+        "phoneMasked": "+251 96 *** ** 46",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "ethio_furniture_market",
+          "channelTitle": "Ethio Furniture Market",
+          "messageUrl": "https://t.me/ethio_furniture_market/4234",
+          "postedAt": "2026-08-10T08:54:00Z",
+          "priceEtb": 6800
+        },
+        {
+          "channelHandle": "ethio_home_appliance",
+          "channelTitle": "Ethio Home Appliance",
+          "messageUrl": "https://t.me/ethio_home_appliance/4235",
+          "postedAt": "2026-08-10T03:43:00Z",
+          "priceEtb": 7050
+        },
+        {
+          "channelHandle": "addis_used_market",
+          "channelTitle": "Addis Used Market",
+          "messageUrl": "https://t.me/addis_used_market/4236",
+          "postedAt": "2026-08-09T22:32:00Z",
+          "priceEtb": 7600
+        },
+        {
+          "channelHandle": "gebeya_online_et",
+          "channelTitle": "Gebeya Online",
+          "messageUrl": "https://t.me/gebeya_online_et/4237",
+          "postedAt": "2026-08-09T17:21:00Z",
+          "priceEtb": 8300
+        },
+        {
+          "channelHandle": "ethio_furniture_market",
+          "channelTitle": "Ethio Furniture Market",
+          "messageUrl": "https://t.me/ethio_furniture_market/4238",
+          "postedAt": "2026-08-09T12:10:00Z",
+          "priceEtb": 8600
+        }
+      ],
+      "seenInChannels": 5,
+      "lowestPriceEtb": 6800,
+      "priceStats": {
+        "categoryMedianEtb": 9500,
+        "p25Etb": 5000,
+        "p75Etb": 18000,
+        "verdict": "fair",
+        "sampleSize": 238
+      },
+      "extractionConfidence": 0.69,
+      "postedAt": "2026-08-09T18:54:00Z",
+      "updatedAt": "2026-08-09T18:54:00Z"
+    },
+    {
+      "id": "lst_020",
+      "slug": "bookshelf-five-shelves",
+      "title": "Bookshelf, five shelves",
+      "titleAm": "ባለ አምስት ደረጃ የመጽሐፍ መደርደሪያ",
+      "description": "Fully functional with some cosmetic wear. Serviced two months ago and running well since.",
+      "descriptionAm": "ምንም አይነት ችግር የለበትም። መጥተው አይተው መግዛት ይችላሉ።",
+      "priceEtb": 4200,
+      "currency": "ETB",
+      "negotiable": false,
+      "categorySlug": "furniture",
+      "categoryLabel": "Furniture",
+      "categoryLabelAm": "የቤት እቃ",
+      "condition": "fair",
+      "location": {
+        "area": "Kazanchis",
+        "areaAm": "ካዛንቺስ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_020-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Bookshelf, five shelves, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "tikur_sew_gebeya",
+        "phoneMasked": "+251 93 *** ** 63",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "tikur_sew_gebeya",
+          "channelTitle": "Tikur Sew Gebeya",
+          "messageUrl": "https://t.me/tikur_sew_gebeya/4247",
+          "postedAt": "2026-08-09T08:47:00Z",
+          "priceEtb": 4200
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 4200,
+      "priceStats": {
+        "categoryMedianEtb": 9500,
+        "p25Etb": 5000,
+        "p75Etb": 18000,
+        "verdict": "below",
+        "sampleSize": 249
+      },
+      "extractionConfidence": 0.92,
+      "postedAt": "2026-08-08T15:47:00Z",
+      "updatedAt": "2026-08-08T15:47:00Z"
+    },
+    {
+      "id": "lst_021",
+      "slug": "handmade-traditional-mesob",
+      "title": "Handmade traditional mesob",
+      "titleAm": "በእጅ የተሰራ መሶብ",
+      "description": "Brand new, still under warranty. Happy to let you inspect everything before you pay.",
+      "descriptionAm": "ለረጅም ጊዜ የተጠቀምኩበት ቢሆንም ሙሉ በሙሉ ይሰራል። ዋጋው የማይቀያየር ነው።",
+      "priceEtb": 3500,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "furniture",
+      "categoryLabel": "Furniture",
+      "categoryLabelAm": "የቤት እቃ",
+      "condition": "brand_new",
+      "location": {
+        "area": "Jemo",
+        "areaAm": "ጀሞ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_021-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Handmade traditional mesob, photo 1"
+        },
+        {
+          "url": "/img/items/lst_021-2.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Handmade traditional mesob, photo 2"
+        },
+        {
+          "url": "/img/items/lst_021-3.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Handmade traditional mesob, photo 3"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "merkato_deals",
+        "phoneMasked": "+251 90 *** ** 80",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "merkato_deals",
+          "channelTitle": "Merkato Deals",
+          "messageUrl": "https://t.me/merkato_deals/4260",
+          "postedAt": "2026-08-08T08:40:00Z",
+          "priceEtb": 3500
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 3500,
+      "priceStats": {
+        "categoryMedianEtb": 9500,
+        "p25Etb": 5000,
+        "p75Etb": 18000,
+        "verdict": "below",
+        "sampleSize": 260
+      },
+      "extractionConfidence": 0.78,
+      "postedAt": "2026-08-08T08:40:00Z",
+      "updatedAt": "2026-08-08T08:40:00Z"
+    },
+    {
+      "id": "lst_022",
+      "slug": "lg-double-door-refrigerator-340l",
+      "title": "LG double-door refrigerator, 340L",
+      "titleAm": "ኤልጂ ባለ ሁለት በር ማቀዝቀዣ",
+      "description": "Used for about eight months. No dents, no scratches worth mentioning. Everything works exactly as it should.",
+      "descriptionAm": "በጣም ጥሩ ሁኔታ ላይ ይገኛል። ዋጋው ትንሽ ማስተካከያ አለው። ለበለጠ መረጃ ይደውሉ።",
+      "priceEtb": 42000,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "appliances",
+      "categoryLabel": "Home Appliances",
+      "categoryLabelAm": "የቤት መገልገያ",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Kality",
+        "areaAm": "ቃሊቲ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_022-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "LG double-door refrigerator, 340L, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "ethio_home_appliance",
+        "phoneMasked": "+251 97 *** ** 97",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "ethio_home_appliance",
+          "channelTitle": "Ethio Home Appliance",
+          "messageUrl": "https://t.me/ethio_home_appliance/4273",
+          "postedAt": "2026-08-07T08:33:00Z",
+          "priceEtb": 42000
+        },
+        {
+          "channelHandle": "addis_used_market",
+          "channelTitle": "Addis Used Market",
+          "messageUrl": "https://t.me/addis_used_market/4274",
+          "postedAt": "2026-08-07T03:22:00Z",
+          "priceEtb": 44650
+        }
+      ],
+      "seenInChannels": 2,
+      "lowestPriceEtb": 42000,
+      "priceStats": {
+        "categoryMedianEtb": 14000,
+        "p25Etb": 8000,
+        "p75Etb": 26000,
+        "verdict": "above",
+        "sampleSize": 271
+      },
+      "extractionConfidence": 0.64,
+      "postedAt": "2026-08-07T05:33:00Z",
+      "updatedAt": "2026-08-07T05:33:00Z"
+    },
+    {
+      "id": "lst_023",
+      "slug": "samsung-front-load-washing-machine-7kg",
+      "title": "Samsung front-load washing machine 7kg",
+      "titleAm": "ሳምሱንግ ማጠቢያ ማሽን ፯ኪሎ",
+      "description": "Second owner, kept in very good condition. Selling because I am moving out of Addis at the end of the month.",
+      "descriptionAm": "ምንም አይነት ችግር የለበትም። መጥተው አይተው መግዛት ይችላሉ።",
+      "priceEtb": 34000,
+      "currency": "ETB",
+      "negotiable": false,
+      "categorySlug": "appliances",
+      "categoryLabel": "Home Appliances",
+      "categoryLabelAm": "የቤት መገልገያ",
+      "condition": "lightly_used",
+      "location": {
+        "area": "CMC",
+        "areaAm": "ሲኤምሲ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_023-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Samsung front-load washing machine 7kg, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "bole_market_et",
+        "phoneMasked": "+251 94 *** ** 24",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "bole_market_et",
+          "channelTitle": "Bole Market ET",
+          "messageUrl": "https://t.me/bole_market_et/4286",
+          "postedAt": "2026-08-06T08:26:00Z",
+          "priceEtb": 34000
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 34000,
+      "priceStats": {
+        "categoryMedianEtb": 14000,
+        "p25Etb": 8000,
+        "p75Etb": 26000,
+        "verdict": "above",
+        "sampleSize": 282
+      },
+      "extractionConfidence": 0.87,
+      "postedAt": "2026-08-06T02:26:00Z",
+      "updatedAt": "2026-08-06T02:26:00Z"
+    },
+    {
+      "id": "lst_024",
+      "slug": "four-burner-gas-stove-with-oven",
+      "title": "Four-burner gas stove with oven",
+      "titleAm": "ባለ አራት ምድጃ ከነ ምጣድ",
+      "description": "Old but reliable. Selling as-is, no returns, but nothing is hidden from you.",
+      "descriptionAm": "ለረጅም ጊዜ የተጠቀምኩበት ቢሆንም ሙሉ በሙሉ ይሰራል። ዋጋው የማይቀያየር ነው።",
+      "priceEtb": 12500,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "appliances",
+      "categoryLabel": "Home Appliances",
+      "categoryLabelAm": "የቤት መገልገያ",
+      "condition": "fair",
+      "location": {
+        "area": "Saris",
+        "areaAm": "ሳሪስ",
+        "city": "Addis Ababa"
+      },
+      "tier": "claimed",
+      "images": [
+        {
+          "url": "/img/items/lst_024-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Four-burner gas stove with oven, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": "Abel M.",
+        "telegramHandle": "kal_mobile_addis",
+        "phoneMasked": "+251 91 *** ** 41",
+        "phoneVerified": true,
+        "ratingAvg": 4.9,
+        "ratingCount": 41,
+        "memberSince": "2026-02-08T09:00:00Z"
+      },
+      "sources": [
+        {
+          "channelHandle": "kal_mobile_addis",
+          "channelTitle": "Kal Mobile Addis",
+          "messageUrl": "https://t.me/kal_mobile_addis/4299",
+          "postedAt": "2026-08-05T08:19:00Z",
+          "priceEtb": 12500
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 12500,
+      "priceStats": {
+        "categoryMedianEtb": 14000,
+        "p25Etb": 8000,
+        "p75Etb": 26000,
+        "verdict": "fair",
+        "sampleSize": 293
+      },
+      "extractionConfidence": 0.73,
+      "postedAt": "2026-08-04T23:19:00Z",
+      "updatedAt": "2026-08-04T23:19:00Z"
+    },
+    {
+      "id": "lst_025",
+      "slug": "microwave-oven-25l",
+      "title": "Microwave oven 25L",
+      "titleAm": "ማይክሮዌቭ ፳፭ ሊትር",
+      "description": "Used for about eight months. No dents, no scratches worth mentioning. Everything works exactly as it should.",
+      "descriptionAm": "በጣም ጥሩ ሁኔታ ላይ ይገኛል። ዋጋው ትንሽ ማስተካከያ አለው። ለበለጠ መረጃ ይደውሉ።",
+      "priceEtb": 6500,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "appliances",
+      "categoryLabel": "Home Appliances",
+      "categoryLabelAm": "የቤት መገልገያ",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Hayahulet",
+        "areaAm": "ሃያሁለት",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_025-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Microwave oven 25L, photo 1"
+        },
+        {
+          "url": "/img/items/lst_025-2.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Microwave oven 25L, photo 2"
+        },
+        {
+          "url": "/img/items/lst_025-3.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Microwave oven 25L, photo 3"
+        },
+        {
+          "url": "/img/items/lst_025-4.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Microwave oven 25L, photo 4"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "addis_used_market",
+        "phoneMasked": "+251 98 *** ** 58",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "addis_used_market",
+          "channelTitle": "Addis Used Market",
+          "messageUrl": "https://t.me/addis_used_market/4312",
+          "postedAt": "2026-08-16T08:12:00Z",
+          "priceEtb": 6500
+        },
+        {
+          "channelHandle": "gebeya_online_et",
+          "channelTitle": "Gebeya Online",
+          "messageUrl": "https://t.me/gebeya_online_et/4313",
+          "postedAt": "2026-08-16T03:01:00Z",
+          "priceEtb": 7050
+        }
+      ],
+      "seenInChannels": 2,
+      "lowestPriceEtb": 6500,
+      "priceStats": {
+        "categoryMedianEtb": 14000,
+        "p25Etb": 8000,
+        "p75Etb": 26000,
+        "verdict": "below",
+        "sampleSize": 44
+      },
+      "extractionConfidence": 0.96,
+      "postedAt": "2026-08-15T20:12:00Z",
+      "updatedAt": "2026-08-15T20:12:00Z"
+    },
+    {
+      "id": "lst_026",
+      "slug": "water-dispenser-hot-and-cold",
+      "title": "Water dispenser, hot and cold",
+      "titleAm": "የውሃ ማቀዝቀዣ ትኩስና ቀዝቃዛ",
+      "description": "Sealed and unopened. I ordered two by mistake and only need one. Can meet anywhere around the area during the day.",
+      "descriptionAm": "ምንም አይነት ችግር የለበትም። መጥተው አይተው መግዛት ይችላሉ።",
+      "priceEtb": 7800,
+      "currency": "ETB",
+      "negotiable": false,
+      "categorySlug": "appliances",
+      "categoryLabel": "Home Appliances",
+      "categoryLabelAm": "የቤት መገልገያ",
+      "condition": "brand_new",
+      "location": {
+        "area": "Megenagna",
+        "areaAm": "መገናኛ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_026-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Water dispenser, hot and cold, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "addis_electronics_hub",
+        "phoneMasked": "+251 95 *** ** 75",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "addis_electronics_hub",
+          "channelTitle": "Addis Electronics Hub",
+          "messageUrl": "https://t.me/addis_electronics_hub/4325",
+          "postedAt": "2026-08-15T08:05:00Z",
+          "priceEtb": 7800
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 7800,
+      "priceStats": {
+        "categoryMedianEtb": 14000,
+        "p25Etb": 8000,
+        "p75Etb": 26000,
+        "verdict": "below",
+        "sampleSize": 55
+      },
+      "extractionConfidence": 0.82,
+      "postedAt": "2026-08-14T17:05:00Z",
+      "updatedAt": "2026-08-14T17:05:00Z"
+    },
+    {
+      "id": "lst_027",
+      "slug": "electric-injera-mitad-60cm",
+      "title": "Electric injera mitad, 60cm",
+      "titleAm": "የኤሌክትሪክ ምጣድ ፷ሳ.ሜ",
+      "description": "Brand new, still under warranty. Happy to let you inspect everything before you pay.",
+      "descriptionAm": "ለረጅም ጊዜ የተጠቀምኩበት ቢሆንም ሙሉ በሙሉ ይሰራል። ዋጋው የማይቀያየር ነው።",
+      "priceEtb": 5400,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "appliances",
+      "categoryLabel": "Home Appliances",
+      "categoryLabelAm": "የቤት መገልገያ",
+      "condition": "brand_new",
+      "location": {
+        "area": "Lebu",
+        "areaAm": "ለቡ",
+        "city": "Addis Ababa"
+      },
+      "tier": "native",
+      "images": [
+        {
+          "url": "/img/items/lst_027-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Electric injera mitad, 60cm, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": "Tigist W.",
+        "telegramHandle": "gulit_tigist-w",
+        "phoneMasked": "+251 92 *** ** 92",
+        "phoneVerified": true,
+        "ratingAvg": 4.0,
+        "ratingCount": 21,
+        "memberSince": "2026-01-30T09:00:00Z"
+      },
+      "sources": [],
+      "seenInChannels": 0,
+      "lowestPriceEtb": 5400,
+      "priceStats": {
+        "categoryMedianEtb": 14000,
+        "p25Etb": 8000,
+        "p75Etb": 26000,
+        "verdict": "below",
+        "sampleSize": 66
+      },
+      "extractionConfidence": 0.68,
+      "postedAt": "2026-08-13T14:58:00Z",
+      "updatedAt": "2026-08-13T14:58:00Z"
+    },
+    {
+      "id": "lst_028",
+      "slug": "sony-bravia-55-inch-4k-smart-tv",
+      "title": "Sony Bravia 55 inch 4K smart TV",
+      "titleAm": "ሶኒ ብራቪያ ፶፭ ኢንች",
+      "description": "Used for about eight months. No dents, no scratches worth mentioning. Everything works exactly as it should.",
+      "descriptionAm": "በጣም ጥሩ ሁኔታ ላይ ይገኛል። ዋጋው ትንሽ ማስተካከያ አለው። ለበለጠ መረጃ ይደውሉ።",
+      "priceEtb": 48000,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "tv-audio",
+      "categoryLabel": "TV & Audio",
+      "categoryLabelAm": "ቴሌቪዥንና ድምጽ",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Gurd Shola",
+        "areaAm": "ጉርድ ሾላ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_028-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Sony Bravia 55 inch 4K smart TV, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "gebeya_online_et",
+        "phoneMasked": "+251 99 *** ** 19",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "gebeya_online_et",
+          "channelTitle": "Gebeya Online",
+          "messageUrl": "https://t.me/gebeya_online_et/4351",
+          "postedAt": "2026-08-13T08:51:00Z",
+          "priceEtb": 48000
+        },
+        {
+          "channelHandle": "ethio_furniture_market",
+          "channelTitle": "Ethio Furniture Market",
+          "messageUrl": "https://t.me/ethio_furniture_market/4352",
+          "postedAt": "2026-08-13T03:40:00Z",
+          "priceEtb": 50050
+        },
+        {
+          "channelHandle": "ethio_home_appliance",
+          "channelTitle": "Ethio Home Appliance",
+          "messageUrl": "https://t.me/ethio_home_appliance/4353",
+          "postedAt": "2026-08-12T22:29:00Z",
+          "priceEtb": 51350
+        },
+        {
+          "channelHandle": "addis_used_market",
+          "channelTitle": "Addis Used Market",
+          "messageUrl": "https://t.me/addis_used_market/4354",
+          "postedAt": "2026-08-12T17:18:00Z",
+          "priceEtb": 53750
+        },
+        {
+          "channelHandle": "gebeya_online_et",
+          "channelTitle": "Gebeya Online",
+          "messageUrl": "https://t.me/gebeya_online_et/4355",
+          "postedAt": "2026-08-12T12:07:00Z",
+          "priceEtb": 58800
+        },
+        {
+          "channelHandle": "ethio_furniture_market",
+          "channelTitle": "Ethio Furniture Market",
+          "messageUrl": "https://t.me/ethio_furniture_market/4356",
+          "postedAt": "2026-08-12T07:56:00Z",
+          "priceEtb": 56950
+        }
+      ],
+      "seenInChannels": 6,
+      "lowestPriceEtb": 48000,
+      "priceStats": {
+        "categoryMedianEtb": 16000,
+        "p25Etb": 9000,
+        "p75Etb": 30000,
+        "verdict": "above",
+        "sampleSize": 77
+      },
+      "extractionConfidence": 0.91,
+      "postedAt": "2026-08-13T07:51:00Z",
+      "updatedAt": "2026-08-13T07:51:00Z"
+    },
+    {
+      "id": "lst_029",
+      "slug": "hisense-43-inch-led-tv",
+      "title": "Hisense 43 inch LED TV",
+      "titleAm": "ሂሴንስ ፵፫ ኢንች ቴሌቪዥን",
+      "description": "Fully functional with some cosmetic wear. Serviced two months ago and running well since.",
+      "descriptionAm": "ምንም አይነት ችግር የለበትም። መጥተው አይተው መግዛት ይችላሉ።",
+      "priceEtb": 21000,
+      "currency": "ETB",
+      "negotiable": false,
+      "categorySlug": "tv-audio",
+      "categoryLabel": "TV & Audio",
+      "categoryLabelAm": "ቴሌቪዥንና ድምጽ",
+      "condition": "fair",
+      "location": {
+        "area": "Piassa",
+        "areaAm": "ፒያሳ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_029-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Hisense 43 inch LED TV, photo 1"
+        },
+        {
+          "url": "/img/items/lst_029-2.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Hisense 43 inch LED TV, photo 2"
+        },
+        {
+          "url": "/img/items/lst_029-3.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Hisense 43 inch LED TV, photo 3"
+        },
+        {
+          "url": "/img/items/lst_029-4.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Hisense 43 inch LED TV, photo 4"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "addis_auto_bazaar",
+        "phoneMasked": "+251 96 *** ** 36",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "addis_auto_bazaar",
+          "channelTitle": "Addis Auto Bazaar",
+          "messageUrl": "https://t.me/addis_auto_bazaar/4364",
+          "postedAt": "2026-08-12T08:44:00Z",
+          "priceEtb": 21000
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 21000,
+      "priceStats": {
+        "categoryMedianEtb": 16000,
+        "p25Etb": 9000,
+        "p75Etb": 30000,
+        "verdict": "fair",
+        "sampleSize": 88
+      },
+      "extractionConfidence": 0.77,
+      "postedAt": "2026-08-12T04:44:00Z",
+      "updatedAt": "2026-08-12T04:44:00Z"
+    },
+    {
+      "id": "lst_030",
+      "slug": "jbl-charge-5-bluetooth-speaker",
+      "title": "JBL Charge 5 bluetooth speaker",
+      "titleAm": null,
+      "description": "Light use only, mostly kept in storage. You are welcome to test it before buying.",
+      "descriptionAm": null,
+      "priceEtb": 9500,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "tv-audio",
+      "categoryLabel": "TV & Audio",
+      "categoryLabelAm": "ቴሌቪዥንና ድምጽ",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Summit",
+        "areaAm": "ሰሚት",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_030-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "JBL Charge 5 bluetooth speaker, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "ethio_second_hand",
+        "phoneMasked": "+251 93 *** ** 53",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "ethio_second_hand",
+          "channelTitle": "Ethio Second Hand",
+          "messageUrl": "https://t.me/ethio_second_hand/4377",
+          "postedAt": "2026-08-11T08:37:00Z",
+          "priceEtb": 9500
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 9500,
+      "priceStats": {
+        "categoryMedianEtb": 16000,
+        "p25Etb": 9000,
+        "p75Etb": 30000,
+        "verdict": "fair",
+        "sampleSize": 99
+      },
+      "extractionConfidence": 0.63,
+      "postedAt": "2026-08-11T01:37:00Z",
+      "updatedAt": "2026-08-11T01:37:00Z"
+    },
+    {
+      "id": "lst_031",
+      "slug": "home-theatre-5-1-with-subwoofer",
+      "title": "Home theatre 5.1 with subwoofer",
+      "titleAm": "ሆም ቲያትር ባለ ፭.፩",
+      "description": "Works fine but shows its age. A few marks on the body which I have photographed honestly. Priced accordingly.",
+      "descriptionAm": "በጣም ጥሩ ሁኔታ ላይ ይገኛል። ዋጋው ትንሽ ማስተካከያ አለው። ለበለጠ መረጃ ይደውሉ።",
+      "priceEtb": 15800,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "tv-audio",
+      "categoryLabel": "TV & Audio",
+      "categoryLabelAm": "ቴሌቪዥንና ድምጽ",
+      "condition": "fair",
+      "location": {
+        "area": "Arat Kilo",
+        "areaAm": "አራት ኪሎ",
+        "city": "Addis Ababa"
+      },
+      "tier": "claimed",
+      "images": [
+        {
+          "url": "/img/items/lst_031-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Home theatre 5.1 with subwoofer, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": "Kalkidan Y.",
+        "telegramHandle": "ethio_furniture_market",
+        "phoneMasked": "+251 90 *** ** 70",
+        "phoneVerified": true,
+        "ratingAvg": 4.4,
+        "ratingCount": 8,
+        "memberSince": "2026-01-18T09:00:00Z"
+      },
+      "sources": [
+        {
+          "channelHandle": "ethio_furniture_market",
+          "channelTitle": "Ethio Furniture Market",
+          "messageUrl": "https://t.me/ethio_furniture_market/4390",
+          "postedAt": "2026-08-10T08:30:00Z",
+          "priceEtb": 15800
+        },
+        {
+          "channelHandle": "ethio_home_appliance",
+          "channelTitle": "Ethio Home Appliance",
+          "messageUrl": "https://t.me/ethio_home_appliance/4391",
+          "postedAt": "2026-08-10T03:19:00Z",
+          "priceEtb": 16700
+        }
+      ],
+      "seenInChannels": 2,
+      "lowestPriceEtb": 15800,
+      "priceStats": {
+        "categoryMedianEtb": 16000,
+        "p25Etb": 9000,
+        "p75Etb": 30000,
+        "verdict": "fair",
+        "sampleSize": 110
+      },
+      "extractionConfidence": 0.86,
+      "postedAt": "2026-08-09T22:30:00Z",
+      "updatedAt": "2026-08-09T22:30:00Z"
+    },
+    {
+      "id": "lst_032",
+      "slug": "yamaha-acoustic-guitar-f310",
+      "title": "Yamaha acoustic guitar F310",
+      "titleAm": "ያማሃ ጊታር",
+      "description": "Second owner, kept in very good condition. Selling because I am moving out of Addis at the end of the month.",
+      "descriptionAm": "ምንም አይነት ችግር የለበትም። መጥተው አይተው መግዛት ይችላሉ።",
+      "priceEtb": 11000,
+      "currency": "ETB",
+      "negotiable": false,
+      "categorySlug": "tv-audio",
+      "categoryLabel": "TV & Audio",
+      "categoryLabelAm": "ቴሌቪዥንና ድምጽ",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Bole",
+        "areaAm": "ቦሌ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_032-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Yamaha acoustic guitar F310, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "tikur_sew_gebeya",
+        "phoneMasked": "+251 97 *** ** 87",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "tikur_sew_gebeya",
+          "channelTitle": "Tikur Sew Gebeya",
+          "messageUrl": "https://t.me/tikur_sew_gebeya/4403",
+          "postedAt": "2026-08-09T08:23:00Z",
+          "priceEtb": 11000
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 11000,
+      "priceStats": {
+        "categoryMedianEtb": 16000,
+        "p25Etb": 9000,
+        "p75Etb": 30000,
+        "verdict": "fair",
+        "sampleSize": 121
+      },
+      "extractionConfidence": 0.72,
+      "postedAt": "2026-08-08T19:23:00Z",
+      "updatedAt": "2026-08-08T19:23:00Z"
+    },
+    {
+      "id": "lst_033",
+      "slug": "toyota-vitz-2007-well-maintained",
+      "title": "Toyota Vitz 2007, well maintained",
+      "titleAm": "ቶዮታ ቪትዝ ፪ሺ፯ ሞዴል",
+      "description": "Old but reliable. Selling as-is, no returns, but nothing is hidden from you.",
+      "descriptionAm": "ለረጅም ጊዜ የተጠቀምኩበት ቢሆንም ሙሉ በሙሉ ይሰራል። ዋጋው የማይቀያየር ነው።",
+      "priceEtb": 1150000,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "vehicles",
+      "categoryLabel": "Vehicles",
+      "categoryLabelAm": "ተሽከርካሪ",
+      "condition": "fair",
+      "location": {
+        "area": "Ayat",
+        "areaAm": "አያት",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_033-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Toyota Vitz 2007, well maintained, photo 1"
+        },
+        {
+          "url": "/img/items/lst_033-2.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Toyota Vitz 2007, well maintained, photo 2"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "merkato_deals",
+        "phoneMasked": "+251 94 *** ** 14",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "merkato_deals",
+          "channelTitle": "Merkato Deals",
+          "messageUrl": "https://t.me/merkato_deals/4416",
+          "postedAt": "2026-08-08T08:16:00Z",
+          "priceEtb": 1150000
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 1150000,
+      "priceStats": {
+        "categoryMedianEtb": 950000,
+        "p25Etb": 620000,
+        "p75Etb": 1650000,
+        "verdict": "fair",
+        "sampleSize": 132
+      },
+      "extractionConfidence": 0.95,
+      "postedAt": "2026-08-07T16:16:00Z",
+      "updatedAt": "2026-08-07T16:16:00Z"
+    },
+    {
+      "id": "lst_034",
+      "slug": "suzuki-alto-2015-single-owner",
+      "title": "Suzuki Alto 2015, single owner",
+      "titleAm": "ሱዙኪ አልቶ ፪ሺ፲፭",
+      "description": "Used for about eight months. No dents, no scratches worth mentioning. Everything works exactly as it should.",
+      "descriptionAm": "በጣም ጥሩ ሁኔታ ላይ ይገኛል። ዋጋው ትንሽ ማስተካከያ አለው። ለበለጠ መረጃ ይደውሉ።",
+      "priceEtb": 890000,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "vehicles",
+      "categoryLabel": "Vehicles",
+      "categoryLabelAm": "ተሽከርካሪ",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Merkato",
+        "areaAm": "መርካቶ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_034-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Suzuki Alto 2015, single owner, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "ethio_home_appliance",
+        "phoneMasked": "+251 91 *** ** 31",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "ethio_home_appliance",
+          "channelTitle": "Ethio Home Appliance",
+          "messageUrl": "https://t.me/ethio_home_appliance/4429",
+          "postedAt": "2026-08-07T08:09:00Z",
+          "priceEtb": 890000
+        },
+        {
+          "channelHandle": "addis_used_market",
+          "channelTitle": "Addis Used Market",
+          "messageUrl": "https://t.me/addis_used_market/4430",
+          "postedAt": "2026-08-07T03:58:00Z",
+          "priceEtb": 953050
+        },
+        {
+          "channelHandle": "gebeya_online_et",
+          "channelTitle": "Gebeya Online",
+          "messageUrl": "https://t.me/gebeya_online_et/4431",
+          "postedAt": "2026-08-06T22:47:00Z",
+          "priceEtb": 970750
+        },
+        {
+          "channelHandle": "ethio_furniture_market",
+          "channelTitle": "Ethio Furniture Market",
+          "messageUrl": "https://t.me/ethio_furniture_market/4432",
+          "postedAt": "2026-08-06T17:36:00Z",
+          "priceEtb": 985050
+        }
+      ],
+      "seenInChannels": 4,
+      "lowestPriceEtb": 890000,
+      "priceStats": {
+        "categoryMedianEtb": 950000,
+        "p25Etb": 620000,
+        "p75Etb": 1650000,
+        "verdict": "fair",
+        "sampleSize": 143
+      },
+      "extractionConfidence": 0.81,
+      "postedAt": "2026-08-06T13:09:00Z",
+      "updatedAt": "2026-08-06T13:09:00Z"
+    },
+    {
+      "id": "lst_035",
+      "slug": "bajaj-three-wheeler-2019",
+      "title": "Bajaj three-wheeler, 2019",
+      "titleAm": "ባጃጅ ፪ሺ፲፱ ሞዴል",
+      "description": "Fully functional with some cosmetic wear. Serviced two months ago and running well since.",
+      "descriptionAm": "ምንም አይነት ችግር የለበትም። መጥተው አይተው መግዛት ይችላሉ።",
+      "priceEtb": 420000,
+      "currency": "ETB",
+      "negotiable": false,
+      "categorySlug": "vehicles",
+      "categoryLabel": "Vehicles",
+      "categoryLabelAm": "ተሽከርካሪ",
+      "condition": "fair",
+      "location": {
+        "area": "Torhailoch",
+        "areaAm": "ቶር ሃይሎች",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_035-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Bajaj three-wheeler, 2019, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "bole_market_et",
+        "phoneMasked": "+251 98 *** ** 48",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "bole_market_et",
+          "channelTitle": "Bole Market ET",
+          "messageUrl": "https://t.me/bole_market_et/4442",
+          "postedAt": "2026-08-06T08:02:00Z",
+          "priceEtb": 420000
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 420000,
+      "priceStats": {
+        "categoryMedianEtb": 950000,
+        "p25Etb": 620000,
+        "p75Etb": 1650000,
+        "verdict": "below",
+        "sampleSize": 154
+      },
+      "extractionConfidence": 0.67,
+      "postedAt": "2026-08-06T06:02:00Z",
+      "updatedAt": "2026-08-06T06:02:00Z"
+    },
+    {
+      "id": "lst_036",
+      "slug": "mountain-bike-21-speed",
+      "title": "Mountain bike, 21 speed",
+      "titleAm": "የተራራ ብስክሌት ፳፩ ጊር",
+      "description": "Light use only, mostly kept in storage. You are welcome to test it before buying.",
+      "descriptionAm": "ለረጅም ጊዜ የተጠቀምኩበት ቢሆንም ሙሉ በሙሉ ይሰራል። ዋጋው የማይቀያየር ነው።",
+      "priceEtb": 14000,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "vehicles",
+      "categoryLabel": "Vehicles",
+      "categoryLabelAm": "ተሽከርካሪ",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Gerji",
+        "areaAm": "ገርጂ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_036-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Mountain bike, 21 speed, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "kal_mobile_addis",
+        "phoneMasked": "+251 95 *** ** 65",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "kal_mobile_addis",
+          "channelTitle": "Kal Mobile Addis",
+          "messageUrl": "https://t.me/kal_mobile_addis/4455",
+          "postedAt": "2026-08-05T08:55:00Z",
+          "priceEtb": 14000
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 14000,
+      "priceStats": {
+        "categoryMedianEtb": 950000,
+        "p25Etb": 620000,
+        "p75Etb": 1650000,
+        "verdict": "suspicious",
+        "sampleSize": 165
+      },
+      "extractionConfidence": 0.9,
+      "postedAt": "2026-08-05T03:55:00Z",
+      "updatedAt": "2026-08-05T03:55:00Z"
+    },
+    {
+      "id": "lst_037",
+      "slug": "motorcycle-helmet-and-jacket-set",
+      "title": "Motorcycle helmet and jacket set",
+      "titleAm": null,
+      "description": "Used for about eight months. No dents, no scratches worth mentioning. Everything works exactly as it should.",
+      "descriptionAm": null,
+      "priceEtb": 5600,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "vehicles",
+      "categoryLabel": "Vehicles",
+      "categoryLabelAm": "ተሽከርካሪ",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Shiro Meda",
+        "areaAm": "ሽሮ ሜዳ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_037-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Motorcycle helmet and jacket set, photo 1"
+        },
+        {
+          "url": "/img/items/lst_037-2.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Motorcycle helmet and jacket set, photo 2"
+        },
+        {
+          "url": "/img/items/lst_037-3.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Motorcycle helmet and jacket set, photo 3"
+        },
+        {
+          "url": "/img/items/lst_037-4.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Motorcycle helmet and jacket set, photo 4"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "addis_used_market",
+        "phoneMasked": "+251 92 *** ** 82",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "addis_used_market",
+          "channelTitle": "Addis Used Market",
+          "messageUrl": "https://t.me/addis_used_market/4468",
+          "postedAt": "2026-08-16T08:48:00Z",
+          "priceEtb": 5600
+        },
+        {
+          "channelHandle": "gebeya_online_et",
+          "channelTitle": "Gebeya Online",
+          "messageUrl": "https://t.me/gebeya_online_et/4469",
+          "postedAt": "2026-08-16T03:37:00Z",
+          "priceEtb": 6050
+        },
+        {
+          "channelHandle": "ethio_furniture_market",
+          "channelTitle": "Ethio Furniture Market",
+          "messageUrl": "https://t.me/ethio_furniture_market/4470",
+          "postedAt": "2026-08-15T22:26:00Z",
+          "priceEtb": 6400
+        },
+        {
+          "channelHandle": "ethio_home_appliance",
+          "channelTitle": "Ethio Home Appliance",
+          "messageUrl": "https://t.me/ethio_home_appliance/4471",
+          "postedAt": "2026-08-15T17:15:00Z",
+          "priceEtb": 6500
+        },
+        {
+          "channelHandle": "addis_used_market",
+          "channelTitle": "Addis Used Market",
+          "messageUrl": "https://t.me/addis_used_market/4472",
+          "postedAt": "2026-08-15T12:04:00Z",
+          "priceEtb": 6200
+        }
+      ],
+      "seenInChannels": 5,
+      "lowestPriceEtb": 5600,
+      "priceStats": {
+        "categoryMedianEtb": 950000,
+        "p25Etb": 620000,
+        "p75Etb": 1650000,
+        "verdict": "suspicious",
+        "sampleSize": 176
+      },
+      "extractionConfidence": 0.76,
+      "postedAt": "2026-08-16T00:48:00Z",
+      "updatedAt": "2026-08-16T00:48:00Z"
+    },
+    {
+      "id": "lst_038",
+      "slug": "habesha-kemis-hand-woven",
+      "title": "Habesha kemis, hand-woven",
+      "titleAm": "የሐበሻ ቀሚስ በእጅ የተሰራ",
+      "description": "Sealed and unopened. I ordered two by mistake and only need one. Can meet anywhere around the area during the day.",
+      "descriptionAm": "ምንም አይነት ችግር የለበትም። መጥተው አይተው መግዛት ይችላሉ።",
+      "priceEtb": 6500,
+      "currency": "ETB",
+      "negotiable": false,
+      "categorySlug": "fashion",
+      "categoryLabel": "Fashion",
+      "categoryLabelAm": "አልባሳት",
+      "condition": "brand_new",
+      "location": {
+        "area": "Ayer Tena",
+        "areaAm": "አየር ጤና",
+        "city": "Addis Ababa"
+      },
+      "tier": "native",
+      "images": [
+        {
+          "url": "/img/items/lst_038-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Habesha kemis, hand-woven, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": "Dawit A.",
+        "telegramHandle": "gulit_dawit-a",
+        "phoneMasked": "+251 99 *** ** 99",
+        "phoneVerified": true,
+        "ratingAvg": 3.9,
+        "ratingCount": 16,
+        "memberSince": "2025-12-28T09:00:00Z"
+      },
+      "sources": [],
+      "seenInChannels": 0,
+      "lowestPriceEtb": 6500,
+      "priceStats": {
+        "categoryMedianEtb": 1800,
+        "p25Etb": 900,
+        "p75Etb": 3400,
+        "verdict": "above",
+        "sampleSize": 187
+      },
+      "extractionConfidence": 0.62,
+      "postedAt": "2026-08-14T21:41:00Z",
+      "updatedAt": "2026-08-14T21:41:00Z"
+    },
+    {
+      "id": "lst_039",
+      "slug": "leather-jacket-size-l",
+      "title": "Leather jacket, size L",
+      "titleAm": "የቆዳ ጃኬት",
+      "description": "Light use only, mostly kept in storage. You are welcome to test it before buying.",
+      "descriptionAm": "ለረጅም ጊዜ የተጠቀምኩበት ቢሆንም ሙሉ በሙሉ ይሰራል። ዋጋው የማይቀያየር ነው።",
+      "priceEtb": 3800,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "fashion",
+      "categoryLabel": "Fashion",
+      "categoryLabelAm": "አልባሳት",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Sarbet",
+        "areaAm": "ሳርቤት",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_039-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Leather jacket, size L, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "addis_kids_corner",
+        "phoneMasked": "+251 96 *** ** 26",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "addis_kids_corner",
+          "channelTitle": "Addis Kids Corner",
+          "messageUrl": "https://t.me/addis_kids_corner/4494",
+          "postedAt": "2026-08-14T08:34:00Z",
+          "priceEtb": 3800
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 3800,
+      "priceStats": {
+        "categoryMedianEtb": 1800,
+        "p25Etb": 900,
+        "p75Etb": 3400,
+        "verdict": "above",
+        "sampleSize": 198
+      },
+      "extractionConfidence": 0.85,
+      "postedAt": "2026-08-13T18:34:00Z",
+      "updatedAt": "2026-08-13T18:34:00Z"
+    },
+    {
+      "id": "lst_040",
+      "slug": "nike-air-force-1-size-42",
+      "title": "Nike Air Force 1, size 42",
+      "titleAm": "ናይክ ኤር ፎርስ ፩ ቁጥር ፵፪",
+      "description": "Used for about eight months. No dents, no scratches worth mentioning. Everything works exactly as it should.",
+      "descriptionAm": "በጣም ጥሩ ሁኔታ ላይ ይገኛል። ዋጋው ትንሽ ማስተካከያ አለው። ለበለጠ መረጃ ይደውሉ።",
+      "priceEtb": 4200,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "fashion",
+      "categoryLabel": "Fashion",
+      "categoryLabelAm": "አልባሳት",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Kolfe",
+        "areaAm": "ኮልፌ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_040-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Nike Air Force 1, size 42, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "gebeya_online_et",
+        "phoneMasked": "+251 93 *** ** 43",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "gebeya_online_et",
+          "channelTitle": "Gebeya Online",
+          "messageUrl": "https://t.me/gebeya_online_et/4507",
+          "postedAt": "2026-08-13T08:27:00Z",
+          "priceEtb": 4200
+        },
+        {
+          "channelHandle": "ethio_furniture_market",
+          "channelTitle": "Ethio Furniture Market",
+          "messageUrl": "https://t.me/ethio_furniture_market/4508",
+          "postedAt": "2026-08-13T03:16:00Z",
+          "priceEtb": 4450
+        }
+      ],
+      "seenInChannels": 2,
+      "lowestPriceEtb": 4200,
+      "priceStats": {
+        "categoryMedianEtb": 1800,
+        "p25Etb": 900,
+        "p75Etb": 3400,
+        "verdict": "above",
+        "sampleSize": 209
+      },
+      "extractionConfidence": 0.71,
+      "postedAt": "2026-08-12T15:27:00Z",
+      "updatedAt": "2026-08-12T15:27:00Z"
+    },
+    {
+      "id": "lst_041",
+      "slug": "wedding-suit-worn-once",
+      "title": "Wedding suit, worn once",
+      "titleAm": "የሰርግ ልብስ አንድ ጊዜ የተለበሰ",
+      "description": "Second owner, kept in very good condition. Selling because I am moving out of Addis at the end of the month.",
+      "descriptionAm": "ምንም አይነት ችግር የለበትም። መጥተው አይተው መግዛት ይችላሉ።",
+      "priceEtb": 5500,
+      "currency": "ETB",
+      "negotiable": false,
+      "categorySlug": "fashion",
+      "categoryLabel": "Fashion",
+      "categoryLabelAm": "አልባሳት",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Old Airport",
+        "areaAm": "ኦልድ ኤርፖርት",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_041-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Wedding suit, worn once, photo 1"
+        },
+        {
+          "url": "/img/items/lst_041-2.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Wedding suit, worn once, photo 2"
+        },
+        {
+          "url": "/img/items/lst_041-3.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Wedding suit, worn once, photo 3"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "addis_auto_bazaar",
+        "phoneMasked": "+251 90 *** ** 60",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "addis_auto_bazaar",
+          "channelTitle": "Addis Auto Bazaar",
+          "messageUrl": "https://t.me/addis_auto_bazaar/4520",
+          "postedAt": "2026-08-12T08:20:00Z",
+          "priceEtb": 5500
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 5500,
+      "priceStats": {
+        "categoryMedianEtb": 1800,
+        "p25Etb": 900,
+        "p75Etb": 3400,
+        "verdict": "above",
+        "sampleSize": 220
+      },
+      "extractionConfidence": 0.94,
+      "postedAt": "2026-08-12T08:20:00Z",
+      "updatedAt": "2026-08-12T08:20:00Z"
+    },
+    {
+      "id": "lst_042",
+      "slug": "netela-cotton-with-tilet-border",
+      "title": "Netela, cotton with tilet border",
+      "titleAm": "ነጠላ ከጥለት ጋር",
+      "description": "Brand new, still under warranty. Happy to let you inspect everything before you pay.",
+      "descriptionAm": "ለረጅም ጊዜ የተጠቀምኩበት ቢሆንም ሙሉ በሙሉ ይሰራል። ዋጋው የማይቀያየር ነው።",
+      "priceEtb": 1900,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "fashion",
+      "categoryLabel": "Fashion",
+      "categoryLabelAm": "አልባሳት",
+      "condition": "brand_new",
+      "location": {
+        "area": "Kazanchis",
+        "areaAm": "ካዛንቺስ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_042-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Netela, cotton with tilet border, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "ethio_second_hand",
+        "phoneMasked": "+251 97 *** ** 77",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "ethio_second_hand",
+          "channelTitle": "Ethio Second Hand",
+          "messageUrl": "https://t.me/ethio_second_hand/4533",
+          "postedAt": "2026-08-11T08:13:00Z",
+          "priceEtb": 1900
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 1900,
+      "priceStats": {
+        "categoryMedianEtb": 1800,
+        "p25Etb": 900,
+        "p75Etb": 3400,
+        "verdict": "fair",
+        "sampleSize": 231
+      },
+      "extractionConfidence": 0.8,
+      "postedAt": "2026-08-11T05:13:00Z",
+      "updatedAt": "2026-08-11T05:13:00Z"
+    },
+    {
+      "id": "lst_043",
+      "slug": "baby-cot-with-mattress",
+      "title": "Baby cot with mattress",
+      "titleAm": "የሕፃናት አልጋ ከነ ፍራሽ",
+      "description": "Used for about eight months. No dents, no scratches worth mentioning. Everything works exactly as it should.",
+      "descriptionAm": "በጣም ጥሩ ሁኔታ ላይ ይገኛል። ዋጋው ትንሽ ማስተካከያ አለው። ለበለጠ መረጃ ይደውሉ።",
+      "priceEtb": 7500,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "kids",
+      "categoryLabel": "Baby & Kids",
+      "categoryLabelAm": "የሕፃናት እቃ",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Jemo",
+        "areaAm": "ጀሞ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_043-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Baby cot with mattress, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "ethio_furniture_market",
+        "phoneMasked": "+251 94 *** ** 94",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "ethio_furniture_market",
+          "channelTitle": "Ethio Furniture Market",
+          "messageUrl": "https://t.me/ethio_furniture_market/4546",
+          "postedAt": "2026-08-10T08:06:00Z",
+          "priceEtb": 7500
+        },
+        {
+          "channelHandle": "ethio_home_appliance",
+          "channelTitle": "Ethio Home Appliance",
+          "messageUrl": "https://t.me/ethio_home_appliance/4547",
+          "postedAt": "2026-08-10T03:55:00Z",
+          "priceEtb": 8050
+        }
+      ],
+      "seenInChannels": 2,
+      "lowestPriceEtb": 7500,
+      "priceStats": {
+        "categoryMedianEtb": 3200,
+        "p25Etb": 1600,
+        "p75Etb": 6500,
+        "verdict": "above",
+        "sampleSize": 242
+      },
+      "extractionConfidence": 0.66,
+      "postedAt": "2026-08-10T02:06:00Z",
+      "updatedAt": "2026-08-10T02:06:00Z"
+    },
+    {
+      "id": "lst_044",
+      "slug": "chicco-stroller-folds-flat",
+      "title": "Chicco stroller, folds flat",
+      "titleAm": "ቺኮ የሕፃናት ጋሪ",
+      "description": "Fully functional with some cosmetic wear. Serviced two months ago and running well since.",
+      "descriptionAm": "ምንም አይነት ችግር የለበትም። መጥተው አይተው መግዛት ይችላሉ።",
+      "priceEtb": 6200,
+      "currency": "ETB",
+      "negotiable": false,
+      "categorySlug": "kids",
+      "categoryLabel": "Baby & Kids",
+      "categoryLabelAm": "የሕፃናት እቃ",
+      "condition": "fair",
+      "location": {
+        "area": "Kality",
+        "areaAm": "ቃሊቲ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_044-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Chicco stroller, folds flat, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "tikur_sew_gebeya",
+        "phoneMasked": "+251 91 *** ** 21",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "tikur_sew_gebeya",
+          "channelTitle": "Tikur Sew Gebeya",
+          "messageUrl": "https://t.me/tikur_sew_gebeya/4559",
+          "postedAt": "2026-08-09T08:59:00Z",
+          "priceEtb": 6200
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 6200,
+      "priceStats": {
+        "categoryMedianEtb": 3200,
+        "p25Etb": 1600,
+        "p75Etb": 6500,
+        "verdict": "fair",
+        "sampleSize": 253
+      },
+      "extractionConfidence": 0.89,
+      "postedAt": "2026-08-08T23:59:00Z",
+      "updatedAt": "2026-08-08T23:59:00Z"
+    },
+    {
+      "id": "lst_045",
+      "slug": "kids-bicycle-ages-5-to-8",
+      "title": "Kids bicycle, ages 5 to 8",
+      "titleAm": "የልጆች ብስክሌት ከ፭-፰ ዓመት",
+      "description": "Old but reliable. Selling as-is, no returns, but nothing is hidden from you.",
+      "descriptionAm": "ለረጅም ጊዜ የተጠቀምኩበት ቢሆንም ሙሉ በሙሉ ይሰራል። ዋጋው የማይቀያየር ነው።",
+      "priceEtb": 3400,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "kids",
+      "categoryLabel": "Baby & Kids",
+      "categoryLabelAm": "የሕፃናት እቃ",
+      "condition": "fair",
+      "location": {
+        "area": "CMC",
+        "areaAm": "ሲኤምሲ",
+        "city": "Addis Ababa"
+      },
+      "tier": "claimed",
+      "images": [
+        {
+          "url": "/img/items/lst_045-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Kids bicycle, ages 5 to 8, photo 1"
+        },
+        {
+          "url": "/img/items/lst_045-2.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Kids bicycle, ages 5 to 8, photo 2"
+        },
+        {
+          "url": "/img/items/lst_045-3.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Kids bicycle, ages 5 to 8, photo 3"
+        },
+        {
+          "url": "/img/items/lst_045-4.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Kids bicycle, ages 5 to 8, photo 4"
+        }
+      ],
+      "seller": {
+        "displayName": "Tigist W.",
+        "telegramHandle": "merkato_deals",
+        "phoneMasked": "+251 98 *** ** 38",
+        "phoneVerified": true,
+        "ratingAvg": 4.6,
+        "ratingCount": 24,
+        "memberSince": "2025-12-07T09:00:00Z"
+      },
+      "sources": [
+        {
+          "channelHandle": "merkato_deals",
+          "channelTitle": "Merkato Deals",
+          "messageUrl": "https://t.me/merkato_deals/4572",
+          "postedAt": "2026-08-08T08:52:00Z",
+          "priceEtb": 3400
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 3400,
+      "priceStats": {
+        "categoryMedianEtb": 3200,
+        "p25Etb": 1600,
+        "p75Etb": 6500,
+        "verdict": "fair",
+        "sampleSize": 264
+      },
+      "extractionConfidence": 0.75,
+      "postedAt": "2026-08-07T20:52:00Z",
+      "updatedAt": "2026-08-07T20:52:00Z"
+    },
+    {
+      "id": "lst_046",
+      "slug": "wooden-toy-set-40-pieces",
+      "title": "Wooden toy set, 40 pieces",
+      "titleAm": null,
+      "description": "Bought last month and never used. Box, charger and receipt all included. Price is slightly negotiable for a serious buyer.",
+      "descriptionAm": null,
+      "priceEtb": 1200,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "kids",
+      "categoryLabel": "Baby & Kids",
+      "categoryLabelAm": "የሕፃናት እቃ",
+      "condition": "brand_new",
+      "location": {
+        "area": "Saris",
+        "areaAm": "ሳሪስ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_046-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Wooden toy set, 40 pieces, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "ethio_home_appliance",
+        "phoneMasked": "+251 95 *** ** 55",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "ethio_home_appliance",
+          "channelTitle": "Ethio Home Appliance",
+          "messageUrl": "https://t.me/ethio_home_appliance/4585",
+          "postedAt": "2026-08-07T08:45:00Z",
+          "priceEtb": 1200
+        },
+        {
+          "channelHandle": "addis_used_market",
+          "channelTitle": "Addis Used Market",
+          "messageUrl": "https://t.me/addis_used_market/4586",
+          "postedAt": "2026-08-07T03:34:00Z",
+          "priceEtb": 1250
+        },
+        {
+          "channelHandle": "gebeya_online_et",
+          "channelTitle": "Gebeya Online",
+          "messageUrl": "https://t.me/gebeya_online_et/4587",
+          "postedAt": "2026-08-06T22:23:00Z",
+          "priceEtb": 1350
+        },
+        {
+          "channelHandle": "ethio_furniture_market",
+          "channelTitle": "Ethio Furniture Market",
+          "messageUrl": "https://t.me/ethio_furniture_market/4588",
+          "postedAt": "2026-08-06T17:12:00Z",
+          "priceEtb": 1300
+        },
+        {
+          "channelHandle": "ethio_home_appliance",
+          "channelTitle": "Ethio Home Appliance",
+          "messageUrl": "https://t.me/ethio_home_appliance/4589",
+          "postedAt": "2026-08-06T12:01:00Z",
+          "priceEtb": 1450
+        }
+      ],
+      "seenInChannels": 5,
+      "lowestPriceEtb": 1200,
+      "priceStats": {
+        "categoryMedianEtb": 3200,
+        "p25Etb": 1600,
+        "p75Etb": 6500,
+        "verdict": "below",
+        "sampleSize": 275
+      },
+      "extractionConfidence": 0.98,
+      "postedAt": "2026-08-06T17:45:00Z",
+      "updatedAt": "2026-08-06T17:45:00Z"
+    },
+    {
+      "id": "lst_047",
+      "slug": "ethiopian-history-collection-12-volumes",
+      "title": "Ethiopian history collection, 12 volumes",
+      "titleAm": "የኢትዮጵያ ታሪክ መጽሐፍት ፲፪ ጥራዝ",
+      "description": "Fully functional with some cosmetic wear. Serviced two months ago and running well since.",
+      "descriptionAm": "ምንም አይነት ችግር የለበትም። መጥተው አይተው መግዛት ይችላሉ።",
+      "priceEtb": 2800,
+      "currency": "ETB",
+      "negotiable": false,
+      "categorySlug": "books",
+      "categoryLabel": "Books & Hobbies",
+      "categoryLabelAm": "መጽሐፍትና መዝናኛ",
+      "condition": "fair",
+      "location": {
+        "area": "Hayahulet",
+        "areaAm": "ሃያሁለት",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_047-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Ethiopian history collection, 12 volumes, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "bole_market_et",
+        "phoneMasked": "+251 92 *** ** 72",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "bole_market_et",
+          "channelTitle": "Bole Market ET",
+          "messageUrl": "https://t.me/bole_market_et/4598",
+          "postedAt": "2026-08-06T08:38:00Z",
+          "priceEtb": 2800
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 2800,
+      "priceStats": {
+        "categoryMedianEtb": 900,
+        "p25Etb": 400,
+        "p75Etb": 2200,
+        "verdict": "above",
+        "sampleSize": 286
+      },
+      "extractionConfidence": 0.84,
+      "postedAt": "2026-08-05T14:38:00Z",
+      "updatedAt": "2026-08-05T14:38:00Z"
+    },
+    {
+      "id": "lst_048",
+      "slug": "chess-set-weighted-pieces",
+      "title": "Chess set, weighted pieces",
+      "titleAm": "የቼዝ ጨዋታ",
+      "description": "Light use only, mostly kept in storage. You are welcome to test it before buying.",
+      "descriptionAm": "ለረጅም ጊዜ የተጠቀምኩበት ቢሆንም ሙሉ በሙሉ ይሰራል። ዋጋው የማይቀያየር ነው።",
+      "priceEtb": 1600,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "books",
+      "categoryLabel": "Books & Hobbies",
+      "categoryLabelAm": "መጽሐፍትና መዝናኛ",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Megenagna",
+        "areaAm": "መገናኛ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_048-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Chess set, weighted pieces, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "kal_mobile_addis",
+        "phoneMasked": "+251 99 *** ** 89",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "kal_mobile_addis",
+          "channelTitle": "Kal Mobile Addis",
+          "messageUrl": "https://t.me/kal_mobile_addis/4611",
+          "postedAt": "2026-08-05T08:31:00Z",
+          "priceEtb": 1600
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 1600,
+      "priceStats": {
+        "categoryMedianEtb": 900,
+        "p25Etb": 400,
+        "p75Etb": 2200,
+        "verdict": "fair",
+        "sampleSize": 297
+      },
+      "extractionConfidence": 0.7,
+      "postedAt": "2026-08-05T07:31:00Z",
+      "updatedAt": "2026-08-05T07:31:00Z"
+    },
+    {
+      "id": "lst_049",
+      "slug": "canon-eos-700d-with-18-55mm-lens",
+      "title": "Canon EOS 700D with 18-55mm lens",
+      "titleAm": "ካኖን EOS 700D ካሜራ",
+      "description": "Used for about eight months. No dents, no scratches worth mentioning. Everything works exactly as it should.",
+      "descriptionAm": "በጣም ጥሩ ሁኔታ ላይ ይገኛል። ዋጋው ትንሽ ማስተካከያ አለው። ለበለጠ መረጃ ይደውሉ።",
+      "priceEtb": 28000,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "books",
+      "categoryLabel": "Books & Hobbies",
+      "categoryLabelAm": "መጽሐፍትና መዝናኛ",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Lebu",
+        "areaAm": "ለቡ",
+        "city": "Addis Ababa"
+      },
+      "tier": "native",
+      "images": [
+        {
+          "url": "/img/items/lst_049-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Canon EOS 700D with 18-55mm lens, photo 1"
+        },
+        {
+          "url": "/img/items/lst_049-2.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Canon EOS 700D with 18-55mm lens, photo 2"
+        }
+      ],
+      "seller": {
+        "displayName": "Kalkidan Y.",
+        "telegramHandle": "gulit_kalkidan-y",
+        "phoneMasked": "+251 96 *** ** 16",
+        "phoneVerified": true,
+        "ratingAvg": 3.8,
+        "ratingCount": 11,
+        "memberSince": "2025-11-25T09:00:00Z"
+      },
+      "sources": [],
+      "seenInChannels": 0,
+      "lowestPriceEtb": 28000,
+      "priceStats": {
+        "categoryMedianEtb": 900,
+        "p25Etb": 400,
+        "p75Etb": 2200,
+        "verdict": "above",
+        "sampleSize": 48
+      },
+      "extractionConfidence": 0.93,
+      "postedAt": "2026-08-16T04:24:00Z",
+      "updatedAt": "2026-08-16T04:24:00Z"
+    },
+    {
+      "id": "lst_050",
+      "slug": "university-engineering-textbooks-lot-of-9",
+      "title": "University engineering textbooks, lot of 9",
+      "titleAm": null,
+      "description": "Fully functional with some cosmetic wear. Serviced two months ago and running well since.",
+      "descriptionAm": null,
+      "priceEtb": null,
+      "currency": "ETB",
+      "negotiable": false,
+      "categorySlug": "books",
+      "categoryLabel": "Books & Hobbies",
+      "categoryLabelAm": "መጽሐፍትና መዝናኛ",
+      "condition": "fair",
+      "location": {
+        "area": "Gurd Shola",
+        "areaAm": "ጉርድ ሾላ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_050-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "University engineering textbooks, lot of 9, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "addis_electronics_hub",
+        "phoneMasked": "+251 93 *** ** 33",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "addis_electronics_hub",
+          "channelTitle": "Addis Electronics Hub",
+          "messageUrl": "https://t.me/addis_electronics_hub/4637",
+          "postedAt": "2026-08-15T08:17:00Z",
+          "priceEtb": null
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": null,
+      "priceStats": {
+        "categoryMedianEtb": 900,
+        "p25Etb": 400,
+        "p75Etb": 2200,
+        "verdict": "unknown",
+        "sampleSize": 59
+      },
+      "extractionConfidence": 0.79,
+      "postedAt": "2026-08-15T01:17:00Z",
+      "updatedAt": "2026-08-15T01:17:00Z"
+    },
+    {
+      "id": "lst_051",
+      "slug": "bosch-cordless-drill-two-batteries",
+      "title": "Bosch cordless drill, two batteries",
+      "titleAm": "ቦሽ የእጅ መሰርሰሪያ",
+      "description": "Light use only, mostly kept in storage. You are welcome to test it before buying.",
+      "descriptionAm": "ለረጅም ጊዜ የተጠቀምኩበት ቢሆንም ሙሉ በሙሉ ይሰራል። ዋጋው የማይቀያየር ነው።",
+      "priceEtb": 8900,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "tools",
+      "categoryLabel": "Tools",
+      "categoryLabelAm": "የስራ መሳሪያ",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Piassa",
+        "areaAm": "ፒያሳ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_051-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Bosch cordless drill, two batteries, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "addis_kids_corner",
+        "phoneMasked": "+251 90 *** ** 50",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "addis_kids_corner",
+          "channelTitle": "Addis Kids Corner",
+          "messageUrl": "https://t.me/addis_kids_corner/4650",
+          "postedAt": "2026-08-14T08:10:00Z",
+          "priceEtb": 8900
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 8900,
+      "priceStats": {
+        "categoryMedianEtb": 5200,
+        "p25Etb": 2600,
+        "p75Etb": 11000,
+        "verdict": "fair",
+        "sampleSize": 70
+      },
+      "extractionConfidence": 0.65,
+      "postedAt": "2026-08-13T22:10:00Z",
+      "updatedAt": "2026-08-13T22:10:00Z"
+    },
+    {
+      "id": "lst_052",
+      "slug": "generator-3-5kva-petrol",
+      "title": "Generator 3.5kVA, petrol",
+      "titleAm": "ጀነሬተር ፫.፭ኪቫ",
+      "description": "Works fine but shows its age. A few marks on the body which I have photographed honestly. Priced accordingly.",
+      "descriptionAm": "በጣም ጥሩ ሁኔታ ላይ ይገኛል። ዋጋው ትንሽ ማስተካከያ አለው። ለበለጠ መረጃ ይደውሉ።",
+      "priceEtb": 42000,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "tools",
+      "categoryLabel": "Tools",
+      "categoryLabelAm": "የስራ መሳሪያ",
+      "condition": "fair",
+      "location": {
+        "area": "Summit",
+        "areaAm": "ሰሚት",
+        "city": "Addis Ababa"
+      },
+      "tier": "claimed",
+      "images": [
+        {
+          "url": "/img/items/lst_052-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Generator 3.5kVA, petrol, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": "Getachew N.",
+        "telegramHandle": "gebeya_online_et",
+        "phoneMasked": "+251 97 *** ** 67",
+        "phoneVerified": true,
+        "ratingAvg": 4.1,
+        "ratingCount": 32,
+        "memberSince": "2025-11-16T09:00:00Z"
+      },
+      "sources": [
+        {
+          "channelHandle": "gebeya_online_et",
+          "channelTitle": "Gebeya Online",
+          "messageUrl": "https://t.me/gebeya_online_et/4663",
+          "postedAt": "2026-08-13T08:03:00Z",
+          "priceEtb": 42000
+        },
+        {
+          "channelHandle": "ethio_furniture_market",
+          "channelTitle": "Ethio Furniture Market",
+          "messageUrl": "https://t.me/ethio_furniture_market/4664",
+          "postedAt": "2026-08-13T03:52:00Z",
+          "priceEtb": 44650
+        },
+        {
+          "channelHandle": "ethio_home_appliance",
+          "channelTitle": "Ethio Home Appliance",
+          "messageUrl": "https://t.me/ethio_home_appliance/4665",
+          "postedAt": "2026-08-12T22:41:00Z",
+          "priceEtb": 45800
+        }
+      ],
+      "seenInChannels": 3,
+      "lowestPriceEtb": 42000,
+      "priceStats": {
+        "categoryMedianEtb": 5200,
+        "p25Etb": 2600,
+        "p75Etb": 11000,
+        "verdict": "above",
+        "sampleSize": 81
+      },
+      "extractionConfidence": 0.88,
+      "postedAt": "2026-08-12T19:03:00Z",
+      "updatedAt": "2026-08-12T19:03:00Z"
+    },
+    {
+      "id": "lst_053",
+      "slug": "welding-machine-200a-inverter",
+      "title": "Welding machine, 200A inverter",
+      "titleAm": "የብየዳ ማሽን ፪፻ አምፔር",
+      "description": "Second owner, kept in very good condition. Selling because I am moving out of Addis at the end of the month.",
+      "descriptionAm": "ምንም አይነት ችግር የለበትም። መጥተው አይተው መግዛት ይችላሉ።",
+      "priceEtb": 16500,
+      "currency": "ETB",
+      "negotiable": false,
+      "categorySlug": "tools",
+      "categoryLabel": "Tools",
+      "categoryLabelAm": "የስራ መሳሪያ",
+      "condition": "lightly_used",
+      "location": {
+        "area": "Arat Kilo",
+        "areaAm": "አራት ኪሎ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_053-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Welding machine, 200A inverter, photo 1"
+        },
+        {
+          "url": "/img/items/lst_053-2.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Welding machine, 200A inverter, photo 2"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "addis_auto_bazaar",
+        "phoneMasked": "+251 94 *** ** 84",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "addis_auto_bazaar",
+          "channelTitle": "Addis Auto Bazaar",
+          "messageUrl": "https://t.me/addis_auto_bazaar/4676",
+          "postedAt": "2026-08-12T08:56:00Z",
+          "priceEtb": 16500
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 16500,
+      "priceStats": {
+        "categoryMedianEtb": 5200,
+        "p25Etb": 2600,
+        "p75Etb": 11000,
+        "verdict": "above",
+        "sampleSize": 92
+      },
+      "extractionConfidence": 0.74,
+      "postedAt": "2026-08-11T16:56:00Z",
+      "updatedAt": "2026-08-11T16:56:00Z"
+    },
+    {
+      "id": "lst_054",
+      "slug": "full-mechanic-tool-box-120-pieces",
+      "title": "Full mechanic tool box, 120 pieces",
+      "titleAm": null,
+      "description": "Brand new, still under warranty. Happy to let you inspect everything before you pay.",
+      "descriptionAm": null,
+      "priceEtb": 11500,
+      "currency": "ETB",
+      "negotiable": true,
+      "categorySlug": "tools",
+      "categoryLabel": "Tools",
+      "categoryLabelAm": "የስራ መሳሪያ",
+      "condition": "brand_new",
+      "location": {
+        "area": "Bole",
+        "areaAm": "ቦሌ",
+        "city": "Addis Ababa"
+      },
+      "tier": "indexed",
+      "images": [
+        {
+          "url": "/img/items/lst_054-1.jpg",
+          "width": 800,
+          "height": 600,
+          "alt": "Full mechanic tool box, 120 pieces, photo 1"
+        }
+      ],
+      "seller": {
+        "displayName": null,
+        "telegramHandle": "ethio_second_hand",
+        "phoneMasked": "+251 91 *** ** 11",
+        "phoneVerified": false,
+        "ratingAvg": null,
+        "ratingCount": null,
+        "memberSince": null
+      },
+      "sources": [
+        {
+          "channelHandle": "ethio_second_hand",
+          "channelTitle": "Ethio Second Hand",
+          "messageUrl": "https://t.me/ethio_second_hand/4689",
+          "postedAt": "2026-08-11T08:49:00Z",
+          "priceEtb": 11500
+        }
+      ],
+      "seenInChannels": 1,
+      "lowestPriceEtb": 11500,
+      "priceStats": {
+        "categoryMedianEtb": 5200,
+        "p25Etb": 2600,
+        "p75Etb": 11000,
+        "verdict": "above",
+        "sampleSize": 103
+      },
+      "extractionConfidence": 0.97,
+      "postedAt": "2026-08-10T13:49:00Z",
+      "updatedAt": "2026-08-10T13:49:00Z"
+    }
+  ]
+}

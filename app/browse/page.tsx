@@ -91,6 +91,8 @@ export default async function BrowsePage({
               <Pagination
                 page={results.page}
                 pageCount={results.pageCount}
+                prevCursor={results.prevCursor}
+                nextCursor={results.nextCursor}
                 params={params}
               />
             </>

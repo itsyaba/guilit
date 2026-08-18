@@ -1,4 +1,19 @@
-import fixtures from "@/fixtures/listings.json"
+import { and, asc, desc, eq, gte, inArray, isNotNull, lte, sql } from "drizzle-orm"
+
+import { db } from "@/db/client"
+import {
+  categories,
+  channels,
+  extractions,
+  images as imagesTable,
+  listingSources,
+  listings,
+  rawMessages,
+  ratings,
+  users,
+} from "@/db/schema"
+import { getImageUrl } from "@/lib/media"
+import { isUuid } from "@/lib/utils"
 import type {
   AreaOption,
   CategoryOption,
@@ -6,160 +21,548 @@ import type {
   FilterOptions,
   Listing,
   ListingCondition,
+  ListingImage,
+  ListingPriceStats,
   ListingQuery,
+  ListingSeller,
+  ListingSource,
   ListingTier,
   ListingsPage,
+  PriceVerdict,
   SortValue,
   TierOption,
 } from "@/lib/types"
-import { SORT_OPTIONS } from "@/lib/types"
 
 /**
- * The single seam between the UI and its data.
+ * The single seam between the UI and its data — see lib/types.ts.
  *
- * Every function here is async and returns plain serialisable objects, so the
- * day `/api/listings` exists this module changes and nothing else does. The
- * matching below is deliberately naive -- real search is Postgres FTS plus
- * pg_trgm and belongs to the search ticket, not to the page shells.
+ * `app/browse/page.tsx` and `app/listing/[id]/page.tsx` call these exports
+ * directly, and `app/api/listings*` routes just wrap the same functions, so
+ * this module is the one place real Postgres queries live.
  */
-
-type FixtureFile = {
-  categories: CategoryOption[]
-  conditions: ConditionOption[]
-  tiers: TierOption[]
-  areas: AreaOption[]
-  channelCount: number
-  listings: Listing[]
-}
-
-const data = fixtures as unknown as FixtureFile
 
 export const PAGE_SIZE = 24
 
-const prices = data.listings
-  .map((listing) => listing.priceEtb)
-  .filter((price): price is number => price !== null)
+const PRICE_BOUNDS_MAX = 150000 // Vehicles sit an order of magnitude above everything else.
 
-const PRICE_BOUNDS = {
-  min: 0,
-  // Vehicles sit an order of magnitude above everything else, so the slider is
-  // capped below them and the top stop reads as "and above".
-  max: 150000,
-  absoluteMax: Math.max(...prices),
-}
+const CONDITION_OPTIONS: ConditionOption[] = [
+  { value: "brand_new", label: "Brand New", labelAm: "አዲስ" },
+  { value: "lightly_used", label: "Lightly Used", labelAm: "ትንሽ የተሰራበት" },
+  { value: "fair", label: "Fair Condition", labelAm: "መካከለኛ" },
+]
+
+const TIER_OPTIONS: TierOption[] = [
+  { value: "indexed", label: "Indexed", labelAm: "የተሰበሰበ" },
+  { value: "claimed", label: "Claimed", labelAm: "የተረጋገጠ" },
+  { value: "native", label: "On Gulit", labelAm: "በጉሊት የተለጠፈ" },
+]
+
+const CONDITION_VALUES: ListingCondition[] = CONDITION_OPTIONS.map((c) => c.value)
+const TIER_VALUES: ListingTier[] = TIER_OPTIONS.map((t) => t.value)
+
+// --------------------------------------------------------------------------
+// Filter options
+// --------------------------------------------------------------------------
 
 export async function getFilterOptions(): Promise<FilterOptions> {
+  const [categoryRows, areaRows, channelRow] = await Promise.all([
+    db
+      .select({ slug: categories.slug, nameEn: categories.nameEn, nameAm: categories.nameAm })
+      .from(categories),
+    db
+      .selectDistinct({ area: listings.locationArea, areaAm: listings.locationAreaAm })
+      .from(listings)
+      .where(and(eq(listings.status, "live"), isNotNull(listings.locationArea))),
+    db.select({ count: sql<number>`count(*)` }).from(channels).where(eq(channels.active, true)),
+  ])
+
+  const categoryOptions: CategoryOption[] = categoryRows.map((c) => ({
+    slug: c.slug,
+    label: c.nameEn,
+    labelAm: c.nameAm,
+  }))
+
+  const areaOptions: AreaOption[] = areaRows
+    .filter((a): a is { area: string; areaAm: string | null } => a.area !== null)
+    .map((a) => ({ area: a.area, areaAm: a.areaAm ?? a.area }))
+
   return {
-    categories: data.categories,
-    conditions: data.conditions,
-    tiers: data.tiers,
-    areas: data.areas,
-    priceBoundsEtb: { min: PRICE_BOUNDS.min, max: PRICE_BOUNDS.max },
-    channelCount: data.channelCount,
+    categories: categoryOptions,
+    conditions: CONDITION_OPTIONS,
+    tiers: TIER_OPTIONS,
+    areas: areaOptions,
+    priceBoundsEtb: { min: 0, max: PRICE_BOUNDS_MAX },
+    channelCount: Number(channelRow[0]?.count ?? 0),
   }
 }
 
-function matchesQuery(listing: Listing, q: string): boolean {
-  const needle = q.trim().toLowerCase()
-  if (!needle) return true
-  const haystack = [
-    listing.title,
-    listing.titleAm ?? "",
-    listing.categoryLabel,
-    listing.categoryLabelAm,
-    listing.location.area,
-    listing.location.areaAm,
-  ]
-    .join(" ")
-    .toLowerCase()
-  return haystack.includes(needle)
+// --------------------------------------------------------------------------
+// Cursor pagination
+// --------------------------------------------------------------------------
+
+type SortDirection = "asc" | "desc"
+
+const SORT_DIRECTION: Record<SortValue, SortDirection> = {
+  newest: "desc",
+  price_asc: "asc",
+  price_desc: "desc",
+  channels: "desc",
 }
 
-function sortListings(items: Listing[], sort: SortValue): Listing[] {
-  const sorted = [...items]
+function sortColumn(sort: SortValue) {
   switch (sort) {
     case "price_asc":
-      return sorted.sort(
-        (a, b) => (a.priceEtb ?? Infinity) - (b.priceEtb ?? Infinity)
-      )
     case "price_desc":
-      return sorted.sort((a, b) => (b.priceEtb ?? -1) - (a.priceEtb ?? -1))
+      return listings.priceEtb
     case "channels":
-      return sorted.sort((a, b) => b.seenInChannels - a.seenInChannels)
+      return listings.seenInChannels
     case "newest":
     default:
-      return sorted.sort(
-        (a, b) => Date.parse(b.postedAt) - Date.parse(a.postedAt)
-      )
+      return listings.postedAt
   }
 }
 
-export async function getListings(
-  query: ListingQuery = {}
-): Promise<ListingsPage> {
-  const sort = query.sort ?? "newest"
+type Cursor = { dir: "next" | "prev"; v: string | number; id: string }
 
-  const filtered = data.listings.filter((listing) => {
-    if (query.q && !matchesQuery(listing, query.q)) return false
-    if (query.category && listing.categorySlug !== query.category) return false
-    if (query.condition?.length && !query.condition.includes(listing.condition))
-      return false
-    if (query.tier?.length && !query.tier.includes(listing.tier)) return false
-    if (query.area && listing.location.area !== query.area) return false
+function encodeCursor(cursor: Cursor): string {
+  return Buffer.from(JSON.stringify(cursor)).toString("base64url")
+}
 
-    if (query.minPrice !== undefined || query.maxPrice !== undefined) {
-      // A listing with no price is not evidence that it falls outside the
-      // range, but a price filter is an explicit ask for priced items.
-      if (listing.priceEtb === null) return false
-      if (query.minPrice !== undefined && listing.priceEtb < query.minPrice)
-        return false
-      if (
-        query.maxPrice !== undefined &&
-        query.maxPrice < PRICE_BOUNDS.max &&
-        listing.priceEtb > query.maxPrice
-      )
-        return false
+function decodeCursor(raw: string | undefined): Cursor | null {
+  if (!raw) return null
+  try {
+    const parsed = JSON.parse(Buffer.from(raw, "base64url").toString("utf8"))
+    if (
+      (parsed.dir === "next" || parsed.dir === "prev") &&
+      typeof parsed.id === "string" &&
+      (typeof parsed.v === "string" || typeof parsed.v === "number")
+    ) {
+      return parsed as Cursor
     }
+    return null
+  } catch {
+    return null
+  }
+}
 
-    return true
-  })
+/**
+ * Boundary value for a row, in the shape a cursor stores it. `postedAt` is
+ * carried as Postgres's own text output (microsecond precision) rather than
+ * a JS Date — Date only has millisecond resolution, and round-tripping a
+ * truncated value back into a tuple comparison made a boundary row satisfy
+ * `>` against its own (truncated) value, duplicating it across pages.
+ */
+function boundaryValue(
+  sort: SortValue,
+  row: { postedAtText: string; priceEtb: number | null; seenInChannels: number }
+) {
+  if (sort === "price_asc" || sort === "price_desc") return row.priceEtb as number
+  if (sort === "channels") return row.seenInChannels
+  return row.postedAtText
+}
 
-  const sorted = sortListings(filtered, sort)
-  const total = sorted.length
-  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE))
-  const page = Math.min(Math.max(1, query.page ?? 1), pageCount)
-  const start = (page - 1) * PAGE_SIZE
+// --------------------------------------------------------------------------
+// Query building
+// --------------------------------------------------------------------------
+
+function buildFilterConditions(query: ListingQuery) {
+  const conditions = [eq(listings.status, "live")]
+
+  if (query.q) {
+    conditions.push(
+      sql`${listings.searchVector} @@ websearch_to_tsquery('simple', ${query.q})`
+    )
+  }
+  if (query.category) conditions.push(eq(listings.categorySlug, query.category))
+  if (query.condition?.length) conditions.push(inArray(listings.condition, query.condition))
+  if (query.tier?.length) conditions.push(inArray(listings.tier, query.tier))
+  if (query.area) conditions.push(eq(listings.locationArea, query.area))
+
+  const sort = query.sort ?? "newest"
+  const needsPrice =
+    query.minPrice !== undefined || query.maxPrice !== undefined || sort === "price_asc" || sort === "price_desc"
+  if (needsPrice) {
+    conditions.push(isNotNull(listings.priceEtb))
+    if (query.minPrice !== undefined) conditions.push(gte(listings.priceEtb, query.minPrice))
+    if (query.maxPrice !== undefined && query.maxPrice < PRICE_BOUNDS_MAX) {
+      conditions.push(lte(listings.priceEtb, query.maxPrice))
+    }
+  }
+
+  return conditions
+}
+
+export async function getListings(query: ListingQuery = {}): Promise<ListingsPage> {
+  const sort = query.sort ?? "newest"
+  const primaryDir = SORT_DIRECTION[sort]
+  const col = sortColumn(sort)
+  const filters = buildFilterConditions(query)
+
+  const [{ total }] = await db
+    .select({ total: sql<number>`count(*)` })
+    .from(listings)
+    .where(and(...filters))
+
+  const pageCount = Math.max(1, Math.ceil(Number(total) / PAGE_SIZE))
+  const displayPage = Math.min(Math.max(1, query.page ?? 1), pageCount)
+
+  const cursor = decodeCursor(query.cursor)
+  const direction: "forward" | "backward" = cursor === null || cursor.dir === "next" ? "forward" : "backward"
+  const effectiveDir: SortDirection =
+    direction === "forward" ? primaryDir : primaryDir === "desc" ? "asc" : "desc"
+
+  const seekConditions = [...filters]
+  if (cursor) {
+    const operator = effectiveDir === "desc" ? sql`<` : sql`>`
+    seekConditions.push(sql`(${col}, ${listings.id}) ${operator} (${cursor.v}, ${cursor.id})`)
+  }
+
+  const orderFns = effectiveDir === "desc" ? [desc(col), desc(listings.id)] : [asc(col), asc(listings.id)]
+
+  const rows = await db
+    .select({
+      id: listings.id,
+      postedAtText: sql<string>`${listings.postedAt}::text`,
+      priceEtb: listings.priceEtb,
+      seenInChannels: listings.seenInChannels,
+    })
+    .from(listings)
+    .where(and(...seekConditions))
+    .orderBy(...orderFns)
+    .limit(PAGE_SIZE + 1)
+
+  const hasMore = rows.length > PAGE_SIZE
+  let windowRows = rows.slice(0, PAGE_SIZE)
+  if (direction === "backward") windowRows = windowRows.reverse()
+
+  const hasNext = direction === "forward" ? hasMore : true
+  const hasPrev = direction === "forward" ? cursor !== null : hasMore
+
+  const nextCursor =
+    hasNext && windowRows.length
+      ? encodeCursor({
+          dir: "next",
+          v: boundaryValue(sort, windowRows[windowRows.length - 1]),
+          id: windowRows[windowRows.length - 1].id,
+        })
+      : null
+  const prevCursor =
+    hasPrev && windowRows.length
+      ? encodeCursor({ dir: "prev", v: boundaryValue(sort, windowRows[0]), id: windowRows[0].id })
+      : null
+
+  const [items, [{ channelCount }]] = await Promise.all([
+    buildListingsByIds(windowRows.map((r) => r.id)),
+    db.select({ channelCount: sql<number>`count(*)` }).from(channels).where(eq(channels.active, true)),
+  ])
 
   return {
-    items: sorted.slice(start, start + PAGE_SIZE),
-    total,
-    page,
+    items,
+    total: Number(total),
+    page: displayPage,
     pageCount,
     pageSize: PAGE_SIZE,
-    channelCount: data.channelCount,
+    channelCount: Number(channelCount),
+    nextCursor,
+    prevCursor,
   }
 }
 
 export async function getListing(id: string): Promise<Listing | null> {
-  return data.listings.find((listing) => listing.id === id) ?? null
+  // Postgres throws on a malformed uuid literal — a bad/typo'd id should be
+  // a 404, not a 500.
+  if (!isUuid(id)) return null
+  const [listing] = await buildListingsByIds([id])
+  return listing ?? null
 }
 
 export async function getListingIds(): Promise<string[]> {
-  return data.listings.map((listing) => listing.id)
+  const rows = await db.select({ id: listings.id }).from(listings).where(eq(listings.status, "live"))
+  return rows.map((r) => r.id)
 }
 
 /** Same category, different listing. Used for the "more like this" rail. */
-export async function getRelatedListings(
-  listing: Listing,
-  limit = 4
-): Promise<Listing[]> {
-  return data.listings
-    .filter(
-      (candidate) =>
-        candidate.id !== listing.id &&
-        candidate.categorySlug === listing.categorySlug
+export async function getRelatedListings(listing: Listing, limit = 4): Promise<Listing[]> {
+  const rows = await db
+    .select({ id: listings.id })
+    .from(listings)
+    .where(
+      and(
+        eq(listings.status, "live"),
+        eq(listings.categorySlug, listing.categorySlug),
+        sql`${listings.id} != ${listing.id}`
+      )
     )
-    .slice(0, limit)
+    .orderBy(desc(listings.postedAt))
+    .limit(limit)
+
+  return buildListingsByIds(rows.map((r) => r.id))
+}
+
+// --------------------------------------------------------------------------
+// Row assembly — batched joins for a set of listing ids, order-preserving
+// --------------------------------------------------------------------------
+
+function maskPhone(phone: string): string {
+  if (phone.length <= 6) return phone
+  return `${phone.slice(0, 4)}${"*".repeat(Math.max(phone.length - 6, 3))}${phone.slice(-2)}`
+}
+
+function priceVerdict(
+  priceEtb: number | null,
+  stats: { median: number; p25: number; p75: number } | undefined
+): PriceVerdict {
+  if (priceEtb === null || !stats) return "unknown"
+  if (priceEtb <= stats.median * 0.3) return "suspicious"
+  if (priceEtb < stats.p25) return "below"
+  if (priceEtb > stats.p75) return "above"
+  return "fair"
+}
+
+async function buildListingsByIds(ids: string[]): Promise<Listing[]> {
+  if (ids.length === 0) return []
+
+  const [baseRows, imageRows, sourceRows] = await Promise.all([
+    db
+      .select({
+        id: listings.id,
+        slug: listings.slug,
+        titleEn: listings.titleEn,
+        titleAm: listings.titleAm,
+        descriptionEn: listings.descriptionEn,
+        descriptionAm: listings.descriptionAm,
+        priceEtb: listings.priceEtb,
+        lowestPriceEtb: listings.lowestPriceEtb,
+        negotiable: listings.negotiable,
+        categorySlug: listings.categorySlug,
+        categoryNameEn: categories.nameEn,
+        categoryNameAm: categories.nameAm,
+        condition: listings.condition,
+        locationArea: listings.locationArea,
+        locationAreaAm: listings.locationAreaAm,
+        locationCity: listings.locationCity,
+        tier: listings.tier,
+        sellerId: listings.sellerId,
+        extractionConfidence: listings.extractionConfidence,
+        seenInChannels: listings.seenInChannels,
+        postedAt: listings.postedAt,
+        updatedAt: listings.updatedAt,
+      })
+      .from(listings)
+      .leftJoin(categories, eq(listings.categorySlug, categories.slug))
+      .where(inArray(listings.id, ids)),
+    db
+      .select({
+        listingId: imagesTable.listingId,
+        r2Key: imagesTable.r2Key,
+        width: imagesTable.width,
+        height: imagesTable.height,
+        sortOrder: imagesTable.sortOrder,
+      })
+      .from(imagesTable)
+      .where(inArray(imagesTable.listingId, ids))
+      .orderBy(asc(imagesTable.sortOrder)),
+    db
+      .select({
+        listingId: listingSources.listingId,
+        priceEtb: listingSources.priceEtb,
+        postedAt: rawMessages.postedAt,
+        messageId: rawMessages.messageId,
+        channelUsername: channels.username,
+        channelTitle: channels.title,
+      })
+      .from(listingSources)
+      .innerJoin(rawMessages, eq(listingSources.rawMessageId, rawMessages.id))
+      .innerJoin(channels, eq(rawMessages.channelId, channels.id))
+      .where(inArray(listingSources.listingId, ids)),
+  ])
+
+  const sellerIds = [...new Set(baseRows.map((r) => r.sellerId).filter((v): v is string => v !== null))]
+  const unclaimedIds = baseRows.filter((r) => r.sellerId === null).map((r) => r.id)
+  const categorySlugs = [
+    ...new Set(baseRows.map((r) => r.categorySlug).filter((v): v is string => v !== null)),
+  ]
+
+  const [sellerRows, ratingRows, priceStatRows, extractedPhoneRows] = await Promise.all([
+    sellerIds.length
+      ? db.select().from(users).where(inArray(users.id, sellerIds))
+      : Promise.resolve([]),
+    sellerIds.length
+      ? db
+          .select({
+            sellerId: ratings.sellerId,
+            avg: sql<number | null>`avg(${ratings.score})`,
+            count: sql<number>`count(*)`,
+          })
+          .from(ratings)
+          .where(inArray(ratings.sellerId, sellerIds))
+          .groupBy(ratings.sellerId)
+      : Promise.resolve([]),
+    categorySlugs.length
+      ? db
+          .select({
+            categorySlug: listings.categorySlug,
+            median: sql<number>`percentile_cont(0.5) within group (order by ${listings.priceEtb})`,
+            p25: sql<number>`percentile_cont(0.25) within group (order by ${listings.priceEtb})`,
+            p75: sql<number>`percentile_cont(0.75) within group (order by ${listings.priceEtb})`,
+            sampleSize: sql<number>`count(*)`,
+          })
+          .from(listings)
+          .where(
+            and(
+              eq(listings.status, "live"),
+              isNotNull(listings.priceEtb),
+              inArray(listings.categorySlug, categorySlugs)
+            )
+          )
+          .groupBy(listings.categorySlug)
+      : Promise.resolve([]),
+    // Indexed, unclaimed listings have no seller row yet — the phone "already
+    // in the listing" that a buyer can still call comes straight from the
+    // extraction pipeline, same source the claim flow reads from.
+    unclaimedIds.length
+      ? db
+          .select({
+            listingId: listingSources.listingId,
+            phone: extractions.phoneNormalized,
+            confidence: extractions.confidenceScore,
+          })
+          .from(listingSources)
+          .innerJoin(rawMessages, eq(listingSources.rawMessageId, rawMessages.id))
+          .innerJoin(extractions, eq(extractions.rawMessageId, rawMessages.id))
+          .where(
+            and(
+              inArray(listingSources.listingId, unclaimedIds),
+              isNotNull(extractions.phoneNormalized)
+            )
+          )
+      : Promise.resolve([]),
+  ])
+
+  const sellerById = new Map(sellerRows.map((s) => [s.id, s]))
+  const ratingBySeller = new Map(ratingRows.map((r) => [r.sellerId, r]))
+  const priceStatsByCategory = new Map(priceStatRows.map((r) => [r.categorySlug, r]))
+
+  const extractedPhoneByListing = new Map<string, string>()
+  const extractedPhoneConfidence = new Map<string, number>()
+  for (const row of extractedPhoneRows) {
+    if (!row.phone) continue
+    const bestSoFar = extractedPhoneConfidence.get(row.listingId) ?? -1
+    if (row.confidence > bestSoFar) {
+      extractedPhoneByListing.set(row.listingId, row.phone)
+      extractedPhoneConfidence.set(row.listingId, row.confidence)
+    }
+  }
+  const imagesByListing = new Map<string, ListingImage[]>()
+  const sourcesByListing = new Map<string, ListingSource[]>()
+
+  for (const row of imageRows) {
+    const list = imagesByListing.get(row.listingId) ?? []
+    list.push({
+      url: getImageUrl(row.r2Key),
+      width: row.width ?? 0,
+      height: row.height ?? 0,
+      alt: "",
+    })
+    imagesByListing.set(row.listingId, list)
+  }
+  for (const row of sourceRows) {
+    const list = sourcesByListing.get(row.listingId) ?? []
+    list.push({
+      channelHandle: row.channelUsername,
+      channelTitle: row.channelTitle,
+      messageUrl: `https://t.me/${row.channelUsername}/${row.messageId}`,
+      postedAt: row.postedAt.toISOString(),
+      priceEtb: row.priceEtb,
+    })
+    sourcesByListing.set(row.listingId, list)
+  }
+
+  const byId = new Map<string, Listing>()
+  for (const row of baseRows) {
+    const seller: ListingSeller = row.sellerId
+      ? (() => {
+          const u = sellerById.get(row.sellerId!)
+          const rating = ratingBySeller.get(row.sellerId!)
+          return {
+            displayName: u?.username ?? null,
+            telegramHandle: u?.username ?? null,
+            phone: u?.phone ?? null,
+            phoneMasked: u?.phone ? maskPhone(u.phone) : null,
+            phoneVerified: u?.phoneVerified ?? false,
+            ratingAvg: rating?.avg !== null && rating?.avg !== undefined ? Number(rating.avg) : null,
+            ratingCount: rating ? Number(rating.count) : null,
+            memberSince: u?.createdAt?.toISOString() ?? null,
+          }
+        })()
+      : (() => {
+          const phone = extractedPhoneByListing.get(row.id) ?? null
+          return {
+            displayName: null,
+            telegramHandle: null,
+            phone,
+            phoneMasked: phone ? maskPhone(phone) : null,
+            phoneVerified: false,
+            ratingAvg: null,
+            ratingCount: null,
+            memberSince: null,
+          }
+        })()
+
+    const stats = row.categorySlug ? priceStatsByCategory.get(row.categorySlug) : undefined
+    const priceStats: ListingPriceStats | null = stats
+      ? {
+          categoryMedianEtb: Math.round(Number(stats.median)),
+          p25Etb: Math.round(Number(stats.p25)),
+          p75Etb: Math.round(Number(stats.p75)),
+          verdict: priceVerdict(row.priceEtb, {
+            median: Number(stats.median),
+            p25: Number(stats.p25),
+            p75: Number(stats.p75),
+          }),
+          sampleSize: Number(stats.sampleSize),
+        }
+      : null
+
+    const title = row.titleEn
+    const images = (imagesByListing.get(row.id) ?? []).map((img, index) => ({
+      ...img,
+      alt: `${title}, photo ${index + 1}`,
+    }))
+
+    byId.set(row.id, {
+      id: row.id,
+      slug: row.slug,
+      title,
+      titleAm: row.titleAm,
+      description: row.descriptionEn ?? "",
+      descriptionAm: row.descriptionAm,
+      priceEtb: row.priceEtb,
+      currency: "ETB",
+      negotiable: row.negotiable,
+      categorySlug: row.categorySlug ?? "",
+      categoryLabel: row.categoryNameEn ?? "",
+      categoryLabelAm: row.categoryNameAm ?? "",
+      condition: row.condition ?? "fair",
+      location: {
+        area: row.locationArea ?? "",
+        areaAm: row.locationAreaAm ?? row.locationArea ?? "",
+        city: row.locationCity ?? "Addis Ababa",
+      },
+      tier: row.tier,
+      images,
+      seller,
+      sources: sourcesByListing.get(row.id) ?? [],
+      seenInChannels: row.seenInChannels,
+      lowestPriceEtb: row.lowestPriceEtb,
+      priceStats,
+      extractionConfidence: row.extractionConfidence ?? 0,
+      postedAt: row.postedAt.toISOString(),
+      updatedAt: row.updatedAt.toISOString(),
+    })
+  }
+
+  return ids.map((id) => byId.get(id)).filter((l): l is Listing => l !== undefined)
 }
 
 // --------------------------------------------------------------------------
@@ -180,21 +583,16 @@ function toNumber(value: string | string[] | undefined): number | undefined {
   return Number.isFinite(parsed) ? parsed : undefined
 }
 
-const CONDITION_VALUES: ListingCondition[] = [
-  "brand_new",
-  "lightly_used",
-  "fair",
-]
-const TIER_VALUES: ListingTier[] = ["indexed", "claimed", "native"]
-
 export function parseListingQuery(params: RawSearchParams): ListingQuery {
-  const sortParam = Array.isArray(params.sort) ? params.sort[0] : params.sort
-  const sort = SORT_OPTIONS.find((option) => option.value === sortParam)?.value
-
   const singleOf = (key: string) => {
     const value = params[key]
     return Array.isArray(value) ? value[0] : value
   }
+
+  const sortParam = singleOf("sort")
+  const sort = (["newest", "price_asc", "price_desc", "channels"] as const).find(
+    (value) => value === sortParam
+  )
 
   return {
     q: singleOf("q") || undefined,
@@ -210,6 +608,7 @@ export function parseListingQuery(params: RawSearchParams): ListingQuery {
     maxPrice: toNumber(params.maxPrice),
     sort,
     page: toNumber(params.page),
+    cursor: singleOf("cursor") || undefined,
   }
 }
 
@@ -240,8 +639,6 @@ export function countActiveFilters(query: ListingQuery): number {
     query.condition?.length ? "condition" : undefined,
     query.tier?.length ? "tier" : undefined,
     query.minPrice ? "minPrice" : undefined,
-    query.maxPrice !== undefined && query.maxPrice < PRICE_BOUNDS.max
-      ? "maxPrice"
-      : undefined,
+    query.maxPrice !== undefined && query.maxPrice < PRICE_BOUNDS_MAX ? "maxPrice" : undefined,
   ].filter(Boolean).length
 }

@@ -1,0 +1,27 @@
+# Production Docker Compose overlay with Caddy automatic HTTPS
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: guilit-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:-guilit.et}
+      ACME_EMAIL: ${ACME_EMAIL:-admin@guilit.et}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+
+  web:
+    ports: [] # Don't expose port 3000 directly to public internet; route via Caddy
+
+volumes:
+  caddy_data:
+    name: guilit-caddy-data
+  caddy_config:
+    name: guilit-caddy-config

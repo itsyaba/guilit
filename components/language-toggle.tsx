@@ -11,6 +11,20 @@ const LANGUAGES = [
 
 type Language = (typeof LANGUAGES)[number]["value"]
 
+function subscribe(callback: () => void) {
+  window.addEventListener("storage", callback)
+  return () => window.removeEventListener("storage", callback)
+}
+
+function getSnapshot(): Language {
+  const stored = window.localStorage.getItem("gulit.lang")
+  return stored === "am" || stored === "en" ? stored : "en"
+}
+
+function getServerSnapshot(): Language {
+  return "en"
+}
+
 /**
  * Interface language switch.
  *
@@ -19,18 +33,19 @@ type Language = (typeof LANGUAGES)[number]["value"]
  * wired now so the header layout is settled before copy starts moving.
  */
 export function LanguageToggle({ className }: { className?: string }) {
-  const [language, setLanguage] = React.useState<Language>("en")
+  const [localLang, setLocalLang] = React.useState<Language | null>(null)
+  const storedLang = React.useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
+  const language = localLang ?? storedLang
 
   React.useEffect(() => {
-    const stored = window.localStorage.getItem("gulit.lang")
-    if (stored === "am" || stored === "en") setLanguage(stored)
-  }, [])
+    document.documentElement.lang = language
+  }, [language])
 
   function choose(next: Language) {
-    setLanguage(next)
+    setLocalLang(next)
     window.localStorage.setItem("gulit.lang", next)
-    document.documentElement.lang = next
   }
+
 
   return (
     <div

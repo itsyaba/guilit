@@ -119,5 +119,8 @@ export const listings = pgTable(
     index("listings_status_tier_idx").on(t.status, t.tier),
     index("listings_posted_at_idx").on(t.postedAt),
     index("listings_seller_id_idx").on(t.sellerId),
+    // Backs the keyset cursor for the default "newest" sort on /browse —
+    // WHERE (posted_at, id) < (cursor) ORDER BY posted_at DESC, id DESC.
+    index("listings_posted_at_id_idx").on(t.postedAt.desc(), t.id),
   ]
 )

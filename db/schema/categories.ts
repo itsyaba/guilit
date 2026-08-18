@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp, type AnyPgColumn } from "drizzle-orm/pg-core"
 
 /**
  * categories — bilingual category taxonomy.
@@ -14,8 +14,9 @@ export const categories = pgTable("categories", {
   slug: text("slug").primaryKey(),
   nameEn: text("name_en").notNull(),
   nameAm: text("name_am").notNull(),
-  // Self-referencing FK — typed as any to break the circular reference
-  parent: text("parent").references((): any => categories.slug),
+  // Self-referencing FK
+  parent: text("parent").references((): AnyPgColumn => categories.slug),
+
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

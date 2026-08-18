@@ -30,6 +30,8 @@ export type ListingSource = {
 export type ListingSeller = {
   displayName: string | null
   telegramHandle: string | null
+  /** Unmasked — needed as the literal href value for a tel: link. */
+  phone: string | null
   phoneMasked: string | null
   phoneVerified: boolean
   ratingAvg: number | null
@@ -165,7 +167,12 @@ export type ListingQuery = {
   minPrice?: number
   maxPrice?: number
   sort?: SortValue
+  /** Display-only page counter for the "Page X of Y" label — never used to
+   *  compute an offset. Incremented/decremented client-side when following a
+   *  cursor link. */
   page?: number
+  /** Opaque keyset cursor (base64), the actual pagination mechanism. */
+  cursor?: string
 }
 
 export type ListingsPage = {
@@ -175,4 +182,6 @@ export type ListingsPage = {
   pageCount: number
   pageSize: number
   channelCount: number
+  nextCursor: string | null
+  prevCursor: string | null
 }

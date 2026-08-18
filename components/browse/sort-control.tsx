@@ -23,6 +23,7 @@ export function SortControl({ value }: { value: SortValue }) {
     const search = new URLSearchParams(params.toString())
     search.set("sort", next)
     search.delete("page")
+    search.delete("cursor")
     router.push(`/browse?${search}`)
   }
 

@@ -13,7 +13,13 @@
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "ingest:auth": "./.venv/bin/python -m ingest.cli auth",
+    "ingest:listen": "./.venv/bin/python -m ingest.cli listen",
+    "ingest:backfill": "./.venv/bin/python -m ingest.cli backfill",
+    "ingest:status": "./.venv/bin/python -m ingest.cli status",
+    "ingest:seed": "./.venv/bin/python -m ingest.cli seed-channels",
+    "test:ingest": "./.venv/bin/pytest -v"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -21,6 +27,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.2",
+    "jose": "^6.2.9",
     "next": "16.2.6",
     "next-themes": "^0.4.6",
     "postgres": "^3.4.9",

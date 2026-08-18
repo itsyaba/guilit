@@ -1,5 +1,5 @@
-import type { NextRequest } from "next/server"
 import type { CategoryOption } from "@/lib/types"
+
 
 /**
  * GET /api/categories
@@ -21,6 +21,7 @@ const FIXTURE_CATEGORIES: CategoryOption[] = [
   { slug: "other", label: "Other", labelAm: "ሌሎች" },
 ]
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
   return Response.json(FIXTURE_CATEGORIES)
 }
+

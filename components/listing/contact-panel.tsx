@@ -1,6 +1,9 @@
-import { IconBrandTelegram, IconChevronRight } from "@tabler/icons-react"
+import { IconBrandTelegram, IconChevronRight, IconPhone } from "@tabler/icons-react"
 
 import { Button } from "@/components/ui/button"
+import { ClaimPanel } from "@/components/listing/claim-panel"
+import { MessageSellerStub } from "@/components/listing/message-seller-stub"
+import { RemoveListingButton } from "@/components/listing/remove-listing-button"
 import type { Listing } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
@@ -10,30 +13,37 @@ import { cn } from "@/lib/utils"
  * For an indexed listing that means the original Telegram post, not a form on
  * our domain. That is a deliberate product choice as much as a legal one: the
  * seller never agreed to talk to us, and a buyer who lands in the channel can
- * see the whole post for themselves.
+ * see the whole post for themselves. A tel: link sits alongside it once a
+ * phone number is on file — it's already public in the post we link to, this
+ * just saves a tap.
  */
 export function ContactPanel({
   listing,
+  isLoggedIn = false,
   className,
 }: {
   listing: Listing
+  isLoggedIn?: boolean
   className?: string
 }) {
   const source = listing.sources[0]
   const handle = listing.seller.telegramHandle
 
-  const href = source
+  if (listing.tier === "native") {
+    return (
+      <div className={cn("space-y-3", className)}>
+        <MessageSellerStub />
+      </div>
+    )
+  }
+
+  const telegramHref = source
     ? source.messageUrl
     : handle
       ? `https://t.me/${handle}`
       : null
 
-  const label =
-    listing.tier === "native"
-      ? "Message the seller"
-      : listing.tier === "claimed"
-        ? "Message on Telegram"
-        : "Open the original post"
+  const telegramLabel = listing.tier === "claimed" ? "Message on Telegram" : "Open the original post"
 
   return (
     <div className={cn("space-y-3", className)}>
@@ -41,17 +51,29 @@ export function ContactPanel({
         size="lg"
         className="h-12 w-full rounded-lg text-base"
         render={
-          href ? (
-            <a href={href} target="_blank" rel="noopener noreferrer nofollow" />
+          telegramHref ? (
+            <a href={telegramHref} target="_blank" rel="noopener noreferrer nofollow" />
           ) : (
             <span />
           )
         }
-        disabled={!href}
+        disabled={!telegramHref}
       >
         <IconBrandTelegram aria-hidden="true" className="size-5" />
-        {label}
+        {telegramLabel}
       </Button>
+
+      {listing.seller.phone ? (
+        <Button
+          size="lg"
+          variant="outline"
+          className="h-12 w-full rounded-lg text-base"
+          render={<a href={`tel:${listing.seller.phone}`} />}
+        >
+          <IconPhone aria-hidden="true" className="size-5" />
+          Call {listing.seller.phoneMasked}
+        </Button>
+      ) : null}
 
       {listing.tier === "indexed" ? (
         <details className="group rounded-lg border border-border bg-card">
@@ -68,19 +90,22 @@ export function ContactPanel({
               post — no paperwork, one SMS code. Once it is yours you can edit
               the price, mark it sold, or have it removed entirely.
             </p>
-            <p>
-              Removal is one tap and we do not ask for a reason.{" "}
+            <ClaimPanel listingId={listing.id} isLoggedIn={isLoggedIn} />
+            <div className="space-y-1 border-t border-border pt-3">
+              <RemoveListingButton listingId={listing.id} />
               {source ? (
-                <a
-                  href={source.messageUrl}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  className="text-primary underline underline-offset-4"
-                >
-                  Open the post this came from
-                </a>
+                <p>
+                  <a
+                    href={source.messageUrl}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    className="text-primary underline underline-offset-4"
+                  >
+                    Open the post this came from
+                  </a>
+                </p>
               ) : null}
-            </p>
+            </div>
           </div>
         </details>
       ) : null}

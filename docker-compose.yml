@@ -1,0 +1,113 @@
+services:
+  # Self-hosted PostgreSQL 16 with pgvector, pg_trgm, and unaccent
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: guilit-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-guilit}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-guilit}
+      POSTGRES_DB: ${POSTGRES_DB:-guilit}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/migrations/0000_extensions.sql:/docker-entrypoint-initdb.d/0000_extensions.sql:ro,z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-guilit} -d ${POSTGRES_DB:-guilit}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Next.js Web Marketplace (standalone production build)
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: guilit-web
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-guilit}:${POSTGRES_PASSWORD:-guilit}@postgres:5432/${POSTGRES_DB:-guilit}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      STORAGE_BACKEND: ${STORAGE_BACKEND:-local}
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY}
+      R2_BUCKET_NAME: ${R2_BUCKET_NAME:-guilit-media}
+      R2_PUBLIC_URL: ${R2_PUBLIC_URL}
+      LOCAL_STORAGE_DIR: /app/data/media
+    volumes:
+      - ./data/media:/app/data/media:z
+    restart: unless-stopped
+
+  # Telegram Ingest Live Listener Daemon
+  ingest:
+    build:
+      context: .
+      dockerfile: Dockerfile.ingest
+    container_name: guilit-ingest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-guilit}:${POSTGRES_PASSWORD:-guilit}@postgres:5432/${POSTGRES_DB:-guilit}
+      TELEGRAM_API_ID: ${TELEGRAM_API_ID}
+      TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
+      TELEGRAM_PHONE: ${TELEGRAM_PHONE}
+      TELEGRAM_SESSION_DIR: /data/sessions
+      TELEGRAM_SESSION_NAME: ${TELEGRAM_SESSION_NAME:-guilit_ingest}
+      STORAGE_BACKEND: ${STORAGE_BACKEND:-local}
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY}
+      R2_BUCKET_NAME: ${R2_BUCKET_NAME:-guilit-media}
+      LOCAL_STORAGE_DIR: /data/media
+      ALBUM_DEBOUNCE_SECONDS: ${ALBUM_DEBOUNCE_SECONDS:-3.0}
+      ALLOWLIST_REFRESH_SECONDS: ${ALLOWLIST_REFRESH_SECONDS:-60}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+    volumes:
+      # Persistent volume for Telethon session files so auth survives restarts
+      - telethon_sessions:/data/sessions
+      - ./sessions:/data/sessions:z
+      # Persistent volume for locally saved media
+      - ./data/media:/data/media:z
+
+    restart: unless-stopped
+
+  # Optional one-off backfill profile
+  ingest-backfill:
+    build:
+      context: .
+      dockerfile: Dockerfile.ingest
+    container_name: guilit-ingest-backfill
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-guilit}:${POSTGRES_PASSWORD:-guilit}@postgres:5432/${POSTGRES_DB:-guilit}
+      TELEGRAM_API_ID: ${TELEGRAM_API_ID}
+      TELEGRAM_API_HASH: ${TELEGRAM_API_HASH}
+      TELEGRAM_SESSION_DIR: /data/sessions
+      TELEGRAM_SESSION_NAME: ${TELEGRAM_SESSION_NAME:-guilit_ingest}
+      STORAGE_BACKEND: ${STORAGE_BACKEND:-local}
+      LOCAL_STORAGE_DIR: /data/media
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_FORMAT: ${LOG_FORMAT:-pretty}
+    volumes:
+      - telethon_sessions:/data/sessions
+      - ./sessions:/data/sessions
+      - ./data/media:/data/media
+    command: ["python", "-m", "ingest.cli", "backfill", "--since", "7d"]
+    profiles:
+      - manual
+
+volumes:
+  pgdata:
+    name: guilit-pgdata
+  telethon_sessions:
+    name: guilit-telethon-sessions

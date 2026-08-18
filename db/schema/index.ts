@@ -15,3 +15,7 @@ export * from "./jobs"
 export * from "./reports"
 export * from "./ratings"
 export * from "./saved-searches"
+export * from "./synonyms"
+export * from "./otp-codes"
+export * from "./rate-limit-hits"
+

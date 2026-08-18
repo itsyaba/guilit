@@ -5,68 +5,47 @@ import { buildSearchParams, type RawSearchParams } from "@/lib/listings"
 import { cn } from "@/lib/utils"
 
 /**
- * Real links, so a page of results can be shared, bookmarked and opened in a
- * new tab. Page numbers are set in the ledger register like every other count
- * on the site.
+ * Prev/Next keyset pagination — not numbered jump-to-page links. Real cursor
+ * pagination can only step to an adjacent page, not seek to an arbitrary
+ * page number, without falling back to the OFFSET scan this was built to
+ * avoid. "Page X of Y" is still shown; Y comes from a cheap COUNT(*), not
+ * from walking rows.
  */
 export function Pagination({
   page,
   pageCount,
+  prevCursor,
+  nextCursor,
   params,
 }: {
   page: number
   pageCount: number
+  prevCursor: string | null
+  nextCursor: string | null
   params: RawSearchParams
 }) {
   if (pageCount <= 1) return null
 
-  const href = (target: number) =>
-    `/browse${buildSearchParams(params, {
-      page: target === 1 ? undefined : String(target),
-    })}`
+  const href = (cursor: string, targetPage: number) =>
+    `/browse${buildSearchParams(params, { cursor, page: String(targetPage) })}`
 
   return (
     <nav
       aria-label="Results pages"
-      className="flex items-center justify-center gap-1 pt-10"
+      className="flex items-center justify-center gap-3 pt-10"
     >
       <Step
-        href={href(page - 1)}
-        disabled={page === 1}
+        href={prevCursor ? href(prevCursor, page - 1) : undefined}
         label="Previous page"
         icon={<IconChevronLeft className="size-4" aria-hidden="true" />}
       />
 
-      {pageWindow(page, pageCount).map((entry, index) =>
-        entry === "gap" ? (
-          <span
-            key={`gap-${index}`}
-            aria-hidden="true"
-            className="type-ledger px-1 text-muted-foreground"
-          >
-            …
-          </span>
-        ) : (
-          <Link
-            key={entry}
-            href={href(entry)}
-            aria-current={entry === page ? "page" : undefined}
-            className={cn(
-              "type-ledger inline-flex h-9 min-w-9 items-center justify-center rounded-lg px-2 transition-colors",
-              "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
-              entry === page
-                ? "bg-foreground text-background"
-                : "border border-border text-muted-foreground hover:text-foreground"
-            )}
-          >
-            {entry}
-          </Link>
-        )
-      )}
+      <span className="type-ledger px-1 text-muted-foreground">
+        Page {page} of {pageCount}
+      </span>
 
       <Step
-        href={href(page + 1)}
-        disabled={page === pageCount}
+        href={nextCursor ? href(nextCursor, page + 1) : undefined}
         label="Next page"
         icon={<IconChevronRight className="size-4" aria-hidden="true" />}
       />
@@ -76,19 +55,17 @@ export function Pagination({
 
 function Step({
   href,
-  disabled,
   label,
   icon,
 }: {
-  href: string
-  disabled: boolean
+  href: string | undefined
   label: string
   icon: React.ReactNode
 }) {
   const className =
     "inline-flex size-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
 
-  if (disabled) {
+  if (!href) {
     return (
       <span aria-hidden="true" className={cn(className, "opacity-35")}>
         {icon}
@@ -101,21 +78,4 @@ function Step({
       {icon}
     </Link>
   )
-}
-
-/** First, last, current and its neighbours; gaps everywhere else. */
-function pageWindow(page: number, pageCount: number): (number | "gap")[] {
-  const pages = new Set([1, pageCount, page - 1, page, page + 1])
-  const visible = [...pages]
-    .filter((value) => value >= 1 && value <= pageCount)
-    .sort((a, b) => a - b)
-
-  const output: (number | "gap")[] = []
-  let previous = 0
-  for (const value of visible) {
-    if (previous && value - previous > 1) output.push("gap")
-    output.push(value)
-    previous = value
-  }
-  return output
 }

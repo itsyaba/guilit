@@ -1,0 +1,34 @@
+# Caddy configuration for production VPS deployment with automatic HTTPS
+
+{
+    # Global options
+    email {$ACME_EMAIL:admin@guilit.et}
+    admin off
+}
+
+{$DOMAIN:localhost} {
+    # Reverse proxy to Next.js standalone container
+    reverse_proxy web:3000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+
+    # Enable standard gzip/zstd compression
+    encode zstd gzip
+
+    # Security headers
+    header {
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    }
+
+    # Structured access logging
+    log {
+        output stdout
+        format json
+    }
+}

@@ -1,0 +1,21 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy source code and reference fixtures
+COPY ingest/ ./ingest/
+COPY fixtures/ ./fixtures/
+
+# Create persistent session and media directories
+RUN mkdir -p /data/sessions /data/media
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    TELEGRAM_SESSION_DIR=/data/sessions \
+    LOCAL_STORAGE_DIR=/data/media
+
+CMD ["python", "-m", "ingest.cli", "listen"]

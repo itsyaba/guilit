@@ -14,6 +14,7 @@ import { SellerBlock } from "@/components/listing/seller-block"
 import { TierTag } from "@/components/listing/tier-tag"
 import { CONDITION_LABELS, formatShortDate } from "@/lib/format"
 import { getListing, getListingIds, getRelatedListings } from "@/lib/listings"
+import { getSessionUser } from "@/lib/session"
 import type { Listing } from "@/lib/types"
 
 export async function generateStaticParams() {
@@ -45,7 +46,10 @@ export default async function ListingPage({
   const listing = await getListing(id)
   if (!listing) notFound()
 
-  const related = await getRelatedListings(listing)
+  const [related, sessionUser] = await Promise.all([
+    getRelatedListings(listing),
+    getSessionUser(),
+  ])
 
   return (
     <article className="mx-auto max-w-[80rem] px-4 py-5 sm:px-6 lg:py-8">
@@ -68,7 +72,7 @@ export default async function ListingPage({
         {/* Everything needed to decide, kept together and kept in view. */}
         <div className="space-y-5 lg:sticky lg:top-24 lg:col-start-2 lg:row-span-2">
           <ListingHeading listing={listing} />
-          <ContactPanel listing={listing} />
+          <ContactPanel listing={listing} isLoggedIn={sessionUser !== null} />
           <PriceCheck listing={listing} />
           <SellerBlock listing={listing} />
         </div>

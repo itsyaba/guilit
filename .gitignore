@@ -37,3 +37,19 @@ pnpm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# python & ingest
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+*.session
+/sessions/
+/data/
+# snapshots & backups
+/snapshots/*.sql.gz
+!/snapshots/.gitkeep
+
+
+

@@ -101,9 +101,17 @@ SYNONYMS_DATA: List[Dict[str, str]] = [
     {"canonical_term": "toyota", "synonym": "yaris", "category_slug": "vehicles", "language": "en"},
     {"canonical_term": "toyota", "synonym": "corolla", "category_slug": "vehicles", "language": "en"},
     {"canonical_term": "motorcycle", "synonym": "motorcycle", "category_slug": "vehicles", "language": "en"},
-    {"canonical_term": "motorcycle", "synonym": "ሞተር", "category_slug": "vehicles", "language": "am"},
-    {"canonical_term": "motorcycle", "synonym": "ባጃጅ", "category_slug": "vehicles", "language": "am"},
-    {"canonical_term": "motorcycle", "synonym": "bajaj", "category_slug": "vehicles", "language": "translit"},
+    # "ሞተር" on its own means motor/engine, not motorcycle — it matched inside
+    # "ፀጥተኛ ሞተር" (quiet engine) on a generator listing and filed it against
+    # motorcycle prices. Same failure mode as "ስልክ" in the offline classifier.
+    {"canonical_term": "motorcycle", "synonym": "ሞተር ሳይክል", "category_slug": "vehicles", "language": "am"},
+    # A bajaj is a three-wheeler, not a motorcycle: they are different vehicles at
+    # very different prices (~440k vs ~85k ETB). Sharing one canonical term made
+    # every street bike look 80% underpriced against a bajaj-weighted median.
+    {"canonical_term": "bajaj", "synonym": "bajaj", "category_slug": "vehicles", "language": "translit"},
+    {"canonical_term": "bajaj", "synonym": "ባጃጅ", "category_slug": "vehicles", "language": "am"},
+    {"canonical_term": "bajaj", "synonym": "three wheeler", "category_slug": "vehicles", "language": "en"},
+
 
     # --- FASHION & CLOTHING ---
     {"canonical_term": "shoes", "synonym": "shoes", "category_slug": "fashion", "language": "en"},

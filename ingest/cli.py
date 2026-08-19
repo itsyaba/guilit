@@ -446,6 +446,35 @@ async def run_verify_pii_command() -> None:
     print("=================================================================\n")
 
 
+async def run_seed_corpus_command(count: int = 400, seed: int = 20260819) -> None:
+    """Generates a synthetic but realistic corpus into raw_messages.
+
+    Writes posts only; the normal `extract` and `dedup-run` commands turn them
+    into listings, so the generated data exercises the same classifier, price
+    regex and dedup logic as real Telegram traffic. Idempotent on
+    (channel_id, message_id), so re-running with the same seed replaces rather
+    than duplicates.
+    """
+    from ingest.seed_corpus import seed_corpus
+
+    setup_logging(level=settings.LOG_LEVEL, log_format=settings.LOG_FORMAT)
+    db = Database(settings.DATABASE_URL)
+    await db.connect()
+    try:
+        channels = await db.get_active_channels()
+        if not channels:
+            await run_seed_channels_command()
+            channels = await db.get_active_channels()
+
+        inserted = await seed_corpus(
+            db, count=count, channel_ids=[c.id for c in channels], seed=seed
+        )
+        print(f"\n✓ Seeded {inserted} generated messages into raw_messages.")
+        print("  Next: python -m ingest.cli extract && python -m ingest.cli dedup-run")
+    finally:
+        await db.close()
+
+
 async def run_seed_raw_messages_command(fixture_path: Optional[str] = None) -> None:
     """Seeds realistic raw messages from fixtures into raw_messages table."""
     setup_logging(level=settings.LOG_LEVEL, log_format=settings.LOG_FORMAT)
@@ -840,6 +869,10 @@ def main() -> None:
     seed_parser = subparsers.add_parser("seed-channels", help="Seed channels table from fixtures/channels.json")
     seed_parser.add_argument("--file", "-f", help="Path to channels JSON file (default: fixtures/channels.json)")
 
+    seed_corpus_parser = subparsers.add_parser("seed-corpus", help="Generate a realistic synthetic corpus into raw_messages")
+    seed_corpus_parser.add_argument("--count", type=int, default=400, help="Approximate number of listings to generate")
+    seed_corpus_parser.add_argument("--seed", type=int, default=20260819, help="RNG seed; same seed regenerates the same corpus")
+
     seed_raw_parser = subparsers.add_parser("seed-raw-messages", help="Seed raw_messages table from fixtures/queue.json")
     seed_raw_parser.add_argument("--file", "-f", help="Path to queue JSON file (default: fixtures/queue.json)")
 
@@ -896,6 +929,8 @@ def main() -> None:
             asyncio.run(run_status_command())
         elif args.command == "seed-channels":
             asyncio.run(run_seed_channels_command(fixture_path=args.file))
+        elif args.command == "seed-corpus":
+            asyncio.run(run_seed_corpus_command(count=args.count, seed=args.seed))
         elif args.command == "seed-raw-messages":
             asyncio.run(run_seed_raw_messages_command(fixture_path=args.file))
         elif args.command == "extract":

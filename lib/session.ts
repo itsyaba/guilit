@@ -65,11 +65,31 @@ export async function getSessionUserId(): Promise<string | null> {
   return verifySessionToken(token)
 }
 
+/**
+ * Returns the authenticated user, applying ADMIN_PHONE auto-promotion.
+ *
+ * If ADMIN_PHONE is set and matches this user's phone, isAdmin is set to
+ * true on first login without any manual SQL. Additional admins must be
+ * promoted directly in the database.
+ */
 export async function getSessionUser(): Promise<User | null> {
   const userId = await getSessionUserId()
   if (!userId) return null
+
   const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
-  return user ?? null
+  if (!user) return null
+
+  // Auto-promote the configured admin phone on first encounter
+  const adminPhone = process.env.ADMIN_PHONE?.trim()
+  if (adminPhone && user.phone === adminPhone && !user.isAdmin) {
+    await db
+      .update(users)
+      .set({ isAdmin: true, updatedAt: new Date() })
+      .where(eq(users.id, user.id))
+    return { ...user, isAdmin: true }
+  }
+
+  return user
 }
 
 export class UnauthorizedError extends Error {
@@ -79,8 +99,24 @@ export class UnauthorizedError extends Error {
   }
 }
 
+export class ForbiddenError extends Error {
+  constructor(message = "Admin access required") {
+    super(message)
+    this.name = "ForbiddenError"
+  }
+}
+
 export async function requireSessionUser(): Promise<User> {
   const user = await getSessionUser()
   if (!user) throw new UnauthorizedError()
   return user
 }
+
+/** Throws ForbiddenError if user is not authenticated or not an admin. */
+export async function requireAdmin(): Promise<User> {
+  const user = await getSessionUser()
+  if (!user) throw new UnauthorizedError()
+  if (!user.isAdmin) throw new ForbiddenError()
+  return user
+}
+

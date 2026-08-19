@@ -1,5 +1,5 @@
 # Gulit — Developer & Operations Makefile
-.PHONY: help dev up down restart logs build seed snapshot restore test lint typecheck check-extensions clean prod-up prod-down
+.PHONY: help dev up down restart logs build seed seed-corpus snapshot restore test lint typecheck check-extensions clean prod-up prod-down parse-eval stats
 
 SHELL := /bin/bash
 
@@ -14,6 +14,9 @@ help:
 	@echo "  make restart          Restart all Docker services"
 	@echo "  make logs             Stream combined logs from all containers"
 	@echo "  make seed             Apply DB migrations and seed initial channels allowlist"
+	@echo "  make seed-corpus      Generate a realistic corpus, then extract + dedup it"
+	@echo "  make parse-eval       Exercise the NL query parser against the running app"
+	@echo "  make stats            Show price_stats freshness and coverage"
 	@echo "  make snapshot         Create a compressed PostgreSQL dump (demo insurance)"
 	@echo "  make restore          Restore PostgreSQL from snapshots/latest.sql.gz"
 	@echo "  make check-extensions Verify vector, pg_trgm, unaccent extensions in DB"
@@ -53,6 +56,35 @@ seed:
 	@npm run db:push
 	@echo "Seeding initial allowlisted channels..."
 	@python -m ingest.cli seed-channels
+
+# Corpus generation. Price statistics only mean something with enough
+# comparables per bucket (see MIN_SAMPLE in lib/price-stats-config.ts), and the
+# real Telegram sample we hold is 89 messages.
+seed-corpus:
+	@echo "Generating synthetic corpus into raw_messages..."
+	@./.venv/bin/python -m ingest.cli seed-corpus --count $${COUNT:-400}
+	@echo "Extracting..."
+	@./.venv/bin/python -m ingest.cli extract
+	@echo "Deduplicating..."
+	@./.venv/bin/python -m ingest.cli dedup-run
+	@echo "✓ Restart the web server to rebuild price_stats, or wait for the scheduler."
+
+# Query parser evaluation. Needs the app running (make dev).
+parse-eval:
+	@./scripts/parse-eval.sh $${BASE_URL:-http://localhost:3000}
+
+# Price statistics freshness. The scheduler in instrumentation.ts rebuilds these
+# on server start and every PRICE_STATS_TTL_SECONDS; an admin can force one from
+# POST /api/admin/price-stats/refresh. Run this before `make snapshot` so a
+# restored database ships with warm statistics.
+stats:
+	@docker compose exec -T postgres psql -U guilit -d guilit -c "\
+	  SELECT count(*) AS buckets, \
+	         count(*) FILTER (WHERE sample_size >= 8) AS usable, \
+	         count(DISTINCT category_slug) FILTER (WHERE sample_size >= 8) AS categories_with_range, \
+	         max(computed_at) AS computed_at, \
+	         now() - max(computed_at) AS age \
+	    FROM price_stats;"
 
 check-extensions:
 	@echo "Checking enabled PostgreSQL extensions..."

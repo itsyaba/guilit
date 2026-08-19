@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 
 import { EmptyState } from "@/components/browse/empty-state"
+import { FilterBar } from "@/components/browse/filter-bar"
 import { FilterPanel } from "@/components/browse/filter-panel"
-import { FilterSheet } from "@/components/browse/filter-sheet"
 import { Pagination } from "@/components/browse/pagination"
 import { SortControl } from "@/components/browse/sort-control"
 import { ListingCard } from "@/components/listing/listing-card"
@@ -14,6 +14,7 @@ import {
   type RawSearchParams,
 } from "@/lib/listings"
 import { formatAmount } from "@/lib/format"
+import { parseSearchQuery } from "@/lib/search-parse"
 
 export const metadata: Metadata = {
   title: "Browse used goods in Addis Ababa",
@@ -29,9 +30,18 @@ export default async function BrowsePage({
   const params = await searchParams
   const query = parseListingQuery(params)
 
-  const [options, results] = await Promise.all([
+  const [options, results, parsed] = await Promise.all([
     getFilterOptions(),
     getListings(query),
+    // Re-read the parse for its suggestions only; the filters themselves are
+    // already in the URL. SearchField wrote this cache row moments ago, so this
+    // is a single indexed lookup, and doing it here rather than handing state
+    // across from the client means suggestions survive a shared link and a page
+    // load with JavaScript off. allowModel: false so a hand-typed URL that
+    // misses the cache can never block the render on a third-party call.
+    query.q
+      ? parseSearchQuery(query.q, { allowModel: false })
+      : Promise.resolve(null),
   ])
 
   const activeCount = countActiveFilters(query)
@@ -49,31 +59,31 @@ export default async function BrowsePage({
         </aside>
 
         <section aria-labelledby="results-heading">
-          <header className="mb-5 flex flex-wrap items-center gap-3">
-            <div className="mr-auto">
-              <h1
-                id="results-heading"
-                className="type-display text-xl font-semibold text-foreground sm:text-2xl"
-              >
-                {query.category
-                  ? (options.categories.find(
-                      (category) => category.slug === query.category
-                    )?.label ?? "Listings")
-                  : "Everything for sale in Addis"}
-              </h1>
-              <p className="type-ledger mt-1.5 text-muted-foreground">
-                {formatAmount(results.total)} listings · indexed from{" "}
-                {results.channelCount} channels
-              </p>
-            </div>
-
-            <FilterSheet
-              options={options}
-              query={query}
-              activeCount={activeCount}
-            />
-            <SortControl value={query.sort ?? "newest"} />
-          </header>
+          <FilterBar
+            options={options}
+            query={query}
+            activeCount={activeCount}
+            suggestions={parsed?.suggestions}
+            heading={
+              <>
+                <h1
+                  id="results-heading"
+                  className="type-display text-xl font-semibold text-foreground sm:text-2xl"
+                >
+                  {query.category
+                    ? (options.categories.find(
+                        (category) => category.slug === query.category
+                      )?.label ?? "Listings")
+                    : "Everything for sale in Addis"}
+                </h1>
+                <p className="type-ledger mt-1.5 text-muted-foreground">
+                  {formatAmount(results.total)} listings · indexed from{" "}
+                  {results.channelCount} channels
+                </p>
+              </>
+            }
+            sort={<SortControl value={query.sort ?? "newest"} />}
+          />
 
           {results.items.length === 0 ? (
             <EmptyState query={query.q} channelCount={results.channelCount} />

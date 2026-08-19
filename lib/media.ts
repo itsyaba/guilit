@@ -13,3 +13,15 @@ export function getImageUrl(r2Key: string): string {
   }
   return `/api/media/${r2Key}`
 }
+
+/**
+ * Prefix a client component can concatenate a key onto — same decision as
+ * getImageUrl, but resolved once on the server, since STORAGE_BACKEND and
+ * R2_PUBLIC_URL aren't NEXT_PUBLIC and so don't exist in the browser.
+ */
+export function getMediaBaseUrl(): string {
+  if (process.env.STORAGE_BACKEND === "r2" && process.env.R2_PUBLIC_URL) {
+    return `${process.env.R2_PUBLIC_URL.replace(/\/$/, "")}/`
+  }
+  return "/api/media/"
+}

@@ -6,10 +6,21 @@ import { db } from "@/db/client"
 import { categories, images as imagesTable, listings } from "@/db/schema"
 import type { ListingCondition, ListingsPage } from "@/lib/types"
 import { getListings, parseListingQuery } from "@/lib/listings"
+import { checkRateLimit } from "@/lib/rate-limit"
 import { requireSessionUser, UnauthorizedError } from "@/lib/session"
+import { MAX_UPLOAD_FILES, ownsMediaKey } from "@/lib/storage"
 import { slugify } from "@/lib/utils"
 
 const CONDITIONS: ListingCondition[] = ["brand_new", "lightly_used", "fair"]
+const MAX_TITLE_LENGTH = 140
+const MAX_DESCRIPTION_LENGTH = 2000
+
+/** Trim to a hard ceiling, or null when the field is absent/blank. */
+function boundedText(value: unknown, max: number): string | null {
+  if (typeof value !== "string") return null
+  const trimmed = value.trim()
+  return trimmed ? trimmed.slice(0, max) : null
+}
 
 /**
  * GET /api/listings
@@ -45,8 +56,8 @@ export async function GET(request: NextRequest) {
  * Creates a new native listing (direct post by a signed-in user).
  * Trust routing (see README §Routing): established accounts publish
  * immediately; new/flagged accounts publish as `queued`, pending moderator
- * review — image upload and a posting UI are a separate ticket, this just
- * accepts already-uploaded r2 keys in `images`.
+ * review. `images` carries r2 keys already uploaded via
+ * POST /api/uploads/presign; ownership is re-verified here.
  */
 export async function POST(request: NextRequest) {
   let user
@@ -66,6 +77,15 @@ export async function POST(request: NextRequest) {
   if (!body || typeof body.titleEn !== "string" || !body.titleEn.trim()) {
     return Response.json({ error: "titleEn is required." }, { status: 400 })
   }
+
+  const allowed = await checkRateLimit(`post-listing:${user.id}`, 10, 3600)
+  if (!allowed) {
+    return Response.json(
+      { error: "You've posted a lot today. Try again in an hour." },
+      { status: 429 }
+    )
+  }
+
   if (typeof body.categorySlug !== "string") {
     return Response.json({ error: "categorySlug is required." }, { status: 400 })
   }
@@ -95,9 +115,22 @@ export async function POST(request: NextRequest) {
   const locationArea = typeof body.locationArea === "string" ? body.locationArea : null
   const locationCity =
     typeof body.locationCity === "string" ? body.locationCity : "Addis Ababa"
-  const imageKeys: string[] = Array.isArray(body.images)
+  // Image keys arrive from POST /api/uploads/presign, which namespaces them by
+  // user id. Re-check that here — otherwise a caller could attach photos that
+  // belong to somebody else's listing.
+  const submittedKeys: string[] = Array.isArray(body.images)
     ? body.images.filter((key: unknown): key is string => typeof key === "string")
     : []
+  if (submittedKeys.length > MAX_UPLOAD_FILES) {
+    return Response.json(
+      { error: `At most ${MAX_UPLOAD_FILES} photos per listing.` },
+      { status: 400 }
+    )
+  }
+  if (submittedKeys.some((key) => !ownsMediaKey(key, user.id))) {
+    return Response.json({ error: "Unknown image key." }, { status: 400 })
+  }
+  const imageKeys = submittedKeys
 
   const status = user.trustLevel === "established" ? "live" : "queued"
   const slug = `${slugify(body.titleEn)}-${crypto.randomUUID().slice(0, 8)}`
@@ -106,10 +139,10 @@ export async function POST(request: NextRequest) {
     .insert(listings)
     .values({
       slug,
-      titleEn: body.titleEn.trim(),
-      titleAm: typeof body.titleAm === "string" ? body.titleAm : null,
-      descriptionEn: typeof body.descriptionEn === "string" ? body.descriptionEn : null,
-      descriptionAm: typeof body.descriptionAm === "string" ? body.descriptionAm : null,
+      titleEn: body.titleEn.trim().slice(0, MAX_TITLE_LENGTH),
+      titleAm: boundedText(body.titleAm, MAX_TITLE_LENGTH),
+      descriptionEn: boundedText(body.descriptionEn, MAX_DESCRIPTION_LENGTH),
+      descriptionAm: boundedText(body.descriptionAm, MAX_DESCRIPTION_LENGTH),
       priceEtb,
       negotiable,
       categorySlug: category.slug,

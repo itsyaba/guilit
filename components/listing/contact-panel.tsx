@@ -29,6 +29,29 @@ export function ContactPanel({
   const source = listing.sources[0]
   const handle = listing.seller.telegramHandle
 
+  /**
+   * Pending review. A new account's post is live enough to link to, but nobody
+   * can reach the seller through it until a moderator has looked — that's the
+   * whole point of trust routing. Say so plainly instead of rendering a dead
+   * button, and note that nothing needs doing.
+   */
+  if (listing.status === "queued") {
+    return (
+      <div
+        className={cn(
+          "rounded-lg border border-border bg-muted/50 px-3.5 py-3 text-sm leading-relaxed",
+          className
+        )}
+      >
+        <p className="font-medium text-foreground">Waiting on a quick review</p>
+        <p className="mt-1 text-muted-foreground">
+          Contact details stay hidden until a moderator clears this listing. New
+          accounts go through this once; it usually takes a few minutes.
+        </p>
+      </div>
+    )
+  }
+
   if (listing.tier === "native") {
     return (
       <div className={cn("space-y-3", className)}>

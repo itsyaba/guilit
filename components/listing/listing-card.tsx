@@ -67,7 +67,8 @@ export function ListingCard({
         </h3>
 
         <p className="type-ledger mt-auto truncate text-xs text-muted-foreground">
-          {CONDITION_LABELS[listing.condition]} · {listing.location.area}
+          {listing.condition ? `${CONDITION_LABELS[listing.condition]} · ` : ""}
+          {listing.location.area}
         </p>
 
         <ProvenanceStrip

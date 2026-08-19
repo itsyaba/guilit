@@ -1,27 +1,62 @@
+"use client"
+
+import * as React from "react"
 import { IconAlertTriangle } from "@tabler/icons-react"
 
 import { formatAmount } from "@/lib/format"
-import type { Listing } from "@/lib/types"
+import type { PriceContext, PriceContextResponse } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 /**
  * Price fairness.
  *
  * A number on its own tells a first-time buyer nothing, so the asking price is
- * placed against the middle half of what this category actually sells for. The
- * amber state is the only place in the product that colour is used as a
- * warning, and it is reserved for prices far enough below the median to be a
+ * placed against the middle half of what comparable items actually sell for.
+ * The amber state is the only place in the product colour is used as a warning,
+ * and it is reserved for prices far enough below the typical range to be a
  * common advance-payment scam signal.
  *
- * Statistics here come from the fixture file. The real median, p25 and p75 are
- * computed per category and condition by the price-stats job.
+ * Fetched rather than passed down. The statistics live in the price_stats table
+ * and are rebuilt on a schedule, while listing pages are prerendered at build
+ * time — reading them off the server-rendered listing would freeze the range at
+ * whenever the page was built. See app/api/listings/[id]/price-context.
+ *
+ * Renders nothing until it has an answer, and nothing at all when the
+ * comparison set is too thin. That is the honest outcome for a category we
+ * don't have enough listings in yet, and it means no skeleton and no layout
+ * shift in the sticky rail.
  */
-export function PriceCheck({ listing }: { listing: Listing }) {
-  const stats = listing.priceStats
-  if (!stats || listing.priceEtb === null) return null
+export function PriceCheck({
+  listingId,
+  priceEtb,
+}: {
+  listingId: string
+  priceEtb: number | null
+}) {
+  const [context, setContext] = React.useState<PriceContext | null>(null)
 
-  const { p25Etb, p75Etb, categoryMedianEtb, verdict, sampleSize } = stats
-  const price = listing.priceEtb
+  React.useEffect(() => {
+    if (priceEtb === null) return
+    const controller = new AbortController()
+
+    fetch(`/api/listings/${listingId}/price-context`, {
+      signal: controller.signal,
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((body: PriceContextResponse | null) => {
+        if (body?.available) setContext(body.context)
+      })
+      .catch(() => {
+        // Aborted or offline. No range is the correct fallback, not an error.
+      })
+
+    return () => controller.abort()
+  }, [listingId, priceEtb])
+
+  if (!context) return null
+
+  const { p25Etb, p75Etb, medianEtb, verdict, sampleSize, bucketLabel } = context
+  const price = context.priceEtb
 
   // The track spans a little beyond the typical band so an outlier still lands
   // inside the frame instead of being clamped invisibly to an edge.
@@ -30,16 +65,16 @@ export function PriceCheck({ listing }: { listing: Listing }) {
   const at = (value: number) =>
     `${Math.max(0, Math.min(100, ((value - low) / (high - low)) * 100))}%`
 
-  const delta = Math.round(((price - categoryMedianEtb) / categoryMedianEtb) * 100)
+  const delta = context.deltaFromMedianPct
   const suspicious = verdict === "suspicious"
 
   const summary = suspicious
-    ? "Far below what this category sells for. Ask why before you pay anything up front."
+    ? "Far below what comparable listings sell for. Ask why before you pay anything up front."
     : verdict === "below"
-      ? `${Math.abs(delta)}% below the Addis median for ${listing.categoryLabel.toLowerCase()}.`
+      ? `${Math.abs(delta)}% below the Addis median for ${bucketLabel}.`
       : verdict === "above"
-        ? `${delta}% above the Addis median for ${listing.categoryLabel.toLowerCase()}.`
-        : "In line with what this category sells for in Addis."
+        ? `${delta}% above the Addis median for ${bucketLabel}.`
+        : `In line with what ${bucketLabel} sells for in Addis.`
 
   return (
     <section
@@ -63,7 +98,7 @@ export function PriceCheck({ listing }: { listing: Listing }) {
 
       <p
         className={cn(
-          "mt-2 text-sm leading-relaxed",
+          "type-mixed mt-2 text-sm leading-relaxed",
           suspicious ? "text-flag-foreground" : "text-muted-foreground"
         )}
       >
@@ -79,7 +114,7 @@ export function PriceCheck({ listing }: { listing: Listing }) {
         {/* Median. */}
         <div
           className="absolute -top-1 h-3.5 w-px bg-muted-foreground"
-          style={{ left: at(categoryMedianEtb) }}
+          style={{ left: at(medianEtb) }}
         />
         {/* This listing. */}
         <div
@@ -93,12 +128,12 @@ export function PriceCheck({ listing }: { listing: Listing }) {
 
       <div className="type-ledger flex justify-between text-muted-foreground">
         <span>{formatAmount(p25Etb)}</span>
-        <span>median {formatAmount(categoryMedianEtb)}</span>
+        <span>median {formatAmount(medianEtb)}</span>
         <span>{formatAmount(p75Etb)}</span>
       </div>
 
       <p className="type-ledger mt-3 text-muted-foreground opacity-70">
-        from {sampleSize} listings
+        from {sampleSize} comparable listings
       </p>
     </section>
   )

@@ -1,10 +1,12 @@
 import { Suspense } from "react"
+import Link from "next/link"
 
 import { CategoryRail } from "@/components/category-rail"
 import { SessionStatus } from "@/components/auth/session-status"
 import { LanguageToggle } from "@/components/language-toggle"
 import { SearchField } from "@/components/search-field"
 import { Wordmark } from "@/components/wordmark"
+import { Button } from "@/components/ui/button"
 import { getFilterOptions } from "@/lib/listings"
 
 export async function SiteHeader() {
@@ -19,6 +21,14 @@ export async function SiteHeader() {
           <Suspense fallback={<div className="order-4 h-5 w-16" />}>
             <SessionStatus className="order-4" />
           </Suspense>
+
+          <Button
+            size="sm"
+            className="order-3 md:order-3"
+            render={<Link href="/post" />}
+          >
+            Post
+          </Button>
 
           <LanguageToggle className="md:order-3" />
 

@@ -24,12 +24,20 @@ export function FilterSheet({
   options,
   query,
   activeCount,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   options: FilterOptions
   query: ListingQuery
   activeCount: number
+  /** Optional. Supplied by FilterBar so tapping a chip's label can open the
+   *  sheet on the filter that chip represents; otherwise self-managed. */
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }) {
-  const [open, setOpen] = React.useState(false)
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false)
+  const open = controlledOpen ?? uncontrolledOpen
+  const setOpen = onOpenChange ?? setUncontrolledOpen
 
   return (
     <Drawer open={open} onOpenChange={setOpen} showSwipeHandle>

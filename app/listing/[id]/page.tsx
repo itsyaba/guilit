@@ -17,6 +17,14 @@ import { getListing, getListingIds, getRelatedListings } from "@/lib/listings"
 import { getSessionUser } from "@/lib/session"
 import type { Listing } from "@/lib/types"
 
+/**
+ * Listing pages are prerendered, but a listing can be withdrawn — a removal
+ * request sets status='removed' and the page must stop serving. Without this
+ * the built HTML would keep answering indefinitely, which is a compliance
+ * problem under Proclamation 1321/2024, not just a staleness one.
+ */
+export const revalidate = 900
+
 export async function generateStaticParams() {
   const ids = await getListingIds()
   return ids.map((id) => ({ id }))
@@ -34,6 +42,9 @@ export async function generateMetadata({
   return {
     title: listing.title,
     description: listing.description.slice(0, 160),
+    // A listing still in the moderation queue is shareable by link but must not
+    // be indexed — search engines would outlive the review.
+    robots: listing.status === "live" ? undefined : { index: false, follow: false },
   }
 }
 
@@ -73,7 +84,7 @@ export default async function ListingPage({
         <div className="space-y-5 lg:sticky lg:top-24 lg:col-start-2 lg:row-span-2">
           <ListingHeading listing={listing} />
           <ContactPanel listing={listing} isLoggedIn={sessionUser !== null} />
-          <PriceCheck listing={listing} />
+          <PriceCheck listingId={listing.id} priceEtb={listing.priceEtb} />
           <SellerBlock listing={listing} />
         </div>
 
@@ -134,7 +145,8 @@ function ListingHeading({ listing }: { listing: Listing }) {
       <div className="mt-4">
         <Price value={listing.priceEtb} size="detail" />
         <p className="type-ledger mt-1 text-muted-foreground">
-          {CONDITION_LABELS[listing.condition]} · {listing.location.area},{" "}
+          {listing.condition ? `${CONDITION_LABELS[listing.condition]} · ` : ""}
+          {listing.location.area},{" "}
           {listing.location.city}
           {listing.negotiable && listing.priceEtb !== null
             ? " · negotiable"

@@ -12,8 +12,12 @@ import type {
   reports,
   ratings,
   savedSearches,
+  searchParses,
+  priceStats,
   otpCodes,
   rateLimitHits,
+  moderationLogs,
+  removalRequests,
 } from "./schema"
 
 /**
@@ -33,8 +37,12 @@ export type Job = InferSelectModel<typeof jobs>
 export type Report = InferSelectModel<typeof reports>
 export type Rating = InferSelectModel<typeof ratings>
 export type SavedSearch = InferSelectModel<typeof savedSearches>
+export type SearchParse = InferSelectModel<typeof searchParses>
+export type PriceStatsRow = InferSelectModel<typeof priceStats>
 export type OtpCode = InferSelectModel<typeof otpCodes>
 export type RateLimitHit = InferSelectModel<typeof rateLimitHits>
+export type ModerationLog = InferSelectModel<typeof moderationLogs>
+export type RemovalRequest = InferSelectModel<typeof removalRequests>
 
 /**
  * DB insert types — shapes required when writing to the database.
@@ -51,5 +59,10 @@ export type NewJob = InferInsertModel<typeof jobs>
 export type NewReport = InferInsertModel<typeof reports>
 export type NewRating = InferInsertModel<typeof ratings>
 export type NewSavedSearch = InferInsertModel<typeof savedSearches>
+export type NewSearchParse = InferInsertModel<typeof searchParses>
+export type NewPriceStatsRow = InferInsertModel<typeof priceStats>
 export type NewOtpCode = InferInsertModel<typeof otpCodes>
 export type NewRateLimitHit = InferInsertModel<typeof rateLimitHits>
+export type NewModerationLog = InferInsertModel<typeof moderationLogs>
+export type NewRemovalRequest = InferInsertModel<typeof removalRequests>
+

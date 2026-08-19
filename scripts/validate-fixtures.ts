@@ -3,8 +3,19 @@ import fixturesData from "@/fixtures/listings.json"
 import channelsData from "@/fixtures/channels.json"
 import queueData from "@/fixtures/queue.json"
 
+/**
+ * The fixture predates the live database and still carries a `priceStats` block
+ * that the API type dropped — those numbers now come from the price_stats table
+ * via /api/listings/[id]/price-context, computed from the real corpus rather
+ * than baked into a file. The fixture keeps them because the edge-case report
+ * below uses them to point at the seeded scam listings.
+ */
+type FixtureListing = Listing & {
+  priceStats?: { verdict?: string } | null
+}
+
 // Type-level assertions
-const listings: Listing[] = fixturesData.listings as Listing[]
+const listings: FixtureListing[] = fixturesData.listings as unknown as FixtureListing[]
 const channels: AdminChannel[] = channelsData as AdminChannel[]
 const queueItems: QueuedJob[] = queueData.items as QueuedJob[]
 

@@ -1,42 +1,99 @@
 import type { NextRequest } from "next/server"
-import fixtureChannels from "@/fixtures/channels.json"
-import type { AdminChannel } from "@/lib/types"
+import { sql } from "drizzle-orm"
+import { db } from "@/db/client"
+import { channels, jobs } from "@/db/schema"
+import { requireAdmin, ForbiddenError, UnauthorizedError } from "@/lib/session"
 
-export type { AdminChannel }
-
-const FIXTURE_CHANNELS = fixtureChannels as unknown as AdminChannel[]
-
-/**
- * GET /api/admin/channels
- *
- * Returns the list of ingested channels with stats for the admin dashboard.
- */
 export async function GET() {
-  return Response.json(FIXTURE_CHANNELS)
+  try {
+    await requireAdmin()
+  } catch (err) {
+    if (err instanceof UnauthorizedError) return Response.json({ error: "Unauthorized" }, { status: 401 })
+    if (err instanceof ForbiddenError) return Response.json({ error: "Forbidden" }, { status: 403 })
+    throw err
+  }
+
+  const rows = await db.execute(sql`
+    SELECT
+      c.id, c.telegram_id AS "telegramId", c.username, c.title, c.active,
+      c.last_message_id AS "lastMessageId", c.created_at AS "createdAt",
+      COUNT(DISTINCT rm.id)::int AS "messagesCaptured",
+      COUNT(DISTINCT ls.listing_id)::int AS "listingsExtracted",
+      COUNT(DISTINCT ls.listing_id) FILTER (WHERE l.status = 'removed')::int AS rejections,
+      ROUND(
+        COUNT(DISTINCT ls.listing_id) FILTER (WHERE l.status = 'removed')::numeric
+        / NULLIF(COUNT(DISTINCT ls.listing_id), 0) * 100, 1
+      )::float AS "rejectionRatePct"
+    FROM channels c
+    LEFT JOIN raw_messages rm ON rm.channel_id = c.id
+    LEFT JOIN listing_sources ls ON ls.raw_message_id = rm.id
+    LEFT JOIN listings l ON l.id = ls.listing_id
+    GROUP BY c.id
+    ORDER BY c.id
+  `)
+  return Response.json(rows)
 }
 
-/**
- * POST /api/admin/channels
- *
- * Adds a new channel to the allowlist and triggers an initial backfill job.
- * Expected body: { username: string }
- */
 export async function POST(request: NextRequest) {
-  const body = await request.json().catch(() => ({}))
-  const username: string = body.username ?? ""
+  try {
+    await requireAdmin()
+  } catch (err) {
+    if (err instanceof UnauthorizedError) return Response.json({ error: "Unauthorized" }, { status: 401 })
+    if (err instanceof ForbiddenError) return Response.json({ error: "Forbidden" }, { status: 403 })
+    throw err
+  }
 
-  return Response.json(
-    {
-      id: 3,
+  const body = await request.json()
+  let { username, telegramId, title } = body
+
+  if (!username) {
+    return Response.json({ error: "username is required" }, { status: 400 })
+  }
+
+  username = username.replace(/^@/, '')
+
+  if (!telegramId) {
+    try {
+      const botToken = process.env.TELEGRAM_BOT_TOKEN
+      if (botToken) {
+        const res = await fetch(`https://api.telegram.org/bot${botToken}/getChat?chat_id=@${username}`)
+        const data = await res.json()
+        if (data.ok && data.result) {
+          telegramId = data.result.id
+          title = title || data.result.title
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch telegram chat info", err)
+    }
+  }
+
+  if (!telegramId) {
+    return Response.json({ error: "Failed to resolve Telegram chat ID. Please provide telegramId explicitly." }, { status: 422 })
+  }
+
+  const [channel] = await db.insert(channels)
+    .values({
+      telegramId,
       username,
-      title: username,
+      title: title || username,
       active: true,
-      lastMessageId: null,
-      messageCount: 0,
-      jobId: "stub-backfill-job-id",
-      message: `Channel @${username} added. Backfill job queued.`,
-      createdAt: new Date().toISOString(),
-    },
-    { status: 201 }
-  )
+    })
+    .onConflictDoUpdate({
+      target: channels.telegramId,
+      set: {
+        active: true,
+        username,
+        updatedAt: new Date()
+      }
+    })
+    .returning()
+
+  await db.insert(jobs).values({
+    type: 'backfill',
+    payload: { channel_id: channel.id },
+    status: 'pending'
+  })
+
+  return Response.json(channel, { status: 201 })
 }

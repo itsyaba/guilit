@@ -1,8 +1,8 @@
 import type { NextRequest } from "next/server"
-import { eq } from "drizzle-orm"
+import { and, eq } from "drizzle-orm"
 
 import { db } from "@/db/client"
-import { listings, reports } from "@/db/schema"
+import { listings, removalRequests, reports } from "@/db/schema"
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 import { isUuid } from "@/lib/utils"
 
@@ -42,12 +42,30 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return Response.json({ error: "Too many requests. Try again later." }, { status: 429 })
   }
 
+  let body: { phone?: string; name?: string; detail?: string } = {}
+  try {
+    body = await request.json()
+  } catch {
+    // ignore — body is optional for remove requests
+  }
+
   if (listing.status !== "removed") {
-    await db
-      .update(listings)
-      .set({ status: "removed", updatedAt: new Date() })
-      .where(eq(listings.id, id))
-    await db.insert(reports).values({ listingId: id, reason: "owner_removal_request" })
+    const [existing] = await db
+      .select({ id: removalRequests.id })
+      .from(removalRequests)
+      .where(and(eq(removalRequests.listingId, id), eq(removalRequests.status, 'pending')))
+      .limit(1)
+
+    if (!existing) {
+      await db.insert(removalRequests).values({
+        listingId: id,
+        claimantPhone: body.phone ?? null,
+        claimantName: body.name ?? null,
+        detail: body.detail ?? null,
+      })
+    }
+    
+    return Response.json({ listingId: id, status: 'pending_review', message: 'Your removal request has been received and will be reviewed by our team.' }, { status: 202 })
   }
 
   return Response.json({ listingId: id, status: "removed" })

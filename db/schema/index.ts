@@ -16,6 +16,11 @@ export * from "./reports"
 export * from "./ratings"
 export * from "./saved-searches"
 export * from "./synonyms"
+export * from "./search-parses"
+export * from "./price-stats"
 export * from "./otp-codes"
 export * from "./rate-limit-hits"
+export * from "./moderation-logs"
+export * from "./removal-requests"
+
 

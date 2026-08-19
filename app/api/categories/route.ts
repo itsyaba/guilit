@@ -1,27 +1,26 @@
-import type { CategoryOption } from "@/lib/types"
+import { asc } from "drizzle-orm"
 
+import { db } from "@/db/client"
+import { categories } from "@/db/schema"
+import type { CategoryOption } from "@/lib/types"
 
 /**
  * GET /api/categories
  *
- * Returns the full category list for filter dropdowns and the browse nav.
- * Sourced from fixture data today; will query the categories table directly.
+ * Returns the full category list for filter dropdowns, the browse nav, and the
+ * native posting form. The categories table is the single source of truth —
+ * listings.category_slug is an FK against it, so any slug this route invents
+ * would be rejected at insert time.
  */
-
-const FIXTURE_CATEGORIES: CategoryOption[] = [
-  { slug: "electronics", label: "Electronics", labelAm: "ኤሌክትሮኒክስ" },
-  { slug: "phones", label: "Phones & Tablets", labelAm: "ስልኮችና ታብሌቶች" },
-  { slug: "furniture", label: "Furniture", labelAm: "የቤት ዕቃዎች" },
-  { slug: "clothing", label: "Clothing & Fashion", labelAm: "ልብስ" },
-  { slug: "vehicles", label: "Vehicles", labelAm: "ተሽከርካሪዎች" },
-  { slug: "appliances", label: "Home Appliances", labelAm: "የቤት መሳሪያዎች" },
-  { slug: "books", label: "Books & Education", labelAm: "መጻሕፍት" },
-  { slug: "sports", label: "Sports & Fitness", labelAm: "ስፖርት" },
-  { slug: "baby", label: "Baby & Kids", labelAm: "ሕፃናት" },
-  { slug: "other", label: "Other", labelAm: "ሌሎች" },
-]
-
 export async function GET() {
-  return Response.json(FIXTURE_CATEGORIES)
-}
+  const rows = await db
+    .select({
+      slug: categories.slug,
+      label: categories.nameEn,
+      labelAm: categories.nameAm,
+    })
+    .from(categories)
+    .orderBy(asc(categories.nameEn))
 
+  return Response.json(rows satisfies CategoryOption[])
+}

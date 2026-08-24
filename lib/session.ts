@@ -66,11 +66,20 @@ export async function getSessionUserId(): Promise<string | null> {
 }
 
 /**
- * Returns the authenticated user, applying ADMIN_PHONE auto-promotion.
+ * Returns the authenticated user, applying admin auto-promotion.
  *
- * If ADMIN_PHONE is set and matches this user's phone, isAdmin is set to
- * true on first login without any manual SQL. Additional admins must be
- * promoted directly in the database.
+ * Two independent matches promote on first encounter, so no manual SQL is
+ * needed to get the first admin in:
+ *
+ *   ADMIN_TELEGRAM_USERNAME — matched against users.username. This is the one
+ *     that works for a Telegram-only login, because the Login Widget payload
+ *     carries `username` but no phone number, so a user who has only ever
+ *     logged in has phone = NULL.
+ *   ADMIN_PHONE — matched against users.phone, which is written solely by the
+ *     OTP claim in app/api/listings/[id]/claim/verify. Useful once a seller has
+ *     verified a number, and kept so existing deployments behave the same.
+ *
+ * Additional admins are promoted directly in the database.
  */
 export async function getSessionUser(): Promise<User | null> {
   const userId = await getSessionUserId()
@@ -78,10 +87,18 @@ export async function getSessionUser(): Promise<User | null> {
 
   const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
   if (!user) return null
+  if (user.isAdmin) return user
 
-  // Auto-promote the configured admin phone on first encounter
+  const adminUsername = process.env.ADMIN_TELEGRAM_USERNAME?.trim().replace(/^@/, "")
   const adminPhone = process.env.ADMIN_PHONE?.trim()
-  if (adminPhone && user.phone === adminPhone && !user.isAdmin) {
+
+  const matchesUsername =
+    !!adminUsername &&
+    !!user.username &&
+    user.username.toLowerCase() === adminUsername.toLowerCase()
+  const matchesPhone = !!adminPhone && user.phone === adminPhone
+
+  if (matchesUsername || matchesPhone) {
     await db
       .update(users)
       .set({ isAdmin: true, updatedAt: new Date() })

@@ -112,6 +112,62 @@ async def run_backfill_command(
         await service.db.close()
 
 
+async def run_status_command() -> None:
+    """Prints per-channel capture stats for the allowlist.
+
+    Read-only, and deliberately free of Telegram credentials: it reports what
+    is already in the database, so it works on a synthetic corpus too.
+    """
+    setup_logging(level=settings.LOG_LEVEL, log_format=settings.LOG_FORMAT)
+    db = Database(settings.DATABASE_URL)
+    await db.connect()
+
+    try:
+        stats = await db.get_ingest_stats()
+
+        print("\n" + "=" * 78)
+        print("  INGEST STATUS — allowlisted channels and captured messages")
+        print("=" * 78)
+
+        if not stats:
+            print("\nNo channels in the allowlist yet.")
+            print("Seed them with: python -m ingest.cli seed-channels\n")
+            return
+
+        header = f"{'ID':>3}  {'CHANNEL':<26} {'ON':<3} {'MESSAGES':>9} {'LAST MSG':>9}  LATEST POST"
+        print("\n" + header)
+        print("-" * 78)
+
+        total_messages = 0
+        active_count = 0
+        for row in stats:
+            total_messages += row["raw_message_count"]
+            if row["active"]:
+                active_count += 1
+
+            latest = row["latest_message_posted_at"]
+            latest_str = latest.strftime("%Y-%m-%d %H:%M") if latest else "—"
+            last_id = row["last_message_id"] if row["last_message_id"] is not None else "—"
+
+            print(
+                f"{row['id']:>3}  "
+                f"@{row['username'][:25]:<25} "
+                f"{'✓' if row['active'] else '✗':<3} "
+                f"{row['raw_message_count']:>9,} "
+                f"{last_id:>9}  "
+                f"{latest_str}"
+            )
+
+        print("-" * 78)
+        print(
+            f"{len(stats)} channels ({active_count} active) · "
+            f"{total_messages:,} raw messages captured"
+        )
+        print("=" * 78 + "\n")
+    finally:
+        await db.close()
+
+
 async def run_extract_command(
     limit: Optional[int] = None,
     batch_size: Optional[int] = None,
@@ -444,6 +500,54 @@ async def run_verify_pii_command() -> None:
         sys.exit(1)
 
     print("=================================================================\n")
+
+
+async def run_seed_channels_command(fixture_path: Optional[str] = None) -> None:
+    """Seeds the channels allowlist from fixtures/channels.json.
+
+    Idempotent — upsert_channel conflicts on telegram_id, so re-running syncs
+    titles and active flags instead of duplicating rows. Keys prefixed with
+    "_" in the fixture are annotations for humans and are ignored.
+    """
+    setup_logging(level=settings.LOG_LEVEL, log_format=settings.LOG_FORMAT)
+
+    path = Path(fixture_path or "fixtures/channels.json").resolve()
+    if not path.exists():
+        print(f"❌ Channel fixture not found: {path}", file=sys.stderr)
+        sys.exit(1)
+
+    data = json.loads(path.read_text("utf-8"))
+    # Tolerate both a bare list and a {"channels": [...]} wrapper.
+    entries = data if isinstance(data, list) else data.get("channels", [])
+    if not entries:
+        print(f"❌ No channels found in {path}", file=sys.stderr)
+        sys.exit(1)
+
+    db = Database(settings.DATABASE_URL)
+    await db.connect()
+
+    try:
+        seeded = 0
+        for entry in entries:
+            telegram_id = entry.get("telegramId") or entry.get("telegram_id")
+            username = entry.get("username")
+            if telegram_id is None or not username:
+                logger.warning("Skipping channel entry with no telegramId/username: %s", entry)
+                continue
+
+            channel = await db.upsert_channel(
+                telegram_id=int(telegram_id),
+                username=username,
+                title=entry.get("title") or username,
+                active=bool(entry.get("active", True)),
+                last_message_id=entry.get("lastMessageId") or entry.get("last_message_id"),
+            )
+            seeded += 1
+            logger.info("Seeded channel @%s (id=%s)", channel.username, channel.id)
+
+        print(f"✓ Seeded {seeded} channels into the allowlist from {path.name}.")
+    finally:
+        await db.close()
 
 
 async def run_seed_corpus_command(count: int = 400, seed: int = 20260819) -> None:

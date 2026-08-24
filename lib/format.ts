@@ -1,3 +1,4 @@
+import type { Lang } from "@/lib/i18n"
 import type { ListingCondition, ListingTier } from "@/lib/types"
 
 /**
@@ -45,6 +46,43 @@ export const CONDITION_LABELS: Record<ListingCondition, string> = {
   brand_new: "Brand New",
   lightly_used: "Lightly Used",
   fair: "Fair Condition",
+}
+
+const CONDITION_LABELS_AM: Record<ListingCondition, string> = {
+  brand_new: "አዲስ",
+  lightly_used: "ትንሽ ያገለገለ",
+  fair: "መካከለኛ",
+}
+
+/** Condition in the reader's language. The three states the filters also use. */
+export function conditionLabel(
+  condition: ListingCondition,
+  lang: Lang
+): string {
+  return lang === "am"
+    ? CONDITION_LABELS_AM[condition]
+    : CONDITION_LABELS[condition]
+}
+
+const TIER_LABELS_AM: Record<ListingTier, string> = {
+  indexed: "የተሰበሰበ",
+  claimed: "የተረጋገጠ",
+  native: "በጉሊት የተለጠፈ",
+}
+
+export function tierLabel(tier: ListingTier, lang: Lang): string {
+  return lang === "am" ? TIER_LABELS_AM[tier] : TIER_LABELS[tier]
+}
+
+const TIER_DESCRIPTIONS_AM: Record<ListingTier, string> = {
+  indexed:
+    "በቴሌግራም ቻናል ውስጥ ተገኝቶ እዚህ ተሰብስቧል። ግንኙነቱ ወደ መጀመሪያው ሻጭ ይሄዳል።",
+  claimed: "ሻጩ በዚህ ልጥፍ ውስጥ ያለውን ስልክ ቁጥር በኤስኤምኤስ አረጋግጧል።",
+  native: "በገባ ሻጭ በቀጥታ በጉሊት ተለጥፏል።",
+}
+
+export function tierDescription(tier: ListingTier, lang: Lang): string {
+  return lang === "am" ? TIER_DESCRIPTIONS_AM[tier] : TIER_DESCRIPTIONS[tier]
 }
 
 export const TIER_LABELS: Record<ListingTier, string> = {

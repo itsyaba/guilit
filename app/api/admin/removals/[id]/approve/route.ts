@@ -3,7 +3,6 @@ import { and, eq } from "drizzle-orm"
 import { db } from "@/db/client"
 import { listings, moderationLogs, removalRequests } from "@/db/schema"
 import { requireAdmin, ForbiddenError, UnauthorizedError } from "@/lib/session"
-import { isUuid } from "@/lib/utils"
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let admin

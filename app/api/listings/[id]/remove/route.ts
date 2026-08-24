@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server"
 import { and, eq } from "drizzle-orm"
 
 import { db } from "@/db/client"
-import { listings, removalRequests, reports } from "@/db/schema"
+import { listings, removalRequests } from "@/db/schema"
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 import { isUuid } from "@/lib/utils"
 

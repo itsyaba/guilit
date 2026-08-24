@@ -11,5 +11,5 @@ export default async function QueuePage() {
 
   const items = await getModerationQueue()
 
-  return <QueueWorkspace initialItems={items} total={items.length} />
+  return <QueueWorkspace initialItems={items} />
 }

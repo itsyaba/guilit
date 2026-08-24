@@ -51,7 +51,7 @@ export default async function RemovalsPage() {
                 </div>
                 {item.detail && (
                   <p className="text-sm text-zinc-500 mt-2 bg-zinc-50 p-2 rounded border border-zinc-100">
-                    "{item.detail}"
+                    &ldquo;{item.detail}&rdquo;
                   </p>
                 )}
                 <div className="text-xs text-zinc-400 mt-2">

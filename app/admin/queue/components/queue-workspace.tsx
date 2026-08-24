@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import type { AdminQueueItem, ModerationDecision } from '@/lib/types'
 import { QUEUE_REASON_LABELS, QUEUE_REASON_CLASSES } from '@/lib/moderation'
 import { formatDistanceToNow } from 'date-fns'
 
 interface QueueWorkspaceProps {
   initialItems: AdminQueueItem[]
-  total: number
 }
 
 interface EditableFields {
@@ -18,37 +17,14 @@ interface EditableFields {
   locationArea: string
 }
 
-export function QueueWorkspace({ initialItems, total }: QueueWorkspaceProps) {
+export function QueueWorkspace({ initialItems }: QueueWorkspaceProps) {
   const [items, setItems] = useState<AdminQueueItem[]>(initialItems)
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [editMode, setEditMode] = useState(false)
   const [edits, setEdits] = useState<Partial<EditableFields>>({})
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
-      
-      switch (e.key.toLowerCase()) {
-        case 'j': setSelectedIndex(i => Math.min(i + 1, items.length - 1)); break
-        case 'k': setSelectedIndex(i => Math.max(i - 0 - 1, 0)); break
-        case 'a': if (!editMode) handleAction('approve'); break
-        case 'e': 
-          e.preventDefault()
-          setEditMode(em => !em)
-          break
-        case 'r': if (!editMode) handleAction('reject'); break
-        case 'b':
-          // No channel to ban on a native post.
-          if (!editMode && items[selectedIndex]?.channel) handleAction('ban_channel')
-          break
-      }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [items, selectedIndex, editMode, edits])
-
-  async function handleAction(action: ModerationDecision) {
+  const handleAction = useCallback(async (action: ModerationDecision) => {
     const item = items[selectedIndex]
     if (!item || loading) return
 
@@ -73,7 +49,30 @@ export function QueueWorkspace({ initialItems, total }: QueueWorkspaceProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [items, selectedIndex, loading, edits])
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      
+      switch (e.key.toLowerCase()) {
+        case 'j': setSelectedIndex(i => Math.min(i + 1, items.length - 1)); break
+        case 'k': setSelectedIndex(i => Math.max(i - 0 - 1, 0)); break
+        case 'a': if (!editMode) handleAction('approve'); break
+        case 'e': 
+          e.preventDefault()
+          setEditMode(em => !em)
+          break
+        case 'r': if (!editMode) handleAction('reject'); break
+        case 'b':
+          // No channel to ban on a native post.
+          if (!editMode && items[selectedIndex]?.channel) handleAction('ban_channel')
+          break
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [items, selectedIndex, editMode, handleAction])
 
   if (items.length === 0) {
     return (

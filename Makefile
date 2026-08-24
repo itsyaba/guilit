@@ -55,7 +55,7 @@ seed:
 	@echo "Pushing Drizzle schema to PostgreSQL..."
 	@npm run db:push
 	@echo "Seeding initial allowlisted channels..."
-	@python -m ingest.cli seed-channels
+	@./.venv/bin/python -m ingest.cli seed-channels
 
 # Corpus generation. Price statistics only mean something with enough
 # comparables per bucket (see MIN_SAMPLE in lib/price-stats-config.ts), and the

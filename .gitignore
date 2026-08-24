@@ -29,6 +29,7 @@ yarn-error.log*
 pnpm-debug.log*
 
 # env files — .env.example is committed; real secrets stay local
+.env
 .env*.local
 .env.development
 .env.production

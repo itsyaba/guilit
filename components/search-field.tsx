@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { IconLoader2, IconSearch } from "@tabler/icons-react"
 
 import { Input } from "@/components/ui/input"
-import type { ParseResponse } from "@/lib/types"
+import { resolveSearchRoute } from "@/lib/search-route"
 import { cn } from "@/lib/utils"
 
 /**
@@ -22,6 +22,9 @@ import { cn } from "@/lib/utils"
  * answers get thrown away. Caching cannot fix that either, since every prefix
  * hashes to its own key. It also stops the page from re-rendering server-side
  * mid-word, which on Ethiopian mobile data felt worse than a button.
+ *
+ * The phrase-to-URL step lives in lib/search-route so the landing hero resolves
+ * a sentence exactly the way this field does.
  */
 export function SearchField({ className }: { className?: string }) {
   const router = useRouter()
@@ -35,44 +38,14 @@ export function SearchField({ className }: { className?: string }) {
     const value = String(
       new FormData(event.currentTarget).get("q") ?? ""
     ).trim()
-    if (!value) {
-      router.push("/browse")
-      return
-    }
 
     const requestId = ++requestIdRef.current
     setPending(true)
     try {
-      const res = await fetch("/api/search/parse", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ q: value }),
-        // The endpoint budgets well under this. If it is somehow slower, a
-        // plain keyword search beats a spinner.
-        signal: AbortSignal.timeout(1500),
-      })
+      const href = await resolveSearchRoute(value)
+      // A slower earlier search must not steer the page after a later one.
       if (requestId !== requestIdRef.current) return
-      if (!res.ok) throw new Error("parse failed")
-
-      const { query } = (await res.json()) as ParseResponse
-
-      // The parsed query replaces filter state wholesale: a sentence like
-      // "bag under 3000 birr" re-derives the category and the ceiling, it does
-      // not add a keyword to whatever was there before.
-      const search = new URLSearchParams()
-      if (query.q) search.set("q", query.q)
-      if (query.category) search.set("category", query.category)
-      if (query.area) search.set("area", query.area)
-      if (query.minPrice !== undefined) search.set("minPrice", String(query.minPrice))
-      if (query.maxPrice !== undefined) search.set("maxPrice", String(query.maxPrice))
-      for (const value of query.condition ?? []) search.append("condition", value)
-      for (const value of query.tier ?? []) search.append("tier", value)
-
-      router.push(`/browse${search.toString() ? `?${search}` : ""}`)
-    } catch {
-      // Timeout, offline, a bad response — fall through to plain keyword
-      // search. Degrading is the designed path, not an error state.
-      router.push(`/browse?q=${encodeURIComponent(value)}`)
+      router.push(href)
     } finally {
       if (requestId === requestIdRef.current) setPending(false)
     }
@@ -88,7 +61,11 @@ export function SearchField({ className }: { className?: string }) {
     >
       {/* Preserve the active category so search narrows rather than resets. */}
       {params.get("category") ? (
-        <input type="hidden" name="category" value={params.get("category") ?? ""} />
+        <input
+          type="hidden"
+          name="category"
+          value={params.get("category") ?? ""}
+        />
       ) : null}
 
       <label htmlFor="site-search" className="sr-only">

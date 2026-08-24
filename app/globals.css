@@ -65,6 +65,15 @@
 
     --radius: 0.25rem;
 
+    /*
+     * Ethiopic ascenders and descenders both run past the Latin box at the same
+     * font-size, so ግዕዝ needs more room per line than Archivo does. Latin
+     * leading stays wherever the component classes put it; this is the one
+     * override, driven off :lang() rather than a utility, because a clipped
+     * headline is not a bug you want depending on somebody remembering a class.
+     */
+    --leading-ethiopic: 1.62;
+
     --sidebar: var(--zinc-25);
     --sidebar-foreground: var(--zinc-900);
     --sidebar-primary: var(--primary);
@@ -131,6 +140,13 @@
     --font-mono: var(--font-dm-mono), var(--font-ethiopic), ui-monospace,
         "SFMono-Regular", monospace;
 
+    /*
+     * One easing curve for the whole site: fast off the mark, long settle. It
+     * is the difference between an element moving and an element having mass.
+     * Nothing here uses linear or ease-in-out.
+     */
+    --ease-fluid: cubic-bezier(0.22, 0.68, 0, 1);
+
     --color-flag: var(--flag);
     --color-flag-foreground: var(--flag-foreground);
     --color-flag-surface: var(--flag-surface);
@@ -194,16 +210,48 @@
     :focus-visible {
         @apply outline-2 outline-offset-2 outline-ring;
     }
+
+    /*
+     * Per-script leading, applied by language rather than by hand.
+     *
+     * `:lang(am)` matches the whole document when <html lang="am">, and matches
+     * an individual Amharic run inside an English page when that element
+     * carries lang="am" -- which is the common case here, since every listing
+     * title is the seller's own words. Either way nothing with Ethiopic in it
+     * inherits Latin leading.
+     */
+    :lang(am) {
+        line-height: var(--leading-ethiopic);
+    }
+
+    /*
+     * Ethiopic has no case distinction, so uppercasing it does nothing but
+     * widen the tracking of a script that was not asking for it. The ledger
+     * register drops both when it holds Amharic.
+     */
+    :lang(am) .type-ledger,
+    .type-ledger:lang(am) {
+        text-transform: none;
+        letter-spacing: 0.015em;
+    }
+
+    /*
+     * Latin tracking is negative on headings; Ethiopic counters are tighter to
+     * begin with and close up under it, so Amharic headings keep normal metrics.
+     */
+    :lang(am) .type-display,
+    .type-display:lang(am) {
+        letter-spacing: 0;
+    }
 }
 
 @layer components {
     /*
-     * Archivo is variable on the width axis. Widening it for the wordmark and
-     * section headings buys a second voice out of a single downloaded file --
-     * which matters when the median visitor is on metered mobile data.
+     * Headings. Tracking only -- the width axis that used to widen these was
+     * dropped from the font for costing 43 KB in front of the LCP element. See
+     * the Archivo declaration in app/layout.tsx.
      */
     .type-display {
-        font-variation-settings: "wdth" 112;
         letter-spacing: -0.015em;
     }
 
@@ -226,6 +274,48 @@
     .type-mixed {
         line-height: 1.45;
         text-transform: none;
+    }
+
+    /*
+     * Entry motion. Transform and opacity only -- nothing that triggers layout
+     * -- and no blur, which on a mid-range Android costs more than the effect
+     * is worth. The stagger comes from an inline animation-delay at the call
+     * site.
+     *
+     * `both` holds the from-state through the delay, so a staggered item cannot
+     * flash at full opacity on first paint. The reduced-motion block at the
+     * bottom of this file collapses all of it to nothing.
+     */
+    .anim-rise {
+        animation: rise 700ms var(--ease-fluid) both;
+    }
+
+    @keyframes rise {
+        from {
+            opacity: 0;
+            transform: translate3d(0, 1.25rem, 0);
+        }
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    /* The live dot beside "indexed from N channels". */
+    .anim-breathe {
+        animation: breathe 2.8s var(--ease-fluid) infinite;
+    }
+
+    @keyframes breathe {
+        0%,
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.45;
+            transform: scale(0.85);
+        }
     }
 
     .no-scrollbar {

@@ -1,10 +1,11 @@
-import Image from "next/image"
 import Link from "next/link"
 
+import { ListingImage, NoPhoto } from "@/components/listing/listing-image"
 import { Price } from "@/components/listing/price"
 import { ProvenanceStrip } from "@/components/listing/provenance-strip"
 import { TierTag } from "@/components/listing/tier-tag"
-import { CONDITION_LABELS } from "@/lib/format"
+import { conditionLabel } from "@/lib/format"
+import { getLang, strings } from "@/lib/i18n"
 import type { Listing } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
@@ -18,14 +19,31 @@ import { cn } from "@/lib/utils"
  * Every slot has a fixed height so a grid of 24 cards lays out identically
  * whether the data has a photo, a price, or neither.
  */
-export function ListingCard({
+/**
+ * The browse grid: one column on a phone, up to four at 1536px.
+ *
+ * A default rather than a constant, because the same card sits in a 5-across
+ * rail on the front page where these numbers would ask the optimiser for an
+ * image three times wider than the slot it lands in.
+ */
+const BROWSE_SIZES =
+  "(min-width: 1536px) 20vw, (min-width: 1024px) 25vw, (min-width: 640px) 45vw, 92vw"
+
+export async function ListingCard({
   listing,
   priority = false,
+  sizes = BROWSE_SIZES,
 }: {
   listing: Listing
   /** Set on the first row only; everything below the fold lazy-loads. */
   priority?: boolean
+  /** The slot's real width at each breakpoint. Wrong here means wasted bytes. */
+  sizes?: string
 }) {
+  // Chrome switches language; the title does not. It is the seller's own words
+  // about their own item, so an Amharic title stays Amharic on an English page.
+  const lang = await getLang()
+  const s = strings(lang)
   const image = listing.images[0]
   const title = listing.title
 
@@ -39,16 +57,17 @@ export function ListingCard({
     >
       <div className="relative aspect-4/3 overflow-hidden bg-muted">
         {image ? (
-          <Image
+          <ListingImage
             src={image.url}
             alt={image.alt}
-            fill
             priority={priority}
-            sizes="(min-width: 1536px) 20vw, (min-width: 1024px) 25vw, (min-width: 640px) 45vw, 92vw"
-            className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+            sizes={sizes}
+            noPhotoLabel={s.noPhoto}
+            categoryLabel={listing.categoryLabel}
+            className="transition-transform duration-500 ease-out group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
           />
         ) : (
-          <NoPhoto label={listing.categoryLabel} />
+          <NoPhoto label={listing.categoryLabel} noPhotoLabel={s.noPhoto} />
         )}
 
         <TierTag tier={listing.tier} className="absolute top-2 left-2" />
@@ -57,7 +76,10 @@ export function ListingCard({
       <div className="flex flex-1 flex-col gap-1 p-3">
         <Price value={listing.priceEtb} />
 
-        <h3 className="line-clamp-2 min-h-[2.5lh] text-sm font-medium text-foreground">
+        <h3
+          lang="am"
+          className="line-clamp-2 min-h-[2.5lh] text-sm font-medium text-foreground"
+        >
           <Link
             href={`/listing/${listing.id}`}
             className="after:absolute after:inset-0 focus-visible:outline-none"
@@ -67,7 +89,9 @@ export function ListingCard({
         </h3>
 
         <p className="type-ledger mt-auto truncate text-xs text-muted-foreground">
-          {listing.condition ? `${CONDITION_LABELS[listing.condition]} · ` : ""}
+          {listing.condition
+            ? `${conditionLabel(listing.condition, lang)} · `
+            : ""}
           {listing.location.area}
         </p>
 
@@ -77,26 +101,5 @@ export function ListingCard({
         />
       </div>
     </article>
-  )
-}
-
-/**
- * Roughly one listing in twenty arrives with no usable photo. A flat grey box
- * reads as a bug, so the empty state says what the item is instead.
- */
-function NoPhoto({ label }: { label: string }) {
-  return (
-    <div
-      className="flex size-full flex-col items-center justify-center gap-1 text-muted-foreground"
-      style={{
-        backgroundImage:
-          "repeating-linear-gradient(135deg, var(--border) 0 1px, transparent 1px 11px)",
-      }}
-    >
-      <span className="type-ledger rounded-md bg-background/85 px-2 py-1">
-        No photo
-      </span>
-      <span className="type-ledger opacity-70">{label}</span>
-    </div>
   )
 }

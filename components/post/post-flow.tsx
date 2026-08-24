@@ -56,15 +56,24 @@ export function PostFlow({
 
   // Rehydrate a half-finished listing. Photos come back as keys — that's why
   // they're uploaded before the form step rather than held as File objects.
+  //
+  // This has to be a mount effect, not a lazy useState initializer: localStorage
+  // does not exist during SSR, so reading it in render would make the server and
+  // client markup disagree. Unlike the read-only flag in listing-form.tsx, the
+  // draft becomes editable state the moment it lands, so useSyncExternalStore is
+  // not applicable either. All six writes are batched into a single re-render,
+  // which is the cascade the rule below exists to prevent.
   React.useEffect(() => {
     const draft = loadDraft()
     if (draft) {
+      /* eslint-disable react-hooks/set-state-in-effect */
       setImageKeys(draft.imageKeys)
       setFields(draft.fields)
       setConditionReasoning(draft.conditionReasoning)
       setPrice(draft.price)
       setStage("form")
       setRestored(true)
+      /* eslint-enable react-hooks/set-state-in-effect */
     }
   }, [])
 
@@ -185,7 +194,7 @@ export function PostFlow({
       <div className="space-y-3 py-12 text-center">
         <p className="text-sm text-foreground">Reading your photos…</p>
         <p className="text-sm text-muted-foreground">
-          You'll be able to change anything we fill in.
+          You&rsquo;ll be able to change anything we fill in.
         </p>
       </div>
     )

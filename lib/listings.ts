@@ -284,6 +284,35 @@ export async function getListingIds(): Promise<string[]> {
   return rows.map((r) => r.id)
 }
 
+/**
+ * Live, priced listings that actually have a photograph, newest first.
+ *
+ * The front page leads with stock rather than with a claim, and a grid of
+ * hatched no-photo boxes is not stock -- it reads as a broken deploy. So the
+ * showcase narrows to rows with an image and says so in its own subheading,
+ * rather than pulling the newest rows and hoping.
+ *
+ * That narrowing is a real editorial choice and it costs freshness: the newest
+ * photographed row can be older than the newest row. The credibility band
+ * states the capture age a screen above this, so the two never disagree.
+ */
+export async function getShowcaseListings(limit = 10): Promise<Listing[]> {
+  const rows = await db
+    .select({ id: listings.id })
+    .from(listings)
+    .where(
+      and(
+        eq(listings.status, "live"),
+        isNotNull(listings.priceEtb),
+        sql`exists (select 1 from ${imagesTable} where ${imagesTable.listingId} = ${listings.id})`
+      )
+    )
+    .orderBy(desc(listings.postedAt), desc(listings.id))
+    .limit(limit)
+
+  return buildListingsByIds(rows.map((r) => r.id))
+}
+
 /** Same category, different listing. Used for the "more like this" rail. */
 export async function getRelatedListings(listing: Listing, limit = 4): Promise<Listing[]> {
   const rows = await db

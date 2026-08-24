@@ -57,6 +57,7 @@ export function clearDraft(): void {
   } catch {
     // ignore
   }
+  emitReasoningDismissed()
 }
 
 export function isReasoningDismissed(): boolean {
@@ -68,6 +69,26 @@ export function isReasoningDismissed(): boolean {
   }
 }
 
+/** Server snapshot for useSyncExternalStore. Hidden until the client says
+ *  otherwise, so the SSR markup and the first client render agree. */
+export function isReasoningDismissedOnServer(): boolean {
+  return true
+}
+
+const reasoningListeners = new Set<() => void>()
+
+/** Subscribes to dismissals so useSyncExternalStore re-reads on change. */
+export function subscribeReasoningDismissed(listener: () => void): () => void {
+  reasoningListeners.add(listener)
+  return () => {
+    reasoningListeners.delete(listener)
+  }
+}
+
+function emitReasoningDismissed(): void {
+  for (const listener of reasoningListeners) listener()
+}
+
 export function dismissReasoning(): void {
   if (typeof window === "undefined") return
   try {
@@ -75,4 +96,5 @@ export function dismissReasoning(): void {
   } catch {
     // ignore
   }
+  emitReasoningDismissed()
 }

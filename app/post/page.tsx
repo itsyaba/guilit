@@ -21,7 +21,7 @@ export default async function PostPage() {
     <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
       <h1 className="type-display text-2xl">Post a listing</h1>
       <p className="mt-1 mb-6 text-sm text-muted-foreground">
-        Add photos and we'll suggest the details. You can change anything.
+        Add photos and we&rsquo;ll suggest the details. You can change anything.
       </p>
 
       <PostFlow

@@ -5,7 +5,12 @@ import { IconX } from "@tabler/icons-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { dismissReasoning, isReasoningDismissed } from "@/lib/post-draft"
+import {
+  dismissReasoning,
+  isReasoningDismissed,
+  isReasoningDismissedOnServer,
+  subscribeReasoningDismissed,
+} from "@/lib/post-draft"
 import type {
   CategoryOption,
   ConditionOption,
@@ -50,20 +55,20 @@ export function ListingForm({
   pending: boolean
   error: string | null
 }) {
-  const [reasoningHidden, setReasoningHidden] = React.useState(true)
-
-  // localStorage is unavailable during SSR; read it after mount so the markup
-  // matches on both sides.
-  React.useEffect(() => {
-    setReasoningHidden(isReasoningDismissed())
-  }, [])
+  // localStorage is unavailable during SSR, so this is read through an external
+  // store rather than a mount effect: the server snapshot reports "hidden", the
+  // client re-reads after hydration, and dismissReasoning() notifies.
+  const reasoningHidden = React.useSyncExternalStore(
+    subscribeReasoningDismissed,
+    isReasoningDismissed,
+    isReasoningDismissedOnServer
+  )
 
   const conditionOptions = conditions.length ? conditions : CONDITION_FALLBACK
   const showReasoning = !!conditionReasoning && !reasoningHidden
 
   function hideReasoning() {
     dismissReasoning()
-    setReasoningHidden(true)
   }
 
   const canSubmit =
@@ -168,7 +173,7 @@ export function ListingForm({
             <div className="flex items-start gap-2 rounded-xl bg-muted/60 px-3 py-2">
               <p className={cn(HELP, "flex-1")}>
                 We suggested this from your photos: {conditionReasoning} Change it
-                if that's not right.
+                if that&rsquo;s not right.
               </p>
               <button
                 type="button"

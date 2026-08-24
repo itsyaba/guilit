@@ -194,7 +194,7 @@ export function PhotoStep({
       <div>
         <h2 className="text-lg font-medium">Add photos</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Up to {MAX_PHOTOS}. They're shrunk on your phone before uploading, so
+          Up to {MAX_PHOTOS}. They&rsquo;re shrunk on your phone before uploading, so
           this works on mobile data.
         </p>
       </div>

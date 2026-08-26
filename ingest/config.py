@@ -61,6 +61,13 @@ class Settings(BaseSettings):
         default=None,
         description="Override S3 endpoint URL (defaults to https://<account_id>.r2.cloudflarestorage.com)",
     )
+    R2_REGION: str = Field(
+        default="auto",
+        description=(
+            'SigV4 signing region. R2 wants the literal "auto"; every other '
+            "S3-compatible store needs its real region (e.g. eu-central-1)"
+        ),
+    )
     R2_PUBLIC_URL: Optional[str] = Field(
         default=None,
         description="Public base URL / CDN URL for stored images",
@@ -94,8 +101,8 @@ class Settings(BaseSettings):
         description="Google Gemini API key for batch extraction",
     )
     GEMINI_MODEL: str = Field(
-        default="gemini-2.0-flash-lite",
-        description="Gemini model for extraction (e.g. gemini-2.0-flash-lite or gemini-1.5-flash)",
+        default="gemini-3.5-flash-lite",
+        description="Gemini model for extraction. gemini-2.0-flash-lite was shut down 2026-06-01.",
     )
     GEMINI_API_BASE_URL: str = Field(
         default="https://generativelanguage.googleapis.com/v1beta",

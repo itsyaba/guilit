@@ -622,8 +622,20 @@ class Database:
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'indexed', 'live', %s, %s, %s::vector, %s, NOW(), NOW())
                     ON CONFLICT (slug)
                     DO UPDATE SET
+                        title_en = EXCLUDED.title_en,
+                        title_am = EXCLUDED.title_am,
+                        description_en = EXCLUDED.description_en,
+                        description_am = EXCLUDED.description_am,
+                        price_etb = EXCLUDED.price_etb,
                         lowest_price_etb = LEAST(listings.lowest_price_etb, EXCLUDED.lowest_price_etb),
+                        negotiable = EXCLUDED.negotiable,
+                        category_slug = EXCLUDED.category_slug,
+                        condition = EXCLUDED.condition,
+                        location_area = EXCLUDED.location_area,
+                        location_city = EXCLUDED.location_city,
+                        extraction_confidence = EXCLUDED.extraction_confidence,
                         seen_in_channels = EXCLUDED.seen_in_channels,
+                        embedding = EXCLUDED.embedding,
                         updated_at = NOW()
                     RETURNING id;
                     """,
@@ -637,7 +649,7 @@ class Database:
                         data.get("lowest_price_etb", data.get("price_etb")),
                         data.get("negotiable", False),
                         data.get("category_slug"),
-                        data.get("condition", "lightly_used"),
+                        data.get("condition"),
                         data.get("location_area"),
                         data.get("location_city", "Addis Ababa"),
                         data.get("extraction_confidence", 0.85),

@@ -48,7 +48,11 @@ export function ProvenanceStrip({
       </span>
     )
   } else {
-    label = <span className="truncate">Seen in {listing.seenInChannels} channels</span>
+    label = (
+      <span className="truncate">
+        Seen in {listing.seenInChannels} channels
+      </span>
+    )
   }
 
   return (
@@ -103,7 +107,9 @@ function Ticks({
         // Cheapest sighting is the shortest bar and the only one in the accent:
         // the eye lands on the price you should actually be paying.
         const ratio =
-          price === null || low === null || span === 0 ? 0.5 : (price - low) / span
+          price === null || low === null || span === 0
+            ? 0.5
+            : (price - low) / span
         const isLowest = price !== null && price === low
 
         return (

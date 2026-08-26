@@ -2,6 +2,13 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/*
+ * The site is light-only. There is no `.dark` token block and nothing ever puts
+ * the class on <html>, so this variant is a dead branch on purpose: it keeps the
+ * `dark:` utilities that ship inside shadcn's own CSS scoped to a class nobody
+ * sets, instead of letting them fire off `prefers-color-scheme` -- which is what
+ * removing this line would do.
+ */
 @custom-variant dark (&:is(.dark *));
 
 /*
@@ -14,12 +21,19 @@
  */
 
 :root {
+    /*
+     * One theme, declared. Form controls, scrollbars and the browser's own UI
+     * all read this; without it a reader whose OS is dark gets dark selects on
+     * a white page.
+     */
+    color-scheme: light;
+
     /* Cool zinc ramp -- the only neutral ramp in the system. */
-    --zinc-25: oklch(0.986 0.003 252);
-    --zinc-50: oklch(0.972 0.004 252);
-    --zinc-100: oklch(0.955 0.005 252);
-    --zinc-200: oklch(0.912 0.007 254);
-    --zinc-300: oklch(0.862 0.009 254);
+    --zinc-25: oklch(0.988 0.003 252);
+    --zinc-50: oklch(0.974 0.004 252);
+    --zinc-100: oklch(0.958 0.005 252);
+    --zinc-200: oklch(0.918 0.007 254);
+    --zinc-300: oklch(0.866 0.009 254);
     --zinc-400: oklch(0.702 0.013 255);
     --zinc-500: oklch(0.575 0.015 256);
     --zinc-600: oklch(0.492 0.017 257);
@@ -48,6 +62,15 @@
 
     --destructive: oklch(0.556 0.196 27);
 
+    /*
+     * The same red, dark enough to read as text on its own 10% tint.
+     * `--destructive` measures 5.22:1 against the card and 4.49:1 against
+     * `bg-destructive/10`, so error copy sitting in a tinted panel missed WCAG
+     * AA by a rounding error. This one is 7.5:1 on card and 6.4:1 on the tint.
+     * Fills and borders keep using `--destructive`; only text switches.
+     */
+    --destructive-strong: oklch(0.47 0.18 27);
+
     /* Reserved for suspiciously-priced listings. Used nowhere else. */
     --flag: oklch(0.702 0.128 71);
     --flag-foreground: oklch(0.348 0.068 62);
@@ -57,6 +80,17 @@
     --input: var(--zinc-200);
     --ring: oklch(0.522 0.146 250);
 
+    /*
+     * Two surfaces the flat page did not need and the nested enclosures do.
+     *
+     * `--tray` is the recessed shell a white card sits inside -- the aluminium
+     * around the glass -- and `--hairline` is the same idea as `--border` mixed
+     * into whatever is under it, so a rule drawn on white and a rule drawn on
+     * the tray read as one weight instead of two.
+     */
+    --tray: oklch(0.964 0.005 252);
+    --hairline: oklch(0.208 0.016 258 / 0.08);
+
     --chart-1: oklch(0.522 0.146 250);
     --chart-2: oklch(0.612 0.112 249);
     --chart-3: oklch(0.702 0.078 250);
@@ -65,52 +99,17 @@
 
     --radius: 0.25rem;
 
+    /*
+     * Ethiopic ascenders and descenders both run past the Latin box at the same
+     * font-size, so ግዕዝ needs more room per line than Archivo does. Latin
+     * leading stays wherever the component classes put it; this is the one
+     * override, driven off :lang() rather than a utility, because a clipped
+     * headline is not a bug you want depending on somebody remembering a class.
+     */
+    --leading-ethiopic: 1.62;
+
     --sidebar: var(--zinc-25);
     --sidebar-foreground: var(--zinc-900);
-    --sidebar-primary: var(--primary);
-    --sidebar-primary-foreground: var(--primary-foreground);
-    --sidebar-accent: var(--accent);
-    --sidebar-accent-foreground: var(--accent-foreground);
-    --sidebar-border: var(--border);
-    --sidebar-ring: var(--ring);
-}
-
-.dark {
-    --background: var(--zinc-950);
-    --foreground: oklch(0.958 0.004 252);
-    --card: var(--zinc-900);
-    --card-foreground: oklch(0.958 0.004 252);
-    --popover: var(--zinc-900);
-    --popover-foreground: oklch(0.958 0.004 252);
-
-    --primary: oklch(0.672 0.142 248);
-    --primary-foreground: oklch(0.168 0.032 250);
-
-    --secondary: var(--zinc-800);
-    --secondary-foreground: oklch(0.958 0.004 252);
-    --muted: oklch(0.258 0.016 258);
-    --muted-foreground: oklch(0.712 0.014 254);
-    --accent: oklch(0.298 0.036 251);
-    --accent-foreground: oklch(0.892 0.042 251);
-
-    --destructive: oklch(0.702 0.174 25);
-
-    --flag: oklch(0.782 0.124 74);
-    --flag-foreground: oklch(0.892 0.062 78);
-    --flag-surface: oklch(0.318 0.052 68);
-
-    --border: oklch(1 0 0 / 11%);
-    --input: oklch(1 0 0 / 14%);
-    --ring: oklch(0.672 0.142 248);
-
-    --chart-1: oklch(0.712 0.132 248);
-    --chart-2: oklch(0.622 0.112 249);
-    --chart-3: oklch(0.522 0.086 250);
-    --chart-4: oklch(0.422 0.056 252);
-    --chart-5: var(--zinc-700);
-
-    --sidebar: var(--zinc-950);
-    --sidebar-foreground: oklch(0.958 0.004 252);
     --sidebar-primary: var(--primary);
     --sidebar-primary-foreground: var(--primary-foreground);
     --sidebar-accent: var(--accent);
@@ -130,6 +129,16 @@
         system-ui, sans-serif;
     --font-mono: var(--font-dm-mono), var(--font-ethiopic), ui-monospace,
         "SFMono-Regular", monospace;
+
+    /*
+     * One easing curve for the whole site: fast off the mark, long settle. It
+     * is the difference between an element moving and an element having mass.
+     * Nothing here uses linear or ease-in-out.
+     */
+    --ease-fluid: cubic-bezier(0.22, 0.68, 0, 1);
+
+    --color-tray: var(--tray);
+    --color-hairline: var(--hairline);
 
     --color-flag: var(--flag);
     --color-flag-foreground: var(--flag-foreground);
@@ -152,6 +161,7 @@
     --color-input: var(--input);
     --color-border: var(--border);
     --color-destructive: var(--destructive);
+    --color-destructive-strong: var(--destructive-strong);
     --color-accent-foreground: var(--accent-foreground);
     --color-accent: var(--accent);
     --color-muted-foreground: var(--muted-foreground);
@@ -174,6 +184,30 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
+
+    /*
+     * The enclosure scale, and it is three numbers rather than three guesses:
+     * a `rounded-shell` tray with `p-2` holds a `rounded-panel` core, and
+     * 2rem - 0.5rem = 1.5rem is the radius that keeps those two curves
+     * concentric. `--radius-tile` is the same subtraction one level in.
+     */
+    --radius-shell: 2rem;
+    --radius-panel: 1.5rem;
+    --radius-tile: 1.125rem;
+
+    /*
+     * Elevation is ambient, never directional. Two stacked shadows: a 1px
+     * contact edge that keeps a white card off a white page, and a wide, very
+     * soft pool that carries the weight. Both are tinted with the neutral's own
+     * hue, because a grey shadow on a cool page reads as dirt.
+     */
+    --shadow-hairline: 0 1px 2px oklch(0.208 0.016 258 / 0.04);
+    --shadow-ambient:
+        0 1px 2px oklch(0.208 0.016 258 / 0.04),
+        0 14px 32px -18px oklch(0.208 0.016 258 / 0.14);
+    --shadow-lift:
+        0 2px 4px oklch(0.208 0.016 258 / 0.04),
+        0 32px 64px -28px oklch(0.208 0.016 258 / 0.2);
 }
 
 @layer base {
@@ -194,17 +228,49 @@
     :focus-visible {
         @apply outline-2 outline-offset-2 outline-ring;
     }
+
+    /*
+     * Per-script leading, applied by language rather than by hand.
+     *
+     * `:lang(am)` matches the whole document when <html lang="am">, and matches
+     * an individual Amharic run inside an English page when that element
+     * carries lang="am" -- which is the common case here, since every listing
+     * title is the seller's own words. Either way nothing with Ethiopic in it
+     * inherits Latin leading.
+     */
+    :lang(am) {
+        line-height: var(--leading-ethiopic);
+    }
 }
 
 @layer components {
     /*
-     * Archivo is variable on the width axis. Widening it for the wordmark and
-     * section headings buys a second voice out of a single downloaded file --
-     * which matters when the median visitor is on metered mobile data.
+     * Headings. Tracking only -- the width axis that used to widen these was
+     * dropped from the font for costing 43 KB in front of the LCP element. See
+     * the Archivo declaration in app/layout.tsx.
      */
     .type-display {
-        font-variation-settings: "wdth" 112;
         letter-spacing: -0.015em;
+    }
+
+    /*
+     * The front page's one headline, and the only place in the product where
+     * type is allowed to be this large. Fluid rather than a breakpoint ladder,
+     * because the Amharic headline is 20-35% longer than the English one and a
+     * step that fits "Everything Addis is selling" at 768px overflows
+     * "አዲስ አበባ የምትሸጠው ሁሉ" at the same width.
+     */
+    .type-hero {
+        font-size: clamp(2.25rem, 6vw, 4.25rem);
+        line-height: 1.04;
+        letter-spacing: -0.032em;
+    }
+
+    /* Section headings on the front page, one step down from the hero. */
+    .type-section {
+        font-size: clamp(1.625rem, 3.2vw, 2.5rem);
+        line-height: 1.12;
+        letter-spacing: -0.024em;
     }
 
     /* The ledger register: channel handles, counts, timestamps, micro-labels. */
@@ -219,6 +285,12 @@
         letter-spacing: -0.02em;
     }
 
+    /* Big live figures: the index band and the median price panel. */
+    .type-figure {
+        @apply font-semibold tabular-nums;
+        letter-spacing: -0.03em;
+    }
+
     /*
      * Amharic has taller ascenders and no case distinction, so uppercase and
      * tight leading both fail on it. Anything that may hold Amharic opts out.
@@ -226,6 +298,150 @@
     .type-mixed {
         line-height: 1.45;
         text-transform: none;
+    }
+
+    /*
+     * The per-script corrections, in the same layer as the classes they
+     * correct and after them.
+     *
+     * They used to sit in `@layer base`, which loses: Tailwind orders base
+     * before components, and cascade layers beat specificity, so
+     * `:lang(am) .type-display` in base never won against `.type-display` in
+     * components no matter how it was written.
+     */
+    :lang(am) .type-ledger,
+    .type-ledger:lang(am) {
+        text-transform: none;
+        letter-spacing: 0.015em;
+    }
+
+    /*
+     * Latin tracking is negative on headings; Ethiopic counters are tighter to
+     * begin with and close up under it, so Amharic headings keep normal metrics
+     * and a little more room per line.
+     */
+    :lang(am) .type-display,
+    .type-display:lang(am),
+    :lang(am) .type-hero,
+    .type-hero:lang(am),
+    :lang(am) .type-section,
+    .type-section:lang(am) {
+        letter-spacing: 0;
+    }
+
+    :lang(am) .type-hero,
+    .type-hero:lang(am) {
+        line-height: 1.22;
+    }
+
+    :lang(am) .type-section,
+    .type-section:lang(am) {
+        line-height: 1.3;
+    }
+
+    /*
+     * Page-level light. Two wide radial washes of the accent, painted once into
+     * a fixed-size element behind the hero -- not a filter, not a blur, and not
+     * on anything that scrolls, so it costs one paint and never repaints.
+     */
+    .bg-wash {
+        background-image:
+            radial-gradient(
+                58rem 30rem at 12% -10%,
+                oklch(0.522 0.146 250 / 0.12),
+                transparent 64%
+            ),
+            radial-gradient(
+                46rem 26rem at 88% 0%,
+                oklch(0.612 0.112 249 / 0.09),
+                transparent 62%
+            );
+    }
+
+    /*
+     * The whisper grid under the hero. A 4rem lattice of the same hairline the
+     * rest of the page draws its rules in, faded out towards the bottom with a
+     * mask so it never reaches the content below it.
+     */
+    .bg-lattice {
+        background-image:
+            linear-gradient(to right, var(--hairline) 1px, transparent 1px),
+            linear-gradient(to bottom, var(--hairline) 1px, transparent 1px);
+        background-size: 4rem 4rem;
+        -webkit-mask-image: radial-gradient(
+            42rem 26rem at 50% 12%,
+            black,
+            transparent 78%
+        );
+        mask-image: radial-gradient(
+            42rem 26rem at 50% 12%,
+            black,
+            transparent 78%
+        );
+    }
+
+    /*
+     * Entry motion. Transform and opacity only -- nothing that triggers layout
+     * -- and no blur, which on a mid-range Android costs more than the effect
+     * is worth. The stagger comes from an inline animation-delay at the call
+     * site.
+     *
+     * `both` holds the from-state through the delay, so a staggered item cannot
+     * flash at full opacity on first paint. The reduced-motion block at the
+     * bottom of this file collapses all of it to nothing.
+     */
+    .anim-rise {
+        animation: rise 700ms var(--ease-fluid) both;
+    }
+
+    /*
+     * The same rise, driven by scroll position instead of by load, for the
+     * bands below the fold.
+     *
+     * A view() timeline rather than an IntersectionObserver: this page ships
+     * almost no JavaScript on purpose, and a scroll reveal is not worth
+     * hydrating a client component for. Where the timeline is unsupported the
+     * base rule still applies and the element rises once on load -- which for
+     * something two screens down has finished long before it is looked at, and
+     * is never a blank space.
+     */
+    .anim-reveal {
+        animation: rise 800ms var(--ease-fluid) both;
+    }
+
+    @supports (animation-timeline: view()) {
+        .anim-reveal {
+            animation-timeline: view();
+            animation-range: entry 8% cover 34%;
+        }
+    }
+
+    @keyframes rise {
+        from {
+            opacity: 0;
+            transform: translate3d(0, 1.25rem, 0);
+        }
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    /* The live dot beside "indexed from N channels". */
+    .anim-breathe {
+        animation: breathe 2.8s var(--ease-fluid) infinite;
+    }
+
+    @keyframes breathe {
+        0%,
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.45;
+            transform: scale(0.85);
+        }
     }
 
     .no-scrollbar {
@@ -245,5 +461,14 @@
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
+    }
+
+    /*
+     * A view() timeline is not a duration, so the rule above does not reach it:
+     * the element would still be tied to the scroller and fade as it moved.
+     * Cutting the timeline is what actually stops it.
+     */
+    .anim-reveal {
+        animation-timeline: auto !important;
     }
 }

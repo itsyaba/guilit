@@ -1,3 +1,4 @@
+import { cache } from "react"
 import { and, asc, desc, eq, gte, inArray, isNotNull, lte, sql } from "drizzle-orm"
 
 import { db } from "@/db/client"
@@ -13,6 +14,7 @@ import {
   users,
 } from "@/db/schema"
 import { getImageUrl } from "@/lib/media"
+import { areaAliases } from "@/lib/search-lexicon"
 import { isUuid } from "@/lib/utils"
 import type {
   AreaOption,
@@ -22,13 +24,11 @@ import type {
   Listing,
   ListingCondition,
   ListingImage,
-  ListingPriceStats,
   ListingQuery,
   ListingSeller,
   ListingSource,
   ListingTier,
   ListingsPage,
-  PriceVerdict,
   SortValue,
   TierOption,
 } from "@/lib/types"
@@ -64,7 +64,12 @@ const TIER_VALUES: ListingTier[] = TIER_OPTIONS.map((t) => t.value)
 // Filter options
 // --------------------------------------------------------------------------
 
-export async function getFilterOptions(): Promise<FilterOptions> {
+/**
+ * Behind `cache()`: the header and the footer both want the category list, on
+ * every route, and without this each render paid for the same three queries
+ * twice. Memoised per request, so the second caller is free.
+ */
+export const getFilterOptions = cache(async function getFilterOptions(): Promise<FilterOptions> {
   const [categoryRows, areaRows, channelRow] = await Promise.all([
     db
       .select({ slug: categories.slug, nameEn: categories.nameEn, nameAm: categories.nameAm })
@@ -94,7 +99,7 @@ export async function getFilterOptions(): Promise<FilterOptions> {
     priceBoundsEtb: { min: 0, max: PRICE_BOUNDS_MAX },
     channelCount: Number(channelRow[0]?.count ?? 0),
   }
-}
+})
 
 // --------------------------------------------------------------------------
 // Cursor pagination
@@ -176,7 +181,11 @@ function buildFilterConditions(query: ListingQuery) {
   if (query.category) conditions.push(eq(listings.categorySlug, query.category))
   if (query.condition?.length) conditions.push(inArray(listings.condition, query.condition))
   if (query.tier?.length) conditions.push(inArray(listings.tier, query.tier))
-  if (query.area) conditions.push(eq(listings.locationArea, query.area))
+  // Match every spelling of the area, not just the canonical one. Extraction
+  // now normalises to English names, but real channel traffic writes "ቦሌ" and
+  // "Bole" interchangeably and a filter that only matched one would silently
+  // hide half the listings in a neighbourhood.
+  if (query.area) conditions.push(inArray(listings.locationArea, areaAliases(query.area)))
 
   const sort = query.sort ?? "newest"
   const needsPrice =
@@ -281,6 +290,35 @@ export async function getListingIds(): Promise<string[]> {
   return rows.map((r) => r.id)
 }
 
+/**
+ * Live, priced listings that actually have a photograph, newest first.
+ *
+ * The front page leads with stock rather than with a claim, and a grid of
+ * hatched no-photo boxes is not stock -- it reads as a broken deploy. So the
+ * showcase narrows to rows with an image and says so in its own subheading,
+ * rather than pulling the newest rows and hoping.
+ *
+ * That narrowing is a real editorial choice and it costs freshness: the newest
+ * photographed row can be older than the newest row. The credibility band
+ * states the capture age a screen above this, so the two never disagree.
+ */
+export async function getShowcaseListings(limit = 10): Promise<Listing[]> {
+  const rows = await db
+    .select({ id: listings.id })
+    .from(listings)
+    .where(
+      and(
+        eq(listings.status, "live"),
+        isNotNull(listings.priceEtb),
+        sql`exists (select 1 from ${imagesTable} where ${imagesTable.listingId} = ${listings.id})`
+      )
+    )
+    .orderBy(desc(listings.postedAt), desc(listings.id))
+    .limit(limit)
+
+  return buildListingsByIds(rows.map((r) => r.id))
+}
+
 /** Same category, different listing. Used for the "more like this" rail. */
 export async function getRelatedListings(listing: Listing, limit = 4): Promise<Listing[]> {
   const rows = await db
@@ -308,17 +346,6 @@ function maskPhone(phone: string): string {
   return `${phone.slice(0, 4)}${"*".repeat(Math.max(phone.length - 6, 3))}${phone.slice(-2)}`
 }
 
-function priceVerdict(
-  priceEtb: number | null,
-  stats: { median: number; p25: number; p75: number } | undefined
-): PriceVerdict {
-  if (priceEtb === null || !stats) return "unknown"
-  if (priceEtb <= stats.median * 0.3) return "suspicious"
-  if (priceEtb < stats.p25) return "below"
-  if (priceEtb > stats.p75) return "above"
-  return "fair"
-}
-
 async function buildListingsByIds(ids: string[]): Promise<Listing[]> {
   if (ids.length === 0) return []
 
@@ -342,6 +369,7 @@ async function buildListingsByIds(ids: string[]): Promise<Listing[]> {
         locationAreaAm: listings.locationAreaAm,
         locationCity: listings.locationCity,
         tier: listings.tier,
+        status: listings.status,
         sellerId: listings.sellerId,
         extractionConfidence: listings.extractionConfidence,
         seenInChannels: listings.seenInChannels,
@@ -379,11 +407,8 @@ async function buildListingsByIds(ids: string[]): Promise<Listing[]> {
 
   const sellerIds = [...new Set(baseRows.map((r) => r.sellerId).filter((v): v is string => v !== null))]
   const unclaimedIds = baseRows.filter((r) => r.sellerId === null).map((r) => r.id)
-  const categorySlugs = [
-    ...new Set(baseRows.map((r) => r.categorySlug).filter((v): v is string => v !== null)),
-  ]
 
-  const [sellerRows, ratingRows, priceStatRows, extractedPhoneRows] = await Promise.all([
+  const [sellerRows, ratingRows, extractedPhoneRows] = await Promise.all([
     sellerIds.length
       ? db.select().from(users).where(inArray(users.id, sellerIds))
       : Promise.resolve([]),
@@ -397,25 +422,6 @@ async function buildListingsByIds(ids: string[]): Promise<Listing[]> {
           .from(ratings)
           .where(inArray(ratings.sellerId, sellerIds))
           .groupBy(ratings.sellerId)
-      : Promise.resolve([]),
-    categorySlugs.length
-      ? db
-          .select({
-            categorySlug: listings.categorySlug,
-            median: sql<number>`percentile_cont(0.5) within group (order by ${listings.priceEtb})`,
-            p25: sql<number>`percentile_cont(0.25) within group (order by ${listings.priceEtb})`,
-            p75: sql<number>`percentile_cont(0.75) within group (order by ${listings.priceEtb})`,
-            sampleSize: sql<number>`count(*)`,
-          })
-          .from(listings)
-          .where(
-            and(
-              eq(listings.status, "live"),
-              isNotNull(listings.priceEtb),
-              inArray(listings.categorySlug, categorySlugs)
-            )
-          )
-          .groupBy(listings.categorySlug)
       : Promise.resolve([]),
     // Indexed, unclaimed listings have no seller row yet — the phone "already
     // in the listing" that a buyer can still call comes straight from the
@@ -441,7 +447,6 @@ async function buildListingsByIds(ids: string[]): Promise<Listing[]> {
 
   const sellerById = new Map(sellerRows.map((s) => [s.id, s]))
   const ratingBySeller = new Map(ratingRows.map((r) => [r.sellerId, r]))
-  const priceStatsByCategory = new Map(priceStatRows.map((r) => [r.categorySlug, r]))
 
   const extractedPhoneByListing = new Map<string, string>()
   const extractedPhoneConfidence = new Map<string, number>()
@@ -480,7 +485,7 @@ async function buildListingsByIds(ids: string[]): Promise<Listing[]> {
 
   const byId = new Map<string, Listing>()
   for (const row of baseRows) {
-    const seller: ListingSeller = row.sellerId
+    const sellerRow: ListingSeller = row.sellerId
       ? (() => {
           const u = sellerById.get(row.sellerId!)
           const rating = ratingBySeller.get(row.sellerId!)
@@ -509,20 +514,16 @@ async function buildListingsByIds(ids: string[]): Promise<Listing[]> {
           }
         })()
 
-    const stats = row.categorySlug ? priceStatsByCategory.get(row.categorySlug) : undefined
-    const priceStats: ListingPriceStats | null = stats
-      ? {
-          categoryMedianEtb: Math.round(Number(stats.median)),
-          p25Etb: Math.round(Number(stats.p25)),
-          p75Etb: Math.round(Number(stats.p75)),
-          verdict: priceVerdict(row.priceEtb, {
-            median: Number(stats.median),
-            p25: Number(stats.p25),
-            p75: Number(stats.p75),
-          }),
-          sampleSize: Number(stats.sampleSize),
-        }
-      : null
+    /**
+     * A listing awaiting moderation is reachable by direct link — the seller
+     * can share it the moment they post — but its contact routes stay closed
+     * until a moderator clears it. Stripped here rather than in the UI so the
+     * phone number never reaches the client at all.
+     */
+    const seller: ListingSeller =
+      row.status === "live"
+        ? sellerRow
+        : { ...sellerRow, phone: null, phoneMasked: null, telegramHandle: null }
 
     const title = row.titleEn
     const images = (imagesByListing.get(row.id) ?? []).map((img, index) => ({
@@ -543,7 +544,8 @@ async function buildListingsByIds(ids: string[]): Promise<Listing[]> {
       categorySlug: row.categorySlug ?? "",
       categoryLabel: row.categoryNameEn ?? "",
       categoryLabelAm: row.categoryNameAm ?? "",
-      condition: row.condition ?? "fair",
+      status: row.status,
+      condition: row.condition,
       location: {
         area: row.locationArea ?? "",
         areaAm: row.locationAreaAm ?? row.locationArea ?? "",
@@ -555,7 +557,6 @@ async function buildListingsByIds(ids: string[]): Promise<Listing[]> {
       sources: sourcesByListing.get(row.id) ?? [],
       seenInChannels: row.seenInChannels,
       lowestPriceEtb: row.lowestPriceEtb,
-      priceStats,
       extractionConfidence: row.extractionConfidence ?? 0,
       postedAt: row.postedAt.toISOString(),
       updatedAt: row.updatedAt.toISOString(),

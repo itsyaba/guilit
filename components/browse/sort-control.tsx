@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { SORT_OPTIONS, type SortValue } from "@/lib/types"
+import { cn } from "@/lib/utils"
 
 /**
  * Sorting applies immediately -- there is nothing to confirm, and an extra tap
@@ -38,16 +39,19 @@ export function SortControl({ value }: { value: SortValue }) {
     >
       <SelectTrigger
         aria-label="Sort results"
-        className="h-9 rounded-lg border border-border bg-card px-3"
+        className={cn(
+          "h-11 rounded-full border-0 bg-card px-5 text-sm ring-1 ring-hairline",
+          "transition-shadow duration-500 ease-fluid hover:shadow-hairline"
+        )}
       >
         <SelectValue />
       </SelectTrigger>
-      <SelectContent className="rounded-lg">
+      <SelectContent className="rounded-panel p-1.5 shadow-lift ring-1 ring-hairline">
         {SORT_OPTIONS.map((option) => (
           <SelectItem
             key={option.value}
             value={option.value}
-            className="rounded-md"
+            className="rounded-xl"
           >
             {option.label}
           </SelectItem>

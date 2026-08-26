@@ -29,6 +29,7 @@ export const users = pgTable(
     username: text("username"),
     phone: text("phone"), // +251XXXXXXXXX — normalised on write
     phoneVerified: boolean("phone_verified").notNull().default(false),
+    isAdmin: boolean("is_admin").notNull().default(false),
     trustLevel: trustLevelEnum("trust_level").notNull().default("new"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()

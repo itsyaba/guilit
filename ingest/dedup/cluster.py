@@ -199,7 +199,10 @@ class DeduplicationService:
                 "lowest_price_etb": lowest_price,
                 "negotiable": bool(canon.get("negotiable", False)),
                 "category_slug": canon.get("category_slug"),
-                "condition": canon.get("condition") or "lightly_used",
+                # NULL, not a guess. listings.condition is nullable and the price
+                # buckets read NULL as "any condition"; inventing "lightly_used"
+                # here files an unknown item into a bucket it does not belong in.
+                "condition": canon.get("condition"),
                 "location_area": canon.get("location_area"),
                 "location_city": canon.get("location_city") or "Addis Ababa",
                 "extraction_confidence": canon.get("confidence_score", 0.85),

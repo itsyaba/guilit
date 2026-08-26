@@ -12,7 +12,9 @@ export function RemoveListingButton({ listingId }: { listingId: string }) {
 
   async function remove() {
     setState("pending")
-    const res = await fetch(`/api/listings/${listingId}/remove`, { method: "POST" })
+    const res = await fetch(`/api/listings/${listingId}/remove`, {
+      method: "POST",
+    })
     if (res.ok) {
       setState("done")
       router.refresh()
@@ -35,12 +37,14 @@ export function RemoveListingButton({ listingId }: { listingId: string }) {
         type="button"
         onClick={remove}
         disabled={state === "pending"}
-        className="text-sm text-destructive underline underline-offset-4 disabled:opacity-50"
+        className="text-sm text-destructive underline decoration-destructive/30 underline-offset-4 transition-colors duration-500 ease-fluid hover:decoration-destructive disabled:opacity-50"
       >
         {state === "pending" ? "Removing…" : "This is mine, remove it"}
       </button>
       {state === "error" ? (
-        <p className="text-sm text-destructive">Could not remove it. Try again.</p>
+        <p className="text-sm text-destructive">
+          Could not remove it. Try again.
+        </p>
       ) : null}
     </div>
   )

@@ -3,19 +3,37 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { IconArrowLeft } from "@tabler/icons-react"
 
+import { Eyebrow, Shell, TextLink } from "@/components/kit"
 import { ChannelLedger } from "@/components/listing/channel-ledger"
 import { ContactPanel } from "@/components/listing/contact-panel"
 import { Gallery } from "@/components/listing/gallery"
 import { ListingCard } from "@/components/listing/listing-card"
 import { Price } from "@/components/listing/price"
 import { PriceCheck } from "@/components/listing/price-check"
+import { ReservePanel } from "@/components/listing/reserve-panel"
 import { SafetyNote } from "@/components/listing/safety-note"
 import { SellerBlock } from "@/components/listing/seller-block"
 import { TierTag } from "@/components/listing/tier-tag"
+import {
+  depositForPrice,
+  holdHours,
+  isChapaMockMode,
+} from "@/lib/chapa"
 import { CONDITION_LABELS, formatShortDate } from "@/lib/format"
 import { getListing, getListingIds, getRelatedListings } from "@/lib/listings"
+import { getListingMessagingContext } from "@/lib/messaging"
+import { getActiveReservation } from "@/lib/reservations"
 import { getSessionUser } from "@/lib/session"
 import type { Listing } from "@/lib/types"
+import { cn } from "@/lib/utils"
+
+/**
+ * Listing pages are prerendered, but a listing can be withdrawn — a removal
+ * request sets status='removed' and the page must stop serving. Without this
+ * the built HTML would keep answering indefinitely, which is a compliance
+ * problem under Proclamation 1321/2024, not just a staleness one.
+ */
+export const revalidate = 900
 
 export async function generateStaticParams() {
   const ids = await getListingIds()
@@ -34,34 +52,80 @@ export async function generateMetadata({
   return {
     title: listing.title,
     description: listing.description.slice(0, 160),
+    // A listing still in the moderation queue is shareable by link but must not
+    // be indexed — search engines would outlive the review.
+    robots:
+      listing.status === "live" ? undefined : { index: false, follow: false },
   }
 }
 
+/**
+ * One item.
+ *
+ * The split is not decorative: the photo and the decision rail are the two
+ * things a buyer needs simultaneously, so the rail sticks and everything that
+ * is read once — description, meetup rules, the source table — sits underneath
+ * the gallery where it can be as long as it needs to be.
+ *
+ * The rail's order is the order the question gets answered in: what it is and
+ * what it costs, how to reach the seller, whether the price is fair, who the
+ * seller is. Contact sits second rather than last because on a phone that is
+ * the only thing above the fold after the photo.
+ */
 export default async function ListingPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  /** `?hold=paid|failed|unknown` — set by the redirect back from Chapa. */
+  searchParams: Promise<{ hold?: string }>
 }) {
   const { id } = await params
   const listing = await getListing(id)
   if (!listing) notFound()
 
-  const [related, sessionUser] = await Promise.all([
+  const [related, sessionUser, query] = await Promise.all([
     getRelatedListings(listing),
     getSessionUser(),
+    searchParams,
   ])
 
+  /**
+   * Both of these are per-viewer, which is why they are not folded into
+   * `getListing` — that query also feeds the browse grid and is memoised
+   * without a session. See lib/messaging.getListingMessagingContext.
+   */
+  const [messaging, reservation] = await Promise.all([
+    getListingMessagingContext(listing.id, sessionUser?.id ?? null),
+    getActiveReservation(listing.id, sessionUser?.id ?? null),
+  ])
+
+  const holdOutcome =
+    query.hold === "paid" || query.hold === "failed" || query.hold === "unknown"
+      ? query.hold
+      : null
+
   return (
-    <article className="mx-auto max-w-[80rem] px-4 py-5 sm:px-6 lg:py-8">
+    <article className="mx-auto max-w-[80rem] px-4 pt-5 pb-20 sm:px-6 lg:pt-8 lg:pb-28">
       <Link
         href={`/browse?category=${listing.categorySlug}`}
-        className="type-ledger inline-flex items-center gap-1.5 rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        className={cn(
+          "group/back type-ledger type-mixed inline-flex items-center gap-2 rounded-full bg-card px-3 py-1.5",
+          "text-muted-foreground shadow-hairline ring-1 ring-hairline",
+          "transition-[color,box-shadow] duration-500 ease-fluid",
+          "hover:text-foreground hover:shadow-ambient",
+          "focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-ring"
+        )}
       >
-        <IconArrowLeft aria-hidden="true" className="size-3.5" />
+        <IconArrowLeft
+          aria-hidden="true"
+          stroke={1.5}
+          className="size-3.5 transition-transform duration-500 ease-fluid group-hover/back:-translate-x-0.5"
+        />
         {listing.categoryLabel}
       </Link>
 
-      <div className="mt-4 flex flex-col gap-8 lg:grid lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:items-start lg:gap-10">
+      <div className="anim-rise mt-5 flex flex-col gap-8 lg:grid lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:items-start lg:gap-10">
         {/* Left on desktop, first on mobile. */}
         <Gallery
           images={listing.images}
@@ -70,43 +134,81 @@ export default async function ListingPage({
         />
 
         {/* Everything needed to decide, kept together and kept in view. */}
-        <div className="space-y-5 lg:sticky lg:top-24 lg:col-start-2 lg:row-span-2">
+        <div className="space-y-4 lg:sticky lg:top-24 lg:col-start-2 lg:row-span-2">
           <ListingHeading listing={listing} />
-          <ContactPanel listing={listing} isLoggedIn={sessionUser !== null} />
-          <PriceCheck listing={listing} />
+          <ContactPanel
+            listing={listing}
+            isLoggedIn={sessionUser !== null}
+            messaging={messaging}
+          />
+          {/* Sits directly under contact: a hold is the strongest thing a buyer
+              can do on this page, and it only makes sense once they have seen
+              the price above it. Renders nothing for an unpriced or scraped
+              listing — see the component. */}
+          {messaging.canMessage || reservation ? (
+            <ReservePanel
+              listingId={listing.id}
+              depositEtb={depositForPrice(listing.priceEtb)}
+              holdHours={holdHours()}
+              isLoggedIn={sessionUser !== null}
+              isOwnListing={messaging.isOwnListing}
+              reservation={reservation}
+              conversationId={messaging.conversationId}
+              testMode={isChapaMockMode()}
+              outcome={holdOutcome}
+            />
+          ) : null}
+          <PriceCheck listingId={listing.id} priceEtb={listing.priceEtb} />
           <SellerBlock listing={listing} />
         </div>
 
-        <div className="space-y-8 lg:col-start-1 lg:row-start-2">
+        <div className="space-y-10 lg:col-start-1 lg:row-start-2">
           <section aria-labelledby="description-heading">
-            <h2 id="description-heading" className="type-ledger text-foreground">
-              Description
+            <h2 id="description-heading">
+              <Eyebrow>Description</Eyebrow>
             </h2>
-            <p className="mt-3 text-[0.9375rem] leading-relaxed text-foreground">
+            {/*
+             * The seller's own words, marked `lang="am"` because most of them
+             * are Amharic and the per-script leading in globals.css is driven
+             * off the language, not off a class someone remembers to add.
+             */}
+            <p
+              lang="am"
+              className="mt-4 max-w-prose text-base leading-relaxed whitespace-pre-line text-foreground"
+            >
               {listing.description}
             </p>
           </section>
 
-          <SafetyNote />
-
           <ChannelLedger listing={listing} />
+
+          <SafetyNote />
         </div>
       </div>
 
       {related.length > 0 ? (
         <section
           aria-labelledby="related-heading"
-          className="mt-16 border-t border-border pt-10"
+          className="anim-reveal mt-20"
         >
-          <h2
-            id="related-heading"
-            className="type-display text-lg font-semibold text-foreground"
-          >
-            More {listing.categoryLabel.toLowerCase()} in Addis
-          </h2>
-          <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="min-w-0">
+              <Eyebrow>More like this</Eyebrow>
+              <h2
+                id="related-heading"
+                className="type-display mt-4 text-xl font-semibold text-foreground sm:text-2xl"
+              >
+                More {listing.categoryLabel.toLowerCase()} in Addis
+              </h2>
+            </div>
+            <TextLink href={`/browse?category=${listing.categorySlug}`}>
+              See all {listing.categoryLabel.toLowerCase()}
+            </TextLink>
+          </div>
+
+          <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {related.map((item) => (
-              <li key={item.id}>
+              <li key={item.id} className="min-w-0">
                 <ListingCard listing={item} />
               </li>
             ))}
@@ -117,30 +219,55 @@ export default async function ListingPage({
   )
 }
 
+/**
+ * The heading block: state, title, price, and the one line of facts underneath.
+ *
+ * The price is the largest type on the page — larger than the title — because
+ * that is the order a used-goods shopper reads in, and the title is right there
+ * above it doing the naming.
+ */
 function ListingHeading({ listing }: { listing: Listing }) {
+  const facts = [
+    listing.condition ? CONDITION_LABELS[listing.condition] : null,
+    `${listing.location.area}, ${listing.location.city}`,
+    listing.negotiable && listing.priceEtb !== null ? "negotiable" : null,
+  ].filter((fact): fact is string => !!fact)
+
   return (
-    <header>
-      <div className="flex items-center gap-2">
-        <TierTag tier={listing.tier} />
-        <span className="type-ledger text-muted-foreground">
-          posted {formatShortDate(listing.postedAt)}
-        </span>
-      </div>
+    <Shell coreClassName="p-5 sm:p-6">
+      <header>
+        <div className="flex flex-wrap items-center gap-2">
+          <TierTag tier={listing.tier} />
+          <span className="type-ledger text-muted-foreground">
+            posted {formatShortDate(listing.postedAt)}
+          </span>
+        </div>
 
-      <h1 className="mt-3 text-2xl font-semibold text-foreground">
-        {listing.title}
-      </h1>
+        <h1
+          lang="am"
+          className="type-display mt-4 text-xl leading-snug font-semibold text-foreground sm:text-2xl"
+        >
+          {listing.title}
+        </h1>
 
-      <div className="mt-4">
-        <Price value={listing.priceEtb} size="detail" />
-        <p className="type-ledger mt-1 text-muted-foreground">
-          {CONDITION_LABELS[listing.condition]} · {listing.location.area},{" "}
-          {listing.location.city}
-          {listing.negotiable && listing.priceEtb !== null
-            ? " · negotiable"
-            : ""}
-        </p>
-      </div>
-    </header>
+        <div className="mt-5 border-t border-hairline pt-5">
+          <Price value={listing.priceEtb} size="detail" />
+
+          {/* Hairline-separated inline list rather than " · " glue, so an
+              Amharic area name never ends up sharing a middot with a wrapped
+              English condition. */}
+          <ul className="type-ledger type-mixed mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground">
+            {facts.map((fact) => (
+              <li
+                key={fact}
+                className="after:ml-2 after:text-muted-foreground/50 after:content-['·'] last:after:content-none"
+              >
+                {fact}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </header>
+    </Shell>
   )
 }

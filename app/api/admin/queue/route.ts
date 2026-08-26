@@ -1,22 +1,15 @@
-import fixtureQueue from "@/fixtures/queue.json"
-import type { QueuedJob } from "@/lib/types"
+import { ForbiddenError, UnauthorizedError, requireAdmin } from "@/lib/session"
+import { getModerationQueue } from "@/lib/moderation-queue"
 
-export type { QueuedJob }
-
-type QueuePayload = {
-  items: QueuedJob[]
-  total: number
-}
-
-const FIXTURE_QUEUE = fixtureQueue as unknown as QueuePayload
-
-/**
- * GET /api/admin/queue
- *
- * Returns pending moderation jobs for the admin dashboard.
- * The moderator sees the original Telegram message alongside extracted fields
- * and can approve / edit / reject in one click.
- */
 export async function GET() {
-  return Response.json(FIXTURE_QUEUE)
+  try {
+    await requireAdmin()
+  } catch (err) {
+    if (err instanceof UnauthorizedError) return Response.json({ error: "Unauthorized" }, { status: 401 })
+    if (err instanceof ForbiddenError) return Response.json({ error: "Forbidden" }, { status: 403 })
+    throw err
+  }
+
+  const items = await getModerationQueue()
+  return Response.json({ items, total: items.length, nextCursor: null })
 }

@@ -50,6 +50,7 @@ class R2StorageClient(StorageClient):
         secret_access_key: Optional[str] = None,
         bucket_name: Optional[str] = None,
         endpoint_url: Optional[str] = None,
+        region: Optional[str] = None,
     ) -> None:
         self.bucket_name = bucket_name or settings.R2_BUCKET_NAME
         self.endpoint_url = (
@@ -59,6 +60,7 @@ class R2StorageClient(StorageClient):
         )
         self.access_key_id = access_key_id or settings.R2_ACCESS_KEY_ID
         self.secret_access_key = secret_access_key or settings.R2_SECRET_ACCESS_KEY
+        self.region = region or settings.R2_REGION
 
         assert self.endpoint_url, "R2 endpoint URL or Account ID must be provided"
         assert self.access_key_id, "R2 Access Key ID must be provided"
@@ -71,9 +73,12 @@ class R2StorageClient(StorageClient):
             aws_secret_access_key=self.secret_access_key,
             config=Config(
                 signature_version="s3v4",
+                # See lib/storage.ts: virtual-host addressing has no cert on
+                # Supabase Storage; path-style works on it and on R2 alike.
+                s3={"addressing_style": "path"},
                 retries={"max_attempts": 3, "mode": "standard"},
             ),
-            region_name="auto",
+            region_name=self.region,
         )
 
     def _sync_upload(self, data: bytes, key: str, content_type: str) -> None:

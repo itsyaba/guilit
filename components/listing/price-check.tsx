@@ -1,27 +1,64 @@
+"use client"
+
+import * as React from "react"
 import { IconAlertTriangle } from "@tabler/icons-react"
 
+import { Eyebrow, Shell } from "@/components/kit"
 import { formatAmount } from "@/lib/format"
-import type { Listing } from "@/lib/types"
+import type { PriceContext, PriceContextResponse } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 /**
  * Price fairness.
  *
  * A number on its own tells a first-time buyer nothing, so the asking price is
- * placed against the middle half of what this category actually sells for. The
- * amber state is the only place in the product that colour is used as a
- * warning, and it is reserved for prices far enough below the median to be a
+ * placed against the middle half of what comparable items actually sell for.
+ * The amber state is the only place in the product colour is used as a warning,
+ * and it is reserved for prices far enough below the typical range to be a
  * common advance-payment scam signal.
  *
- * Statistics here come from the fixture file. The real median, p25 and p75 are
- * computed per category and condition by the price-stats job.
+ * Fetched rather than passed down. The statistics live in the price_stats table
+ * and are rebuilt on a schedule, while listing pages are prerendered at build
+ * time — reading them off the server-rendered listing would freeze the range at
+ * whenever the page was built. See app/api/listings/[id]/price-context.
+ *
+ * Renders nothing until it has an answer, and nothing at all when the
+ * comparison set is too thin. That is the honest outcome for a category we
+ * don't have enough listings in yet, and it means no skeleton and no layout
+ * shift in the sticky rail.
  */
-export function PriceCheck({ listing }: { listing: Listing }) {
-  const stats = listing.priceStats
-  if (!stats || listing.priceEtb === null) return null
+export function PriceCheck({
+  listingId,
+  priceEtb,
+}: {
+  listingId: string
+  priceEtb: number | null
+}) {
+  const [context, setContext] = React.useState<PriceContext | null>(null)
 
-  const { p25Etb, p75Etb, categoryMedianEtb, verdict, sampleSize } = stats
-  const price = listing.priceEtb
+  React.useEffect(() => {
+    if (priceEtb === null) return
+    const controller = new AbortController()
+
+    fetch(`/api/listings/${listingId}/price-context`, {
+      signal: controller.signal,
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((body: PriceContextResponse | null) => {
+        if (body?.available) setContext(body.context)
+      })
+      .catch(() => {
+        // Aborted or offline. No range is the correct fallback, not an error.
+      })
+
+    return () => controller.abort()
+  }, [listingId, priceEtb])
+
+  if (!context) return null
+
+  const { p25Etb, p75Etb, medianEtb, verdict, sampleSize, bucketLabel } =
+    context
+  const price = context.priceEtb
 
   // The track spans a little beyond the typical band so an outlier still lands
   // inside the frame instead of being clamped invisibly to an edge.
@@ -30,76 +67,88 @@ export function PriceCheck({ listing }: { listing: Listing }) {
   const at = (value: number) =>
     `${Math.max(0, Math.min(100, ((value - low) / (high - low)) * 100))}%`
 
-  const delta = Math.round(((price - categoryMedianEtb) / categoryMedianEtb) * 100)
+  const delta = context.deltaFromMedianPct
   const suspicious = verdict === "suspicious"
 
   const summary = suspicious
-    ? "Far below what this category sells for. Ask why before you pay anything up front."
+    ? "Far below what comparable listings sell for. Ask why before you pay anything up front."
     : verdict === "below"
-      ? `${Math.abs(delta)}% below the Addis median for ${listing.categoryLabel.toLowerCase()}.`
+      ? `${Math.abs(delta)}% below the Addis median for ${bucketLabel}.`
       : verdict === "above"
-        ? `${delta}% above the Addis median for ${listing.categoryLabel.toLowerCase()}.`
-        : "In line with what this category sells for in Addis."
+        ? `${delta}% above the Addis median for ${bucketLabel}.`
+        : `In line with what ${bucketLabel} sells for in Addis.`
 
   return (
-    <section
-      aria-label="Price check"
-      className={cn(
-        "rounded-lg border p-4",
-        suspicious ? "border-flag/40 bg-flag-surface" : "border-border bg-card"
-      )}
+    <Shell
+      className={suspicious ? "bg-flag-surface" : undefined}
+      coreClassName={cn("p-5", suspicious && "ring-flag/30")}
     >
-      <h2
-        className={cn(
-          "type-ledger flex items-center gap-1.5",
-          suspicious ? "text-flag-foreground" : "text-foreground"
-        )}
-      >
-        {suspicious ? (
-          <IconAlertTriangle aria-hidden="true" className="size-3.5" />
-        ) : null}
-        Price check
-      </h2>
+      <section aria-label="Price check">
+        <h2>
+          <Eyebrow
+            tone="quiet"
+            className={
+              suspicious ? "bg-flag/15 text-flag-foreground" : undefined
+            }
+          >
+            {suspicious ? (
+              <IconAlertTriangle
+                aria-hidden="true"
+                stroke={1.5}
+                className="size-3.5"
+              />
+            ) : null}
+            Price check
+          </Eyebrow>
+        </h2>
 
-      <p
-        className={cn(
-          "mt-2 text-sm leading-relaxed",
-          suspicious ? "text-flag-foreground" : "text-muted-foreground"
-        )}
-      >
-        {summary}
-      </p>
-
-      <div className="relative mt-5 mb-2 h-1.5 rounded-full bg-muted">
-        {/* The middle half of the market: where most of these actually sell. */}
-        <div
-          className="absolute inset-y-0 rounded-full bg-primary/25"
-          style={{ left: at(p25Etb), right: `calc(100% - ${at(p75Etb)})` }}
-        />
-        {/* Median. */}
-        <div
-          className="absolute -top-1 h-3.5 w-px bg-muted-foreground"
-          style={{ left: at(categoryMedianEtb) }}
-        />
-        {/* This listing. */}
-        <div
+        <p
           className={cn(
-            "absolute -top-[5px] size-4 -translate-x-1/2 rounded-full border-2 border-background",
-            suspicious ? "bg-flag" : "bg-primary"
+            "type-mixed mt-4 text-sm leading-relaxed",
+            suspicious ? "text-flag-foreground" : "text-muted-foreground"
           )}
-          style={{ left: at(price) }}
-        />
-      </div>
+        >
+          {summary}
+        </p>
 
-      <div className="type-ledger flex justify-between text-muted-foreground">
-        <span>{formatAmount(p25Etb)}</span>
-        <span>median {formatAmount(categoryMedianEtb)}</span>
-        <span>{formatAmount(p75Etb)}</span>
-      </div>
+        {/*
+         * The market, drawn once: a full-width track, the middle half of it
+         * tinted, a hairline at the median, and this listing as the one filled
+         * dot. Everything is positioned as a percentage of the same scale, so
+         * the dot's distance from the band is the actual distance.
+         */}
+        <div className="relative mt-8 mb-3 h-2 rounded-full bg-tray ring-1 ring-hairline">
+          <div
+            className="absolute inset-y-0 rounded-full bg-primary/25"
+            style={{ left: at(p25Etb), right: `calc(100% - ${at(p75Etb)})` }}
+          />
+          <div
+            aria-hidden="true"
+            className="absolute -top-1.5 h-5 w-px bg-muted-foreground/60"
+            style={{ left: at(medianEtb) }}
+          />
+          <div
+            aria-hidden="true"
+            className={cn(
+              "absolute -top-1.5 size-5 -translate-x-1/2 rounded-full ring-3 ring-card",
+              suspicious ? "bg-flag" : "bg-primary"
+            )}
+            style={{ left: at(price) }}
+          />
+        </div>
 
-      <p className="type-ledger mt-3 text-muted-foreground opacity-70">
-        from {sampleSize} listings
-      </p>
-    </section>
+        <div className="type-ledger flex justify-between text-muted-foreground">
+          <span>{formatAmount(p25Etb)}</span>
+          <span className="text-foreground">
+            median {formatAmount(medianEtb)}
+          </span>
+          <span>{formatAmount(p75Etb)}</span>
+        </div>
+
+        <p className="type-ledger mt-4 border-t border-hairline pt-4 text-muted-foreground">
+          from {sampleSize} comparable listings
+        </p>
+      </section>
+    </Shell>
   )
 }

@@ -88,6 +88,26 @@ PRICE_PATTERNS = [
     re.compile(r"(?<!\w)(\d{1,3}(?:,\d{3})+)(?!\w)"),
 ]
 
+# A bare "4K"/"8K" in a title is a display resolution, not 4,000 birr — but the
+# suffix pattern above is tried first and returns on its first hit, so "Samsung
+# 55 inch 4K Smart TV ... 38,000 ብር" extracted as 4,000. The guard is deliberately
+# narrow: it only fires for a single-digit k with no currency word attached, and
+# only when the text is describing a display. "12k" and "4k ብር" are untouched.
+SPEC_NUMBER_RE = re.compile(r"^([2458])\s*k$", re.IGNORECASE)
+SPEC_CONTEXT_RE = re.compile(
+    r"(?:uhd|hdr|oled|qled|\bled\b|resolution|\btv\b|monitor|projector|camera|"
+    r"inch|ኢንች|ቲቪ|ቴሌቪዥን|ካሜራ|ስክሪን|screen|display)",
+    re.IGNORECASE,
+)
+
+
+def is_display_spec(matched_text: str, full_text: str) -> bool:
+    """True when a k-suffixed number is a screen resolution rather than a price."""
+    return bool(
+        SPEC_NUMBER_RE.match(matched_text.strip()) and SPEC_CONTEXT_RE.search(full_text)
+    )
+
+
 # Negotiable indicators
 NEGOTIABLE_PATTERN = re.compile(
     r"(?:የሚደራደር|ድርድር|ይደራደራል|ድርድር\s*አለው|መነሻ\s*ዋጋ|negotiable|neg|slightly\s*negotiable)",
@@ -196,6 +216,8 @@ def extract_price(text: str) -> Tuple[Optional[int], Optional[str], Optional[boo
     
     # Try suffix-based patterns first (12k, 12ሺ, 1.5m)
     for match in PRICE_PATTERNS[0].finditer(clean_text):
+        if is_display_spec(match.group(0), clean_text):
+            continue
         num_part = match.group(1)
         suffix_part = match.group(2)
         price_val = parse_price_value(num_part, suffix_part)

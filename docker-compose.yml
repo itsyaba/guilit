@@ -40,6 +40,25 @@ services:
       R2_BUCKET_NAME: ${R2_BUCKET_NAME:-guilit-media}
       R2_PUBLIC_URL: ${R2_PUBLIC_URL}
       LOCAL_STORAGE_DIR: /app/data/media
+      # Required. Signs the gl_session JWT (lib/session.ts:19), which throws if
+      # unset — fail the `up` with a readable message rather than booting a
+      # container that 500s on the first session read.
+      SESSION_SECRET: "${SESSION_SECRET:?set SESSION_SECRET in .env — generate one with openssl rand -hex 32}"
+      # Telegram Login Widget. Without these /login cannot render or verify.
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME}
+      ADMIN_PHONE: ${ADMIN_PHONE}
+      ADMIN_TELEGRAM_USERNAME: ${ADMIN_TELEGRAM_USERNAME}
+      # Blank GEMINI_API_KEY is a supported mode — vision autofill and query
+      # parsing fall back to their deterministic paths (lib/vision.ts:53).
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_VISION_MODEL: ${GEMINI_VISION_MODEL:-gemini-3.6-flash}
+      GEMINI_PARSE_MODEL: ${GEMINI_PARSE_MODEL:-gemini-2.0-flash-lite}
+      GEMINI_API_BASE_URL: ${GEMINI_API_BASE_URL:-https://generativelanguage.googleapis.com/v1beta}
+      VISION_TIMEOUT_MS: ${VISION_TIMEOUT_MS:-5000}
+      SEARCH_PARSE_TIMEOUT_MS: ${SEARCH_PARSE_TIMEOUT_MS:-900}
+      PRICE_STATS_TTL_SECONDS: ${PRICE_STATS_TTL_SECONDS:-900}
+      MAX_UPLOAD_BYTES: ${MAX_UPLOAD_BYTES:-600000}
     volumes:
       - ./data/media:/app/data/media:z
     restart: unless-stopped
@@ -68,6 +87,10 @@ services:
       LOCAL_STORAGE_DIR: /data/media
       ALBUM_DEBOUNCE_SECONDS: ${ALBUM_DEBOUNCE_SECONDS:-3.0}
       ALLOWLIST_REFRESH_SECONDS: ${ALLOWLIST_REFRESH_SECONDS:-60}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash-lite}
+      GEMINI_API_BASE_URL: ${GEMINI_API_BASE_URL:-https://generativelanguage.googleapis.com/v1beta}
+      EXTRACTION_BATCH_SIZE: ${EXTRACTION_BATCH_SIZE:-20}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       LOG_FORMAT: ${LOG_FORMAT:-json}
     volumes:
@@ -96,6 +119,10 @@ services:
       TELEGRAM_SESSION_NAME: ${TELEGRAM_SESSION_NAME:-guilit_ingest}
       STORAGE_BACKEND: ${STORAGE_BACKEND:-local}
       LOCAL_STORAGE_DIR: /data/media
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash-lite}
+      GEMINI_API_BASE_URL: ${GEMINI_API_BASE_URL:-https://generativelanguage.googleapis.com/v1beta}
+      EXTRACTION_BATCH_SIZE: ${EXTRACTION_BATCH_SIZE:-20}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       LOG_FORMAT: ${LOG_FORMAT:-pretty}
     volumes:

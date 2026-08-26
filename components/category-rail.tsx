@@ -18,7 +18,7 @@ export function CategoryRail({ categories }: { categories: CategoryOption[] }) {
   const items = [{ slug: "", label: "All", labelAm: "ሁሉም" }, ...categories]
 
   return (
-    <nav aria-label="Categories" className="border-b border-border bg-background">
+    <nav aria-label="Categories" className="border-b border-hairline bg-background">
       <ul className="no-scrollbar mx-auto flex max-w-[90rem] gap-1 overflow-x-auto px-4 py-2 sm:px-6">
         {items.map((category) => {
           const isActive = (active ?? "") === category.slug
@@ -32,7 +32,7 @@ export function CategoryRail({ categories }: { categories: CategoryOption[] }) {
                 href={href}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "inline-flex items-center rounded-lg px-3 py-1.5 text-sm whitespace-nowrap transition-colors",
+                  "inline-flex items-center rounded-full px-3 py-1.5 text-sm whitespace-nowrap transition-colors duration-500 ease-fluid",
                   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
                   isActive
                     ? "bg-foreground font-medium text-background"

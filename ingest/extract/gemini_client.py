@@ -10,6 +10,7 @@ import asyncio
 import json
 import logging
 import random
+import re
 import time
 from typing import Any, Dict, List, Optional
 import httpx
@@ -35,6 +36,7 @@ TAXONOMY CATEGORIES (you MUST choose only one of these exact slugs):
 - "kids" (Baby items, strollers, toys, kids clothes, car seats)
 - "books" (Textbooks, novels, hobby items, stationery)
 - "tools" (Power tools, drills, generators, hardware, machinery)
+- "electronics" (Cameras, projectors, drones, smartwatches, routers, solar)
 - "other" (Miscellaneous items not matching above)
 
 CONDITION VALUES (MUST choose one):
@@ -88,6 +90,7 @@ GEMINI_RESPONSE_SCHEMA = {
                     "kids",
                     "books",
                     "tools",
+                    "electronics",
                     "other",
                 ],
             },
@@ -106,6 +109,202 @@ GEMINI_RESPONSE_SCHEMA = {
         "required": ["id", "is_listing", "confidence_score"],
     },
 }
+
+
+# ==============================================================================
+# Offline classifier — used when no GEMINI_API_KEY is configured.
+#
+# This runs far more often than its name suggests: with a blank key (the default
+# in .env.example) it is the ONLY thing that has ever labelled our corpus. Treat
+# its output as production data, because it is.
+#
+# Two rules, learned the hard way:
+#
+# 1. Never classify on the contact line. "ስልክ" is Amharic for *phone*, and it is
+#    also the label sellers put before their number ("ስልክ: 09..."). 74 of 89
+#    messages in our corpus contain it. Matching it as a phones keyword filed a
+#    Suzuki Alto, a bajaj, a generator and an injera mitad under "phones".
+#
+# 2. Longest matching keyword wins, not first branch to match. A cascade cannot
+#    express that "የልብስ ማጠቢያ" (washing machine) is an appliance even though it
+#    contains "ልብስ" (clothes), or that "የሕፃናት አልጋ" is a kids item even though it
+#    contains "አልጋ" (bed). Specificity is the signal; branch order is not.
+# ==============================================================================
+
+CONTACT_LINE_RE = re.compile(
+    r"(?im)^\s*(?:ስልክ|ስልክ\s*ቁጥር|phone|tel|telephone|call|mobile|contact|አድራሻ)\s*[:：\-]?\s*.*$"
+)
+
+#: Ordered only for tie-breaks — see classify_category. Keys are category slugs
+#: from the taxonomy above; membership must stay in sync with the enum there.
+CATEGORY_KEYWORDS: Dict[str, tuple] = {
+    "vehicles": (
+        "toyota", "vitz", "rav4", "corolla", "hilux", "suzuki", "alto", "hyundai",
+        "isuzu", "bajaj", "motorcycle", "motorbike", "car for sale", "sinotruk",
+        "ቶዮታ", "ሱዙኪ", "ሁንዳይ", "ራቭ4", "ቪትዝ", "አልቶ", "ግራንድ i10",
+        "mountain bike", "bicycle", "ብስክሌት",
+        "መኪና", "ተሽከርካሪ", "ባጃጅ", "ሞተር ሳይክል", "ሞተረኛ", "ጎማ", "ሊፍቲንግ",
+    ),
+    "computers": (
+        "laptop", "macbook", "thinkpad", "latitude", "elitebook", "probook",
+        "desktop", "core i3", "core i5", "core i7", "core i9", "ryzen", "ssd",
+        "gaming pc", "monitor", "printer", "keyboard", "graphics card", "rtx",
+        "ኮምፒውተር", "ላፕቶፕ", "ፕሪንተር", "ማተሚያ", "ኪቦርድ", "ማክቡክ", "ቲንክፓድ",
+        "ሌኖቮ", "ዴል", "ኤችፒ", "ኤስኤስዲ", "ራም", "ኮር i3", "ኮር i5", "ኮር i7",
+    ),
+    "phones": (
+        "iphone", "samsung galaxy", "galaxy a", "galaxy s", "redmi", "xiaomi",
+        "infinix", "tecno", "camon", "oppo", "vivo", "ipad", "tablet", "airpods",
+        "smartphone", "dual sim", "power bank",
+        "አይፎን", "ታብሌት", "ሬድሚ", "ቴክኖ", "ስማርት ፎን", "ሲም ካርድ", "ሳምሱንግ ጋላክሲ",
+        "ጋላክሲ", "ኢንፊኒክስ", "ካሞን", "አይፓድ", "ኤርፖድስ",
+    ),
+    "tv-audio": (
+        "smart tv", "led tv", "television", "playstation", "ps4", "ps5", "xbox",
+        "soundbar", "speaker", "home theater", "home theatre", "headphone", "jbl",
+        "subwoofer",
+        "ቴሌቪዥን", "ስማርት ቲቪ", "ቲቪ", "ድምጽ ማጉያ", "ስፒከር", "ማጫወቻ",
+        "acoustic guitar", "guitar", "keyboard piano", "አኮስቲክ ጊታር", "ጊታር",
+        "ፕሌይስቴሽን", "ሳውንድባር", "ሆም ቲያትር", "ጄቢኤል", "ሂሴንስ", "ሶኒ",
+    ),
+    "appliances": (
+        "refrigerator", "fridge", "freezer", "microwave", "washing machine",
+        "air fryer", "blender", "gas stove", "oven", "water dispenser", "mitad",
+        "የልብስ ማጠቢያ", "ማቀዝቀዣ", "ፍሪጅ", "ምጣድ", "ማይክሮዌቭ", "ምድጃ", "ጭስ ማውጫ",
+        "ጋዝ ምድጃ ከነ", "የውሃ ማቀዝቀዣ",
+        "ኤር ፍራየር", "ፍራየር", "ጋዝ ምድጃ",
+    ),
+    "tools": (
+        "generator", "welding machine", "welding", "drill", "grinder", "compressor",
+        "tool set", "angle grinder", "hammer drill",
+        "wrench", "hand tool", "power tool", "bosch",
+        "ጀነሬተር", "መሰርሰሪያ", "እቃ መገጣጠሚያ", "የስራ መሳሪያ", "ማብሪያ", "ቦሽ", "የብየዳ ማሽን",
+        "አንግል ግራይንደር",
+    ),
+    "kids": (
+        "baby", "infant", "toddler", "kids", "stroller", "car seat", "baby cot",
+        "baby walker", "montessori", "baby swing", "diaper", "toy", "romper",
+        "kids bicycle", "kids bike", "የልጆች ብስክሌት", "የሕፃናት ብስክሌት",
+        "pacifier", "breast milk", "breast pump", "sterilizer", "mama bag",
+        "baby carier", "baby carrier", "high chair", "potty", "bib", "onesie",
+        "chicco", "infantino", "avent", "nursing", "feeding bottle", "lunch box",
+        "የሕፃናት", "ሕፃናት", "ህፃናት", "የልጆች", "ልጆች", "መጫወቻ", "ዥዋዥዌ", "ጡጦ",
+    ),
+    "furniture": (
+        "sofa", "l-shape", "couch", "wardrobe", "dining table", "coffee table",
+        "mattress", "bed frame", "bookshelf", "cupboard", "office chair", "mesob",
+        "መሶብ",
+        "የቤት እቃ", "ሶፋ", "ቁም ሳጥን", "ጠረጴዛ", "ወንበር", "አልጋ", "ፍራሽ", "መደርደሪያ",
+    ),
+    "fashion": (
+        "dress", "shoes", "sneakers", "jacket", "handbag", "backpack", "suitcase",
+        "wristwatch", "jewelry", "netela", "habesha kemis", "t-shirt",
+        "nike", "adidas", "jordan", "puma", "samsonite", "luggage",
+        "ናይክ", "አዲዳስ", "ጆርዳን", "ሳምሶናይት", "ካሲዮ",
+        "helmet", "ሄልሜት", "የሞተር ሳይክል ጃኬት",
+        "ቀሚስ", "ጫማ", "ጃኬት", "ቦርሳ", "ሰዓት", "ነጠላ", "ሻንጣ", "ልብስ",
+    ),
+    "books": (
+        "textbook", "novel", "dictionary", "stationery", "encyclopedia",
+        "book collection", "books",
+        "መጽሐፍ", "መጽሐፍት", "ጥራዝ", "ደብተር",
+    ),
+    "electronics": (
+        "camera", "dslr", "projector", "drone", "smartwatch", "router", "inverter",
+        "solar panel", "blood pressure", "oximeter", "thermometer", "nebulizer",
+        "wifi router", "router", "ራውተር", "ሶላር ፓናል",
+        "ካሜራ", "ፕሮጀክተር", "ሶላር", "የህክምና እቃ",
+    ),
+}
+
+#: Amharic and mis-cased spellings collapse to the English canonical, which is
+#: what listings.location_area stores and what the browse `area` filter matches
+#: on exactly. A .title() here is what produced "Cmc" in the live table.
+AREA_CANONICAL: Dict[str, str] = {
+    "bole": "Bole", "ቦሌ": "Bole",
+    "piassa": "Piassa", "piazza": "Piassa", "ፒያሳ": "Piassa",
+    "merkato": "Merkato", "መርካቶ": "Merkato",
+    "megenagna": "Megenagna", "መገናኛ": "Megenagna",
+    "sarbet": "Sarbet", "ሳርቤት": "Sarbet",
+    "cmc": "CMC", "ሲኤምሲ": "CMC",
+    "gerji": "Gerji", "ገርጂ": "Gerji",
+    "kazanchis": "Kazanchis", "ካዛንቺስ": "Kazanchis",
+    "ayat": "Ayat", "አያት": "Ayat",
+    "summit": "Summit", "ሰሚት": "Summit",
+    "lebu": "Lebu", "ለቡ": "Lebu",
+    "saris": "Saris", "ሳሪስ": "Saris",
+    "jemo": "Jemo", "ጀሞ": "Jemo",
+    "kolfe": "Kolfe", "ኮልፌ": "Kolfe",
+    "shiro meda": "Shiro Meda", "ሽሮ ሜዳ": "Shiro Meda",
+    "arat kilo": "Arat Kilo", "አራት ኪሎ": "Arat Kilo",
+    "gurd shola": "Gurd Shola", "ጉርድ ሾላ": "Gurd Shola",
+    "hayahulet": "Hayahulet", "ሃያሁለት": "Hayahulet",
+    "kality": "Kality", "ቃሊቲ": "Kality",
+    "old airport": "Old Airport", "ኦልድ ኤርፖርት": "Old Airport",
+    "ayer tena": "Ayer Tena", "አየር ጤና": "Ayer Tena",
+    "torhailoch": "Torhailoch", "ቶር ሃይሎች": "Torhailoch",
+    "mexico": "Mexico", "ሜክሲኮ": "Mexico",
+}
+
+CONDITION_KEYWORDS: Dict[str, tuple] = {
+    "brand_new": ("brand new", "new in box", "sealed", "unopened", "unused",
+                  "አዲስ", "ያልተከፈተ", "አልተከፈተም"),
+    "fair": ("fair condition", "well used", "scratched", "worn", "needs repair",
+             "መካከለኛ", "ያገለገለ", "ተጠግኖ"),
+    "lightly_used": ("lightly used", "gently used", "like new", "second hand",
+                     "excellent condition", "clean", "neat", "used for",
+                     "barely used", "ንፁህ", "ፅዱ", "ትንሽ የተሰራበት", "ሁለተኛ እጅ",
+                     "ጥሩ ሁኔታ", "የተጠቀምኩበት", "ጥቅም ላይ የዋለ", "በጣም ጥሩ"),
+}
+
+
+def strip_contact_lines(text: str) -> str:
+    """Removes phone/address lines so their labels can't be read as item nouns."""
+    return CONTACT_LINE_RE.sub(" ", text or "")
+
+
+def classify_category(text: str) -> str:
+    """Longest matching keyword wins; ties break on CATEGORY_KEYWORDS order."""
+    lowered = (text or "").lower()
+    best_slug, best_len, best_rank = "other", 0, 999
+    for rank, (slug, keywords) in enumerate(CATEGORY_KEYWORDS.items()):
+        for keyword in keywords:
+            if keyword in lowered and (
+                len(keyword) > best_len
+                or (len(keyword) == best_len and rank < best_rank)
+            ):
+                best_slug, best_len, best_rank = slug, len(keyword), rank
+    return best_slug
+
+
+def classify_condition(text: str) -> Optional[str]:
+    """Returns None when nothing matched.
+
+    Defaulting to "lightly_used" is what left our corpus with 74 lightly_used and
+    zero fair. listings.condition is nullable and the price buckets treat NULL as
+    "any condition" — a guess here silently poisons a statistic downstream.
+    """
+    lowered = (text or "").lower()
+    best_value, best_len = None, 0
+    for value, keywords in CONDITION_KEYWORDS.items():
+        for keyword in keywords:
+            if keyword in lowered and len(keyword) > best_len:
+                best_value, best_len = value, len(keyword)
+    return best_value
+
+
+def classify_area(text: str) -> Optional[str]:
+    """Canonical English area name, or None. Never guesses a default.
+
+    Returns None when the message names more than one area. Reseller channels
+    append a footer listing every branch they operate ("ገርጂ ... 4ኪሎ ... ላፍቶ"),
+    which appears in 90 of our 100 corpus messages — picking one of those would
+    tag the item with a shop's address rather than where the item is.
+    """
+    lowered = (text or "").lower()
+    found = {canonical for spelling, canonical in AREA_CANONICAL.items() if spelling in lowered}
+    return found.pop() if len(found) == 1 else None
+
 
 
 class QuotaExhaustedError(Exception):
@@ -264,43 +463,12 @@ class GeminiBatchExtractor:
         for msg in sanitized_messages:
             idx = msg["index"]
             text = msg["sanitized_text"]
+            classifiable = strip_contact_lines(text)
+
+            category = classify_category(classifiable)
+            condition = classify_condition(classifiable)
+            location = classify_area(classifiable)
             lower_text = text.lower()
-
-            # Detect category (specific to general)
-            category = "other"
-            if any(k in lower_text for k in ("laptop", "macbook", "dell", "hp", "thinkpad", "latitude", "desktop", "core i", "ssd", "ram", "ኮምፒውተር", "ፕሪንተር", "ማተሚያ")):
-                category = "computers"
-            elif any(k in lower_text for k in ("sofa", "bed", "table", "chair", "dining", "mattress", "አልጋ", "ሶፋ", "ጠረጴዛ", "ወንበር", "የቤት እቃ")):
-                category = "furniture"
-            elif any(k in lower_text for k in ("car", "vitz", "toyota", "rav4", "መኪና", "ተሽከርካሪ")):
-                category = "vehicles"
-            elif any(k in lower_text for k in ("tv", "playstation", "ps5", "sony", "lg", "speaker", "sound", "ድምጽ", "ቴሌቪዥን")):
-                category = "tv-audio"
-            elif any(k in lower_text for k in ("fridge", "refrigerator", "microwave", "ማጠቢያ", "ፍሪጅ", "የልብስ ማጠቢያ")):
-                category = "appliances"
-            elif any(k in lower_text for k in ("dress", "shoes", "jacket", "ጥልፍ", "ቀሚስ", "ልብስ", "ጫማ")):
-                category = "fashion"
-            elif any(k in lower_text for k in ("iphone", "samsung galaxy", "redmi", "infinix", "tecno", "ipad", "ቴድሚ", "ካሞን", "ስልክ")):
-                category = "phones"
-            elif any(k in lower_text for k in ("drill", "bosch", "መሰርሰሪያ", "እቃ መገጣጠሚያ")):
-                category = "tools"
-            elif any(k in lower_text for k in ("ህፃናት", "ልጆች", "baby", "stroller")):
-                category = "kids"
-
-
-            # Detect condition
-            condition = "lightly_used"
-            if any(k in lower_text for k in ("brand new", "new in box", "አዲስ", "sealed")):
-                condition = "brand_new"
-            elif any(k in lower_text for k in ("fair", "መካከለኛ")):
-                condition = "fair"
-
-            # Detect location
-            location = "Bole"
-            for area in ("Bole", "Piassa", "Merkato", "Megenagna", "Sarbet", "CMC", "Gerji", "Mexico", "ቦሌ", "ፒያሳ", "መገናኛ"):
-                if area.lower() in lower_text:
-                    location = area.title()
-                    break
 
             # Find placeholders
             phone_placeholder = "[PHONE_1]" if "[PHONE_1]" in text else None

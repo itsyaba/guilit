@@ -91,8 +91,8 @@ Every live listing sits in one of three tiers. This is simultaneously our growth
 | Tier | State | Capabilities |
 |---|---|---|
 | **Indexed** | Scraped, unclaimed | Searchable · channel attribution · links to original post · contact routes to seller's own Telegram · one-click "this is mine, remove it" |
-| **Claimed** | Seller verified the phone number already in the listing via OTP | Can edit · receives ratings · marked as claimed |
-| **Native** | Posted directly on our site | Everything above + in-app messaging + verified badge |
+| **Claimed** | Seller verified the phone number already in the listing via OTP | Can edit · receives ratings · marked as claimed · in-app messaging as a second route under Telegram · can be reserved |
+| **Native** | Posted directly on our site | Everything above + in-app messaging as the *primary* route + verified badge |
 
 **Why this framing matters legally.** Republishing someone's listing wholesale on our own domain invites awkward questions. Aggregating, attributing, and routing contact back to the source does not. Same pipeline, different posture — and the second one is also a better product story.
 
@@ -142,11 +142,13 @@ Jiji cannot do this — they only see their own listings. The channels can't —
 - [ ] Saved search + Telegram alerts
 - [ ] Seller ratings, report/flag
 - [ ] "Seen in N channels" dedup display
+- [x] In-app messaging for listings with a registered seller, with Telegram push
+- [x] Pay from the thread — seller asks for the agreed figure, buyer pays it there
 
 ### Nice to have (only if genuinely ahead)
 
 - [ ] Fayda ID upload → manual review queue → verified badge
-- [ ] Chapa "reserve item" hold
+- [x] Chapa "reserve item" hold — deposit through Chapa holds an item for 24h
 - [ ] "Wanted" posts (buyers list what they're looking for)
 - [ ] Outbound broadcast of native listings to our own channel
 
@@ -399,8 +401,8 @@ If we want a live moment, script it: have someone post to a test channel we cont
 
 Writing these down prevents someone building them at 2am on the 24th.
 
-- ❌ Full in-app chat as the primary contact method — deep-link to Telegram and `tel:`, and frame it as a deliberate choice
-- ❌ Escrow or full payment checkout — Chapa "reserve" hold only, if at all
+- ❌ In-app chat as the *default* contact method — Telegram deep links and `tel:` stay primary for indexed and claimed listings, and that is a deliberate choice, not a gap. In-app messaging exists where Telegram cannot serve: a native listing has no channel post to open. See `lib/messaging.ts`.
+- ❌ Escrow or full payment checkout — a **Chapa deposit hold** only. 5% of the price, floored at 50 ETB and capped at 1,000, holding the item for 24h. Nobody buys a used sofa sight unseen, and taking the full price for a handover we cannot enforce would be a promise we have no way to keep. The hold can be started from the listing or, at a figure the two of them agreed, from inside the conversation — a negotiation's closing number is rarely the listed one.
 - ❌ Real Fayda verification — manual review stub, clearly labelled
 - ❌ Mobile apps — responsive web only, per the brief
 - ❌ Delivery/logistics

@@ -1,0 +1,15 @@
+Category artwork.
+
+Unsplash photos, downloaded rather than hot-linked so the app serves its own
+assets and keeps working if unsplash.com is unreachable. Unsplash License, no
+attribution required, credit appreciated: https://unsplash.com/license
+
+furniture.jpg  images.unsplash.com/photo-1555041469-a586c61ea9bc
+phones.jpg     images.unsplash.com/photo-1511707171634-5f897ff02aa9
+vehicles.jpg   images.unsplash.com/photo-1502877338535-766e1452684a
+tools.jpg      images.unsplash.com/photo-1581244277943-fe4a9c777189
+audio.jpg      images.unsplash.com/photo-1583394838336-acd977736f90
+
+These are category illustrations and nothing else. A listing shows the photo
+its seller posted, or the no-photo state. A stock photo never stands in for
+somebody's actual item.

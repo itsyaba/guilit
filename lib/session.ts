@@ -65,11 +65,48 @@ export async function getSessionUserId(): Promise<string | null> {
   return verifySessionToken(token)
 }
 
+/**
+ * Returns the authenticated user, applying admin auto-promotion.
+ *
+ * Two independent matches promote on first encounter, so no manual SQL is
+ * needed to get the first admin in:
+ *
+ *   ADMIN_TELEGRAM_USERNAME — matched against users.username. This is the one
+ *     that works for a Telegram-only login, because the Login Widget payload
+ *     carries `username` but no phone number, so a user who has only ever
+ *     logged in has phone = NULL.
+ *   ADMIN_PHONE — matched against users.phone, which is written solely by the
+ *     OTP claim in app/api/listings/[id]/claim/verify. Useful once a seller has
+ *     verified a number, and kept so existing deployments behave the same.
+ *
+ * Additional admins are promoted directly in the database.
+ */
 export async function getSessionUser(): Promise<User | null> {
   const userId = await getSessionUserId()
   if (!userId) return null
+
   const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
-  return user ?? null
+  if (!user) return null
+  if (user.isAdmin) return user
+
+  const adminUsername = process.env.ADMIN_TELEGRAM_USERNAME?.trim().replace(/^@/, "")
+  const adminPhone = process.env.ADMIN_PHONE?.trim()
+
+  const matchesUsername =
+    !!adminUsername &&
+    !!user.username &&
+    user.username.toLowerCase() === adminUsername.toLowerCase()
+  const matchesPhone = !!adminPhone && user.phone === adminPhone
+
+  if (matchesUsername || matchesPhone) {
+    await db
+      .update(users)
+      .set({ isAdmin: true, updatedAt: new Date() })
+      .where(eq(users.id, user.id))
+    return { ...user, isAdmin: true }
+  }
+
+  return user
 }
 
 export class UnauthorizedError extends Error {
@@ -79,8 +116,24 @@ export class UnauthorizedError extends Error {
   }
 }
 
+export class ForbiddenError extends Error {
+  constructor(message = "Admin access required") {
+    super(message)
+    this.name = "ForbiddenError"
+  }
+}
+
 export async function requireSessionUser(): Promise<User> {
   const user = await getSessionUser()
   if (!user) throw new UnauthorizedError()
   return user
 }
+
+/** Throws ForbiddenError if user is not authenticated or not an admin. */
+export async function requireAdmin(): Promise<User> {
+  const user = await getSessionUser()
+  if (!user) throw new UnauthorizedError()
+  if (!user.isAdmin) throw new ForbiddenError()
+  return user
+}
+

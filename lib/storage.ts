@@ -61,8 +61,15 @@ function s3(): S3Client {
     `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`
 
   client = new S3Client({
-    region: "auto",
+    // R2 ignores the region and wants the literal "auto". Every other
+    // S3-compatible store signs SigV4 against its real region and rejects
+    // "auto" with SignatureDoesNotMatch — Supabase Storage among them.
+    region: process.env.R2_REGION || "auto",
     endpoint,
+    // Virtual-host addressing would resolve to <bucket>.<endpoint-host>, which
+    // has no TLS certificate on Supabase Storage — the handshake fails before
+    // any request is signed. Path-style is what both it and R2 accept.
+    forcePathStyle: true,
     credentials: {
       accessKeyId: process.env.R2_ACCESS_KEY_ID ?? "",
       secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? "",

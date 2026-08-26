@@ -61,6 +61,13 @@ class Settings(BaseSettings):
         default=None,
         description="Override S3 endpoint URL (defaults to https://<account_id>.r2.cloudflarestorage.com)",
     )
+    R2_REGION: str = Field(
+        default="auto",
+        description=(
+            'SigV4 signing region. R2 wants the literal "auto"; every other '
+            "S3-compatible store needs its real region (e.g. eu-central-1)"
+        ),
+    )
     R2_PUBLIC_URL: Optional[str] = Field(
         default=None,
         description="Public base URL / CDN URL for stored images",

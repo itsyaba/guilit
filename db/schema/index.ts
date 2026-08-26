@@ -22,5 +22,8 @@ export * from "./otp-codes"
 export * from "./rate-limit-hits"
 export * from "./moderation-logs"
 export * from "./removal-requests"
+export * from "./conversations"
+export * from "./messages"
+export * from "./reservations"
 
 

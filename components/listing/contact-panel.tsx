@@ -1,3 +1,4 @@
+import Link from "next/link"
 import {
   IconBrandTelegram,
   IconChevronRight,
@@ -5,8 +6,9 @@ import {
 } from "@tabler/icons-react"
 
 import { ClaimPanel } from "@/components/listing/claim-panel"
-import { MessageSellerStub } from "@/components/listing/message-seller-stub"
+import { MessageSeller } from "@/components/listing/message-seller"
 import { RemoveListingButton } from "@/components/listing/remove-listing-button"
+import type { ListingMessagingContext } from "@/lib/messaging"
 import type { Listing } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
@@ -20,6 +22,12 @@ import { cn } from "@/lib/utils"
  * phone number is on file — it's already public in the post we link to, this
  * just saves a tap.
  *
+ * In-app messaging is the exception, and only where Telegram cannot serve: a
+ * listing posted here has no channel post to open, so the thread is the primary
+ * route. A claimed listing gets it as a second option under Telegram — that
+ * seller is provably reachable where they already are, and a buyer who prefers
+ * to keep the conversation on our side can.
+ *
  * Both buttons are full-width pills with the icon in its own recessed circle.
  * They are the two things this page exists to get tapped, so they are the only
  * controls on it at that weight.
@@ -27,10 +35,13 @@ import { cn } from "@/lib/utils"
 export function ContactPanel({
   listing,
   isLoggedIn = false,
+  messaging,
   className,
 }: {
   listing: Listing
   isLoggedIn?: boolean
+  /** Resolved per viewer — see lib/messaging.getListingMessagingContext. */
+  messaging?: ListingMessagingContext
   className?: string
 }) {
   const source = listing.sources[0]
@@ -63,10 +74,48 @@ export function ContactPanel({
     )
   }
 
+  const canMessage = messaging?.canMessage ?? false
+  const conversationId = messaging?.conversationId ?? null
+
+  /**
+   * A native listing has nothing else. If messaging is unavailable here it is
+   * because the viewer is the seller, and a seller looking at their own post
+   * needs the thread list, not a contact button.
+   */
   if (listing.tier === "native") {
+    if (messaging?.isOwnListing) {
+      return (
+        <div
+          className={cn(
+            "rounded-shell bg-tray p-2 ring-1 ring-hairline",
+            className
+          )}
+        >
+          <div className="rounded-panel bg-card p-5 text-sm leading-relaxed ring-1 ring-hairline">
+            <p className="font-medium text-foreground">This is your listing</p>
+            <p className="mt-2 text-muted-foreground">
+              Buyers who message you appear in{" "}
+              <Link
+                href="/messages"
+                className="text-primary underline decoration-primary/30 underline-offset-4 transition-colors duration-500 ease-fluid hover:decoration-primary"
+              >
+                Messages
+              </Link>
+              .
+            </p>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div className={cn("space-y-3", className)}>
-        <MessageSellerStub />
+        <MessageSeller
+          listingId={listing.id}
+          isLoggedIn={isLoggedIn}
+          conversationId={conversationId}
+          tone="solid"
+        />
       </div>
     )
   }
@@ -109,6 +158,17 @@ export function ContactPanel({
         >
           Call {listing.seller.phoneMasked}
         </ContactAction>
+      ) : null}
+
+      {/* Claimed sellers keep Telegram as the headline route; this is the
+          alternative for a buyer who would rather not hand over a handle. */}
+      {canMessage ? (
+        <MessageSeller
+          listingId={listing.id}
+          isLoggedIn={isLoggedIn}
+          conversationId={conversationId}
+          tone="quiet"
+        />
       ) : null}
 
       {listing.tier === "indexed" ? (

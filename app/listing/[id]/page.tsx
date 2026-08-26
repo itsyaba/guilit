@@ -10,11 +10,19 @@ import { Gallery } from "@/components/listing/gallery"
 import { ListingCard } from "@/components/listing/listing-card"
 import { Price } from "@/components/listing/price"
 import { PriceCheck } from "@/components/listing/price-check"
+import { ReservePanel } from "@/components/listing/reserve-panel"
 import { SafetyNote } from "@/components/listing/safety-note"
 import { SellerBlock } from "@/components/listing/seller-block"
 import { TierTag } from "@/components/listing/tier-tag"
+import {
+  depositForPrice,
+  holdHours,
+  isChapaMockMode,
+} from "@/lib/chapa"
 import { CONDITION_LABELS, formatShortDate } from "@/lib/format"
 import { getListing, getListingIds, getRelatedListings } from "@/lib/listings"
+import { getListingMessagingContext } from "@/lib/messaging"
+import { getActiveReservation } from "@/lib/reservations"
 import { getSessionUser } from "@/lib/session"
 import type { Listing } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -66,17 +74,36 @@ export async function generateMetadata({
  */
 export default async function ListingPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  /** `?hold=paid|failed|unknown` — set by the redirect back from Chapa. */
+  searchParams: Promise<{ hold?: string }>
 }) {
   const { id } = await params
   const listing = await getListing(id)
   if (!listing) notFound()
 
-  const [related, sessionUser] = await Promise.all([
+  const [related, sessionUser, query] = await Promise.all([
     getRelatedListings(listing),
     getSessionUser(),
+    searchParams,
   ])
+
+  /**
+   * Both of these are per-viewer, which is why they are not folded into
+   * `getListing` — that query also feeds the browse grid and is memoised
+   * without a session. See lib/messaging.getListingMessagingContext.
+   */
+  const [messaging, reservation] = await Promise.all([
+    getListingMessagingContext(listing.id, sessionUser?.id ?? null),
+    getActiveReservation(listing.id, sessionUser?.id ?? null),
+  ])
+
+  const holdOutcome =
+    query.hold === "paid" || query.hold === "failed" || query.hold === "unknown"
+      ? query.hold
+      : null
 
   return (
     <article className="mx-auto max-w-[80rem] px-4 pt-5 pb-20 sm:px-6 lg:pt-8 lg:pb-28">
@@ -109,7 +136,28 @@ export default async function ListingPage({
         {/* Everything needed to decide, kept together and kept in view. */}
         <div className="space-y-4 lg:sticky lg:top-24 lg:col-start-2 lg:row-span-2">
           <ListingHeading listing={listing} />
-          <ContactPanel listing={listing} isLoggedIn={sessionUser !== null} />
+          <ContactPanel
+            listing={listing}
+            isLoggedIn={sessionUser !== null}
+            messaging={messaging}
+          />
+          {/* Sits directly under contact: a hold is the strongest thing a buyer
+              can do on this page, and it only makes sense once they have seen
+              the price above it. Renders nothing for an unpriced or scraped
+              listing — see the component. */}
+          {messaging.canMessage || reservation ? (
+            <ReservePanel
+              listingId={listing.id}
+              depositEtb={depositForPrice(listing.priceEtb)}
+              holdHours={holdHours()}
+              isLoggedIn={sessionUser !== null}
+              isOwnListing={messaging.isOwnListing}
+              reservation={reservation}
+              conversationId={messaging.conversationId}
+              testMode={isChapaMockMode()}
+              outcome={holdOutcome}
+            />
+          ) : null}
           <PriceCheck listingId={listing.id} priceEtb={listing.priceEtb} />
           <SellerBlock listing={listing} />
         </div>

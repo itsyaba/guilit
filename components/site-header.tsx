@@ -3,6 +3,7 @@ import Link from "next/link"
 
 import { SessionStatus } from "@/components/auth/session-status"
 import { LanguageToggle } from "@/components/language-toggle"
+import { InboxLink } from "@/components/messages/inbox-link"
 import {
   CategoryRailSlot,
   HeaderFrame,
@@ -56,6 +57,12 @@ export async function SiteHeader() {
           >
             {s.navBrowse}
           </Link>
+
+          {/* Only rendered for a signed-in user, so it is wrapped rather than
+              conditioned here — the header itself does not need to know. */}
+          <Suspense fallback={null}>
+            <InboxLink />
+          </Suspense>
 
           {/* Pills, to match the rest of the chrome: the toggle's own children
               are square-cornered by default and this is the only place the

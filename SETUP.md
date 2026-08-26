@@ -42,7 +42,7 @@ python3 -m venv .venv
 
 cp .env.example .env.local          # then fill in per §3/§4
 docker compose up -d postgres
-npm run db:push                     # drizzle-kit push — creates the 19 tables
+npm run db:push                     # drizzle-kit push — creates the 22 tables
 ```
 
 The Postgres image is `pgvector/pgvector:pg16`. Verify the extensions the
@@ -273,7 +273,64 @@ if you actually want objects in Cloudflare.
 resizes to ~400KB before uploading (`lib/image-resize.ts`); 600KB is headroom
 above that. Max 8 photos per listing (`lib/storage.ts:28`).
 
-### 4.7 Tuning and production
+### 4.7 Chapa — reservation deposits, mock fallback is a first-class path
+
+```bash
+CHAPA_SECRET_KEY=                # blank or "mock" → simulated checkout
+CHAPA_API_BASE_URL=https://api.chapa.co/v1
+CHAPA_WEBHOOK_SECRET=            # from Chapa dashboard → Settings → Webhooks
+CHAPA_TIMEOUT_MS=8000
+RESERVATION_HOLD_HOURS=24
+```
+
+Same convention as `GEMINI_API_KEY`: **the key's value decides the mode.** Blank
+or `mock` and `lib/chapa.ts` never calls Chapa — the checkout URL points back at
+our own `/api/payments/chapa/verify` route and the hold settles as paid. The
+whole reserve flow is therefore demonstrable with no merchant account, on a
+plane, in CI.
+
+A hold can be started from two places, both through
+`lib/reservations.openCheckout`:
+
+| Entry point | Amount | Returns to |
+| --- | --- | --- |
+| `POST /api/listings/[id]/reserve` | The computed deposit | The listing |
+| `POST /api/conversations/[id]/pay` | A figure the seller asked for in the thread, or the computed deposit if none | That thread |
+
+The second is what makes a chat page a place you can transact. A used-goods
+conversation is a negotiation, and the number that matters is the one agreed
+three messages ago, not the one derived from the asking price. The seller posts
+it with `POST /api/conversations/[id]/payment-request`; it lands in the thread as
+a card with a Pay button.
+
+A request's state is **derived, never stored** — a reservation pointing back at
+the message is the only record that money moved. It reads as `paid` once that
+lands, `stale` when a later request replaces it or a hold is already on the item,
+and `open` otherwise. The pay route re-checks this rather than trusting the id
+the browser sent, because a tab left open all afternoon will still show a button
+for a request that has since been superseded.
+
+With a real key (test keys start `CHASECK_TEST-`, live keys `CHASECK-`), a hold
+settles through two independent paths that race and are both idempotent:
+
+| Path | Trigger | Notes |
+| --- | --- | --- |
+| `GET /api/payments/chapa/verify` | Buyer's browser returns from checkout; also Chapa's `callback_url` | Nothing in the query string is trusted — only the reference is taken, and the verdict is fetched from Chapa's API |
+| `POST /api/payments/chapa/webhook` | Chapa server-to-server | HMAC-checked against the **raw** body before parsing. Both `Chapa-Signature` (HMAC of body) and `x-chapa-signature` (HMAC of the secret) are accepted |
+
+**With `CHAPA_WEBHOOK_SECRET` unset the webhook returns 401 for every request.**
+That is deliberate — an unverifiable payment notification is refused rather than
+trusted. Holds still settle on the browser return, so a deployment without it is
+degraded, not broken.
+
+The deposit is 5% of the asking price, floored at 50 ETB and capped at 1,000
+(`depositForPrice` in `lib/chapa.ts`). A flat percentage is wrong at both ends of
+this catalogue: 5% of a 300 ETB kettle is below the card fee, and 5% of a
+900,000 ETB car is more than anyone hands a marketplace to hold a viewing.
+
+---
+
+### 4.8 Tuning and production
 
 ```bash
 PRICE_STATS_TTL_SECONDS=900      # staleness before a read rebuilds the buckets
@@ -301,10 +358,28 @@ the scheduler in `instrumentation.ts`, and an admin can force a rebuild through
 If `make dev` gives you an empty `/browse`, the database has no corpus.
 
 ```bash
-npm run db:push                      # schema → 19 tables
+npm run db:push                      # schema → 22 tables
 npm run ingest:seed                  # channels from fixtures/channels.json
 make seed-corpus COUNT=400           # seed-corpus → extract → dedup-run
+
+# Messaging and reservations need a listing with a *registered seller*.
+# A freshly ingested database is all `indexed` rows — scraped, nobody signed
+# up — so both features correctly render nothing anywhere.
+docker exec -i guilit-postgres psql -U guilit -d guilit < scripts/seed-demo-market.sql
 ```
+
+`seed-demo-market.sql` creates a `demo_seller` and a `demo_buyer`, promotes six
+live listings to `tier = claimed` (exactly what the OTP claim flow does in
+production), and seeds one conversation ending in an **unpaid 2,500 ETB payment
+request** — left open on purpose, because paying it is the one part worth doing
+live on camera. It is idempotent and non-destructive:
+no `listing_sources` are touched, so provenance and the "seen in N channels"
+ledger stay intact, and re-running tops the set back up to six rather than
+promoting six more.
+
+It deliberately does not fabricate `native` listings. Native means "posted on
+Gulit", and the honest way to get one is to post one through `/post` — which is
+a better demo beat than a seeded row.
 
 Then restart the dev server so `instrumentation.ts` rebuilds `price_stats` (or
 wait out `PRICE_STATS_TTL_SECONDS`).
@@ -549,6 +624,50 @@ before the code is burned.
 **Posting.** `/post` → upload photos → autofill returns placeholder fields in
 mock mode (set `GEMINI_API_KEY` to see real vision output) → adjust → submit.
 Max 8 photos, 600KB each after the client-side resize.
+
+**Messaging.** Needs a listing with a registered seller — run
+`scripts/seed-demo-market.sql` (§5) or post one yourself.
+
+1. Open a `claimed` or `native` listing → "Message the seller" → send.
+2. `/messages` lists the thread; the header shows an unread badge.
+3. The thread polls every 6 seconds and pauses while the tab is hidden.
+4. The seller gets a Telegram push **only if they have started your bot** — a
+   bot cannot message a user who has not. A 403 in the logs here is the normal
+   case, not a fault.
+
+Indexed listings have no thread and must not: nobody behind them signed up, and
+contact routes to the original channel post.
+
+**Paying from the chat page.** The seeded thread (§5) already carries an open
+2,500 ETB request, so this needs no setup.
+
+1. As the buyer, open `/messages` → the thread → the request card has a Pay
+   button. In mock mode the checkout settles immediately and returns you **to
+   the thread**, not to the listing.
+2. The card flips to "Paid" and a system message announcing the deposit appears
+   below it.
+3. As the seller, the rail above the messages offers "Request a deposit" — enter
+   any figure up to the asking price and it appears in the thread as a card.
+4. Send a second request and the first goes stale ("Replaced by a later
+   request"). Paying a stale one is refused with 409 even by direct API call.
+5. A buyer cannot post a request (404) and a seller cannot pay one (404).
+
+**Reserving from the listing page.** Works with no Chapa key (§4.7).
+
+1. On the same listing, "Reserve with N ETB" → redirected to the checkout.
+2. In mock mode that is our own verify route, which settles immediately and
+   returns you to the listing with `?hold=paid`.
+3. The listing now shows a hold. A stranger sees only "Reserved" — never the
+   buyer's handle. The seller sees who, and gets "Handed over" / "Cancel".
+4. A system message announcing the deposit appears in the thread.
+5. A second buyer attempting a hold gets 409, enforced by a partial unique
+   index rather than by the route.
+
+Expiry is resolved lazily, on both the listing read and the reserve path — an
+abandoned checkout releases the item after 15 minutes, a paid hold after
+`RESERVATION_HOLD_HOURS`. There is no cron: a background job that must be
+running for the product to be correct is a job that will not be running during
+the demo.
 
 ### 6.7 Snapshot before you demo
 

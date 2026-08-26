@@ -237,6 +237,121 @@ export type FilterOptions = {
   channelCount: number
 }
 
+// --------------------------------------------------------------------------
+// Messaging
+// --------------------------------------------------------------------------
+
+/**
+ * Who wrote a message, from the point of view of whoever is reading it.
+ *
+ * Resolved on the server rather than shipping sender ids to the browser and
+ * comparing there: the thread view is the one place two people's private text
+ * sits in one payload, and the less of the other person's identity crosses the
+ * wire, the less there is to leak.
+ */
+export type MessageAuthor = "me" | "them" | "system"
+
+/** Mirrors db/schema/enums.ts messageKindEnum. */
+export type MessageKind = "text" | "system" | "payment_request"
+
+/**
+ * A seller's request for a specific amount, as the thread renders it.
+ *
+ * Status is derived on read, never stored — see db/schema/messages.ts. A request
+ * is `paid` when a reservation points back at it, `stale` when something has
+ * overtaken it (a newer request, a hold already on the item, a listing pulled),
+ * and `open` only when tapping Pay would actually work.
+ *
+ * `canPay` is not "status === open": the seller looking at their own open
+ * request must see it as pending, not as a button.
+ */
+export type PaymentRequestState = {
+  amountEtb: number
+  status: "open" | "paid" | "stale"
+  canPay: boolean
+  /** One short line saying why it is not payable. Null when it is. */
+  note: string | null
+}
+
+export type ThreadMessage = {
+  id: string
+  body: string
+  author: MessageAuthor
+  kind: MessageKind
+  createdAt: string
+  /** Present only on payment_request rows. */
+  request: PaymentRequestState | null
+}
+
+/** A user is a buyer in some threads and a seller in others. */
+export type ConversationRole = "buyer" | "seller"
+
+export type ConversationSummary = {
+  id: string
+  role: ConversationRole
+  /** The other person, by Telegram handle. Null for an account with no handle. */
+  counterpart: string | null
+  listing: {
+    id: string
+    slug: string
+    title: string
+    priceEtb: number | null
+    imageUrl: string | null
+    status: ListingStatus
+  }
+  lastMessage: string | null
+  lastMessageAt: string
+  unread: number
+}
+
+export type ConversationThread = ConversationSummary & {
+  messages: ThreadMessage[]
+  /**
+   * Everything the in-thread deal rail needs, resolved for this viewer. Carried
+   * on the thread rather than fetched by the rail so that one page render
+   * produces one consistent answer — a rail that queried separately could show
+   * "reserve this" beside a message saying the deposit already cleared.
+   */
+  depositEtb: number | null
+  holdHours: number
+  reservation: ReservationView | null
+}
+
+// --------------------------------------------------------------------------
+// Reservations (Chapa hold)
+// --------------------------------------------------------------------------
+
+/** Mirrors db/schema/enums.ts reservationStatusEnum. */
+export type ReservationStatus =
+  | "pending"
+  | "paid"
+  | "failed"
+  | "expired"
+  | "cancelled"
+  | "completed"
+  | "refunded"
+
+/**
+ * A hold as the listing page renders it.
+ *
+ * `viewer` is what the copy keys off — the same paid hold reads as "you have
+ * this until 4pm tomorrow" to the buyer, "someone has put a deposit down" to
+ * the seller, and "reserved" to everyone else, and deciding that on the server
+ * keeps the buyer's identity out of a stranger's page payload.
+ */
+export type ReservationView = {
+  id: string
+  status: ReservationStatus
+  amountEtb: number
+  expiresAt: string
+  createdAt: string
+  viewer: "buyer" | "seller" | "other"
+  /** The other party's handle — only ever sent to the two participants. */
+  counterpart: string | null
+  /** Present while a hold is still `pending` and the buyer can resume it. */
+  checkoutUrl: string | null
+}
+
 export const SORT_OPTIONS = [
   { value: "newest", label: "Newest first" },
   { value: "price_asc", label: "Price: low to high" },

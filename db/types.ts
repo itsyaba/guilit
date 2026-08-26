@@ -18,6 +18,9 @@ import type {
   rateLimitHits,
   moderationLogs,
   removalRequests,
+  conversations,
+  messages,
+  reservations,
 } from "./schema"
 
 /**
@@ -43,6 +46,9 @@ export type OtpCode = InferSelectModel<typeof otpCodes>
 export type RateLimitHit = InferSelectModel<typeof rateLimitHits>
 export type ModerationLog = InferSelectModel<typeof moderationLogs>
 export type RemovalRequest = InferSelectModel<typeof removalRequests>
+export type DbConversation = InferSelectModel<typeof conversations>
+export type DbMessage = InferSelectModel<typeof messages>
+export type DbReservation = InferSelectModel<typeof reservations>
 
 /**
  * DB insert types — shapes required when writing to the database.
@@ -65,4 +71,7 @@ export type NewOtpCode = InferInsertModel<typeof otpCodes>
 export type NewRateLimitHit = InferInsertModel<typeof rateLimitHits>
 export type NewModerationLog = InferInsertModel<typeof moderationLogs>
 export type NewRemovalRequest = InferInsertModel<typeof removalRequests>
+export type NewConversation = InferInsertModel<typeof conversations>
+export type NewMessage = InferInsertModel<typeof messages>
+export type NewReservation = InferInsertModel<typeof reservations>
 

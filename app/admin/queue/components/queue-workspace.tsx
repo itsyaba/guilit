@@ -506,7 +506,7 @@ function Action({
         tone === "quiet" &&
           "bg-card text-foreground ring-1 ring-hairline hover:shadow-hairline",
         tone === "danger" &&
-          "bg-destructive/10 text-destructive hover:bg-destructive/15"
+          "bg-destructive/10 text-destructive-strong hover:bg-destructive/15"
       )}
     >
       {children}

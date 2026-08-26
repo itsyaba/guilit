@@ -16,7 +16,7 @@ export async function SessionStatus({ className }: { className?: string }) {
         // Sentence case, sans: this sits in the navbar beside "Browse", not in
         // the ledger register the listing data uses.
         className={cn(
-          "text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
+          "text-sm font-medium text-muted-foreground transition-colors duration-500 ease-fluid hover:text-foreground",
           className
         )}
       >

@@ -3,6 +3,7 @@
 import * as React from "react"
 import { IconAlertTriangle } from "@tabler/icons-react"
 
+import { Eyebrow, Shell } from "@/components/kit"
 import { formatAmount } from "@/lib/format"
 import type { PriceContext, PriceContextResponse } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -55,7 +56,8 @@ export function PriceCheck({
 
   if (!context) return null
 
-  const { p25Etb, p75Etb, medianEtb, verdict, sampleSize, bucketLabel } = context
+  const { p25Etb, p75Etb, medianEtb, verdict, sampleSize, bucketLabel } =
+    context
   const price = context.priceEtb
 
   // The track spans a little beyond the typical band so an outlier still lands
@@ -77,64 +79,76 @@ export function PriceCheck({
         : `In line with what ${bucketLabel} sells for in Addis.`
 
   return (
-    <section
-      aria-label="Price check"
-      className={cn(
-        "rounded-lg border p-4",
-        suspicious ? "border-flag/40 bg-flag-surface" : "border-border bg-card"
-      )}
+    <Shell
+      className={suspicious ? "bg-flag-surface" : undefined}
+      coreClassName={cn("p-5", suspicious && "ring-flag/30")}
     >
-      <h2
-        className={cn(
-          "type-ledger flex items-center gap-1.5",
-          suspicious ? "text-flag-foreground" : "text-foreground"
-        )}
-      >
-        {suspicious ? (
-          <IconAlertTriangle aria-hidden="true" className="size-3.5" />
-        ) : null}
-        Price check
-      </h2>
+      <section aria-label="Price check">
+        <h2>
+          <Eyebrow
+            tone="quiet"
+            className={
+              suspicious ? "bg-flag/15 text-flag-foreground" : undefined
+            }
+          >
+            {suspicious ? (
+              <IconAlertTriangle
+                aria-hidden="true"
+                stroke={1.5}
+                className="size-3.5"
+              />
+            ) : null}
+            Price check
+          </Eyebrow>
+        </h2>
 
-      <p
-        className={cn(
-          "type-mixed mt-2 text-sm leading-relaxed",
-          suspicious ? "text-flag-foreground" : "text-muted-foreground"
-        )}
-      >
-        {summary}
-      </p>
-
-      <div className="relative mt-5 mb-2 h-1.5 rounded-full bg-muted">
-        {/* The middle half of the market: where most of these actually sell. */}
-        <div
-          className="absolute inset-y-0 rounded-full bg-primary/25"
-          style={{ left: at(p25Etb), right: `calc(100% - ${at(p75Etb)})` }}
-        />
-        {/* Median. */}
-        <div
-          className="absolute -top-1 h-3.5 w-px bg-muted-foreground"
-          style={{ left: at(medianEtb) }}
-        />
-        {/* This listing. */}
-        <div
+        <p
           className={cn(
-            "absolute -top-[5px] size-4 -translate-x-1/2 rounded-full border-2 border-background",
-            suspicious ? "bg-flag" : "bg-primary"
+            "type-mixed mt-4 text-sm leading-relaxed",
+            suspicious ? "text-flag-foreground" : "text-muted-foreground"
           )}
-          style={{ left: at(price) }}
-        />
-      </div>
+        >
+          {summary}
+        </p>
 
-      <div className="type-ledger flex justify-between text-muted-foreground">
-        <span>{formatAmount(p25Etb)}</span>
-        <span>median {formatAmount(medianEtb)}</span>
-        <span>{formatAmount(p75Etb)}</span>
-      </div>
+        {/*
+         * The market, drawn once: a full-width track, the middle half of it
+         * tinted, a hairline at the median, and this listing as the one filled
+         * dot. Everything is positioned as a percentage of the same scale, so
+         * the dot's distance from the band is the actual distance.
+         */}
+        <div className="relative mt-8 mb-3 h-2 rounded-full bg-tray ring-1 ring-hairline">
+          <div
+            className="absolute inset-y-0 rounded-full bg-primary/25"
+            style={{ left: at(p25Etb), right: `calc(100% - ${at(p75Etb)})` }}
+          />
+          <div
+            aria-hidden="true"
+            className="absolute -top-1.5 h-5 w-px bg-muted-foreground/60"
+            style={{ left: at(medianEtb) }}
+          />
+          <div
+            aria-hidden="true"
+            className={cn(
+              "absolute -top-1.5 size-5 -translate-x-1/2 rounded-full ring-3 ring-card",
+              suspicious ? "bg-flag" : "bg-primary"
+            )}
+            style={{ left: at(price) }}
+          />
+        </div>
 
-      <p className="type-ledger mt-3 text-muted-foreground opacity-70">
-        from {sampleSize} comparable listings
-      </p>
-    </section>
+        <div className="type-ledger flex justify-between text-muted-foreground">
+          <span>{formatAmount(p25Etb)}</span>
+          <span className="text-foreground">
+            median {formatAmount(medianEtb)}
+          </span>
+          <span>{formatAmount(p75Etb)}</span>
+        </div>
+
+        <p className="type-ledger mt-4 border-t border-hairline pt-4 text-muted-foreground">
+          from {sampleSize} comparable listings
+        </p>
+      </section>
+    </Shell>
   )
 }

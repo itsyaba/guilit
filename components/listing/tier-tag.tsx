@@ -6,9 +6,9 @@ import type { ListingTier } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 const TIER_STYLES: Record<ListingTier, string> = {
-  indexed: "border-border/80 bg-background/90 text-muted-foreground",
-  claimed: "border-primary/35 bg-background/90 text-primary",
-  native: "border-transparent bg-primary text-primary-foreground",
+  indexed: "bg-background/90 text-muted-foreground ring-1 ring-hairline",
+  claimed: "bg-background/90 text-primary ring-1 ring-primary/30",
+  native: "bg-primary text-primary-foreground",
 }
 
 /**
@@ -34,13 +34,13 @@ export async function TierTag({
     <span
       title={tierDescription(tier, lang)}
       className={cn(
-        "type-ledger inline-flex h-[1.375rem] items-center gap-1 rounded-md border px-1.5 backdrop-blur-[2px]",
+        "type-ledger inline-flex h-6 items-center gap-1 rounded-full px-2.5 backdrop-blur-[2px]",
         TIER_STYLES[tier],
         className
       )}
     >
       {tier !== "indexed" ? (
-        <IconCircleCheck aria-hidden="true" className="size-3" />
+        <IconCircleCheck aria-hidden="true" stroke={1.5} className="size-3.5" />
       ) : null}
       {tierLabel(tier, lang)}
     </span>

@@ -101,8 +101,8 @@ class Settings(BaseSettings):
         description="Google Gemini API key for batch extraction",
     )
     GEMINI_MODEL: str = Field(
-        default="gemini-2.0-flash-lite",
-        description="Gemini model for extraction (e.g. gemini-2.0-flash-lite or gemini-1.5-flash)",
+        default="gemini-3.5-flash-lite",
+        description="Gemini model for extraction. gemini-2.0-flash-lite was shut down 2026-06-01.",
     )
     GEMINI_API_BASE_URL: str = Field(
         default="https://generativelanguage.googleapis.com/v1beta",

@@ -21,7 +21,7 @@ export function Price({
       <p
         className={cn(
           "flex items-center font-medium text-muted-foreground",
-          detail ? "h-10 text-xl" : "h-7 text-base",
+          detail ? "h-12 text-2xl" : "h-7 text-base",
           className
         )}
       >

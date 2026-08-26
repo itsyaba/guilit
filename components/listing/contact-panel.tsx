@@ -1,6 +1,9 @@
-import { IconBrandTelegram, IconChevronRight, IconPhone } from "@tabler/icons-react"
+import {
+  IconBrandTelegram,
+  IconChevronRight,
+  IconPhone,
+} from "@tabler/icons-react"
 
-import { Button } from "@/components/ui/button"
 import { ClaimPanel } from "@/components/listing/claim-panel"
 import { MessageSellerStub } from "@/components/listing/message-seller-stub"
 import { RemoveListingButton } from "@/components/listing/remove-listing-button"
@@ -16,6 +19,10 @@ import { cn } from "@/lib/utils"
  * see the whole post for themselves. A tel: link sits alongside it once a
  * phone number is on file — it's already public in the post we link to, this
  * just saves a tap.
+ *
+ * Both buttons are full-width pills with the icon in its own recessed circle.
+ * They are the two things this page exists to get tapped, so they are the only
+ * controls on it at that weight.
  */
 export function ContactPanel({
   listing,
@@ -39,15 +46,19 @@ export function ContactPanel({
     return (
       <div
         className={cn(
-          "rounded-lg border border-border bg-muted/50 px-3.5 py-3 text-sm leading-relaxed",
+          "rounded-shell bg-tray p-2 ring-1 ring-hairline",
           className
         )}
       >
-        <p className="font-medium text-foreground">Waiting on a quick review</p>
-        <p className="mt-1 text-muted-foreground">
-          Contact details stay hidden until a moderator clears this listing. New
-          accounts go through this once; it usually takes a few minutes.
-        </p>
+        <div className="rounded-panel bg-card p-5 text-sm leading-relaxed ring-1 ring-hairline">
+          <p className="font-medium text-foreground">
+            Waiting on a quick review
+          </p>
+          <p className="mt-2 text-muted-foreground">
+            Contact details stay hidden until a moderator clears this listing.
+            New accounts go through this once; it usually takes a few minutes.
+          </p>
+        </div>
       </div>
     )
   }
@@ -66,55 +77,68 @@ export function ContactPanel({
       ? `https://t.me/${handle}`
       : null
 
-  const telegramLabel = listing.tier === "claimed" ? "Message on Telegram" : "Open the original post"
+  const telegramLabel =
+    listing.tier === "claimed"
+      ? "Message on Telegram"
+      : "Open the original post"
 
   return (
     <div className={cn("space-y-3", className)}>
-      <Button
-        size="lg"
-        className="h-12 w-full rounded-lg text-base"
-        render={
-          telegramHref ? (
-            <a href={telegramHref} target="_blank" rel="noopener noreferrer nofollow" />
-          ) : (
-            <span />
-          )
+      <ContactAction
+        href={telegramHref}
+        tone="solid"
+        icon={
+          <IconBrandTelegram
+            aria-hidden="true"
+            stroke={1.5}
+            className="size-5"
+          />
         }
-        disabled={!telegramHref}
+        external
       >
-        <IconBrandTelegram aria-hidden="true" className="size-5" />
         {telegramLabel}
-      </Button>
+      </ContactAction>
 
       {listing.seller.phone ? (
-        <Button
-          size="lg"
-          variant="outline"
-          className="h-12 w-full rounded-lg text-base"
-          render={<a href={`tel:${listing.seller.phone}`} />}
+        <ContactAction
+          href={`tel:${listing.seller.phone}`}
+          tone="quiet"
+          icon={
+            <IconPhone aria-hidden="true" stroke={1.5} className="size-5" />
+          }
         >
-          <IconPhone aria-hidden="true" className="size-5" />
           Call {listing.seller.phoneMasked}
-        </Button>
+        </ContactAction>
       ) : null}
 
       {listing.tier === "indexed" ? (
-        <details className="group rounded-lg border border-border bg-card">
-          <summary className="flex cursor-pointer list-none items-center gap-2 px-3.5 py-3 text-sm text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring">
+        /* The claim flow is the page's one piece of small print, so it opens
+           closed: a buyer never needs it, and the one seller who does is
+           looking for exactly this sentence. */
+        <details className="group rounded-shell bg-tray p-2 ring-1 ring-hairline">
+          <summary
+            className={cn(
+              "flex cursor-pointer list-none items-center gap-2 rounded-panel px-3.5 py-3 text-sm text-foreground",
+              "transition-colors duration-500 ease-fluid hover:bg-card/70",
+              "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+            )}
+          >
             <IconChevronRight
               aria-hidden="true"
-              className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90"
+              stroke={1.5}
+              className="size-4 shrink-0 text-muted-foreground transition-transform duration-500 ease-fluid group-open:rotate-90"
             />
             Is this listing yours?
           </summary>
-          <div className="space-y-3 border-t border-border px-3.5 py-3 text-sm leading-relaxed text-muted-foreground">
+
+          <div className="mt-2 space-y-4 rounded-panel bg-card p-5 text-sm leading-relaxed text-muted-foreground ring-1 ring-hairline">
             <p>
               You can take it over by verifying the phone number already in the
               post — no paperwork, one SMS code. Once it is yours you can edit
               the price, mark it sold, or have it removed entirely.
             </p>
             <ClaimPanel listingId={listing.id} isLoggedIn={isLoggedIn} />
-            <div className="space-y-1 border-t border-border pt-3">
+            <div className="space-y-2 border-t border-hairline pt-4">
               <RemoveListingButton listingId={listing.id} />
               {source ? (
                 <p>
@@ -122,7 +146,7 @@ export function ContactPanel({
                     href={source.messageUrl}
                     target="_blank"
                     rel="noopener noreferrer nofollow"
-                    className="text-primary underline underline-offset-4"
+                    className="text-primary underline decoration-primary/30 underline-offset-4 transition-colors duration-500 ease-fluid hover:decoration-primary"
                   >
                     Open the post this came from
                   </a>
@@ -133,5 +157,71 @@ export function ContactPanel({
         </details>
       ) : null}
     </div>
+  )
+}
+
+/**
+ * One contact route. A styled anchor rather than our Button: these are links to
+ * somewhere else — Telegram, the dialler — and the disabled case is a listing
+ * with no reachable source at all, which is a `span` on purpose so nothing
+ * focusable promises a destination it does not have.
+ */
+function ContactAction({
+  href,
+  icon,
+  tone,
+  external = false,
+  children,
+}: {
+  href: string | null
+  icon: React.ReactNode
+  tone: "solid" | "quiet"
+  external?: boolean
+  children: React.ReactNode
+}) {
+  const shell = cn(
+    "group/act flex h-14 w-full items-center gap-3 rounded-full pr-6 pl-2 text-base font-medium",
+    "transition-[transform,box-shadow] duration-500 ease-fluid",
+    "focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-ring",
+    tone === "solid"
+      ? "bg-primary text-primary-foreground shadow-ambient hover:shadow-lift"
+      : "bg-card text-foreground shadow-hairline ring-1 ring-hairline hover:shadow-ambient",
+    href ? "active:scale-[0.99]" : "pointer-events-none opacity-50"
+  )
+
+  const body = (
+    <>
+      <span
+        aria-hidden="true"
+        className={cn(
+          "flex size-10 shrink-0 items-center justify-center rounded-full",
+          "transition-transform duration-500 ease-fluid group-hover/act:scale-105",
+          tone === "solid" ? "bg-primary-foreground/18" : "bg-tray"
+        )}
+      >
+        {icon}
+      </span>
+      <span className="min-w-0 truncate">{children}</span>
+    </>
+  )
+
+  if (!href) {
+    return (
+      <span aria-disabled="true" className={shell}>
+        {body}
+      </span>
+    )
+  }
+
+  return (
+    <a
+      href={href}
+      {...(external
+        ? { target: "_blank", rel: "noopener noreferrer nofollow" }
+        : {})}
+      className={shell}
+    >
+      {body}
+    </a>
   )
 }

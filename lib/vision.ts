@@ -130,12 +130,27 @@ export async function analyzePhotos(
           responseSchema: buildSchema(categorySlugs),
           temperature: 0.1,
           maxOutputTokens: 1024,
+          // Gemini 3 Flash defaults to "high" thinking. Measured on the real
+          // prompt: 502 thought tokens for a 119-token answer, 15.2s — three
+          // times VISION_TIMEOUT_MS, so every call aborted and autofill was
+          // silently dead. "minimal" gives the same fields in 3.7s. This is
+          // extraction from photos, not reasoning; there is nothing to think
+          // about.
+          thinkingConfig: { thinkingLevel: "minimal" },
         },
       }),
       signal: AbortSignal.timeout(VISION_TIMEOUT_MS),
     })
 
-    if (!response.ok) return null
+    if (!response.ok) {
+      // Silent nulls made a retired model id look like "the feature is off" for
+      // months. A failing paid call is always worth a line.
+      console.error(
+        `[vision] ${model} returned ${response.status}`,
+        (await response.text().catch(() => "")).slice(0, 500)
+      )
+      return null
+    }
 
     const body = await response.json()
     const text = body?.candidates?.[0]?.content?.parts?.[0]?.text
@@ -163,8 +178,10 @@ export async function analyzePhotos(
       confidence:
         typeof parsed.confidence === "number" ? parsed.confidence : null,
     }
-  } catch {
-    // Timeout, network failure, malformed JSON — all the same to the caller.
+  } catch (error) {
+    // Timeout, network failure, malformed JSON — all the same to the caller,
+    // but not to whoever is debugging why autofill went quiet.
+    console.error(`[vision] ${model} call failed`, error)
     return null
   }
 }

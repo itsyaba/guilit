@@ -1,11 +1,11 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
+import { IconCheck, IconTrash } from "@tabler/icons-react"
 
+import { CtaLink, Eyebrow, Shell } from "@/components/kit"
 import { ListingForm } from "@/components/post/listing-form"
 import { PhotoStep } from "@/components/post/photo-step"
-import { Button } from "@/components/ui/button"
 import {
   EMPTY_FIELDS,
   clearDraft,
@@ -19,6 +19,7 @@ import type {
   PostFields,
   PriceSuggestion,
 } from "@/lib/types"
+import { cn } from "@/lib/utils"
 
 type Stage = "photos" | "analyzing" | "form" | "done"
 
@@ -30,6 +31,10 @@ type Stage = "photos" | "analyzing" | "form" | "done"
 const AUTOFILL_TIMEOUT_MS = 5500
 
 type Result = { id: string; slug: string; status: string }
+
+/** The rail's three stops. `analyzing` is not one of them -- it is a moment
+ *  inside step one, not a step a seller does anything in. */
+const STEPS = ["Photos", "Details", "Posted"] as const
 
 export function PostFlow({
   categories,
@@ -47,7 +52,9 @@ export function PostFlow({
   const [stage, setStage] = React.useState<Stage>("photos")
   const [imageKeys, setImageKeys] = React.useState<string[]>([])
   const [fields, setFields] = React.useState<PostFields>(EMPTY_FIELDS)
-  const [conditionReasoning, setConditionReasoning] = React.useState<string | null>(null)
+  const [conditionReasoning, setConditionReasoning] = React.useState<
+    string | null
+  >(null)
   const [price, setPrice] = React.useState<PriceSuggestion | null>(null)
   const [pending, setPending] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
@@ -154,76 +161,150 @@ export function PostFlow({
     setStage("done")
   }
 
+  const step = stage === "done" ? 2 : stage === "form" ? 1 : 0
+
   if (stage === "done" && result) {
     const queued = result.status === "queued"
     return (
-      <div className="space-y-4">
-        <h2 className="text-lg font-medium">
-          {queued ? "Sent for review" : "Your listing is live"}
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          {queued
-            ? "New accounts get a quick look from a moderator before going public. It usually takes a few minutes."
-            : "It's on the marketplace now."}
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {!queued ? (
-            <Button render={<Link href={`/listing/${result.id}`} />}>
-              View listing
-            </Button>
-          ) : null}
-          <Button
-            variant="outline"
-            render={<Link href="/browse" />}
+      <div className="space-y-8">
+        <StepRail current={step} />
+
+        <Shell tone="accent" coreClassName="px-6 py-14 text-center sm:px-10">
+          <span
+            aria-hidden="true"
+            className="mx-auto flex size-14 items-center justify-center rounded-full bg-primary/10 ring-1 ring-hairline"
           >
-            Back to browse
-          </Button>
-        </div>
+            <IconCheck stroke={1.5} className="size-6 text-primary" />
+          </span>
+
+          <h2 className="type-display mx-auto mt-6 max-w-[24ch] text-2xl font-semibold text-foreground">
+            {queued ? "Sent for review" : "Your listing is live"}
+          </h2>
+
+          <p className="mx-auto mt-3 max-w-md text-base leading-relaxed text-muted-foreground">
+            {queued
+              ? "New accounts get a quick look from a moderator before going public. It usually takes a few minutes, and you don't have to stay on this page."
+              : "It's on the marketplace now, alongside everything we index from Telegram."}
+          </p>
+
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            {!queued ? (
+              <CtaLink href={`/listing/${result.id}`}>View listing</CtaLink>
+            ) : null}
+            <CtaLink href="/browse" tone={queued ? "solid" : "quiet"}>
+              Back to browse
+            </CtaLink>
+          </div>
+        </Shell>
       </div>
     )
   }
 
   if (stage === "photos") {
     return (
-      <PhotoStep onDone={handlePhotosDone} onSkip={() => setStage("form")} />
+      <div className="space-y-8">
+        <StepRail current={step} />
+        <PhotoStep onDone={handlePhotosDone} onSkip={() => setStage("form")} />
+      </div>
     )
   }
 
   if (stage === "analyzing") {
     return (
-      <div className="space-y-3 py-12 text-center">
-        <p className="text-sm text-foreground">Reading your photos…</p>
-        <p className="text-sm text-muted-foreground">
-          You&rsquo;ll be able to change anything we fill in.
-        </p>
+      <div className="space-y-8">
+        <StepRail current={step} />
+
+        <Shell coreClassName="flex flex-col items-center px-6 py-16 text-center">
+          <Eyebrow tone="quiet" dot>
+            Reading your photos
+          </Eyebrow>
+          <p className="mt-6 max-w-sm text-base leading-relaxed text-muted-foreground">
+            We&rsquo;re filling in the title, category and condition.
+            You&rsquo;ll be able to change all of it.
+          </p>
+
+          {/* Three settling bars rather than a spinner: it says roughly how much
+              is being written, and it is the same rise the rest of the product
+              animates with. */}
+          <div aria-hidden="true" className="mt-8 w-full max-w-xs space-y-2.5">
+            {["w-full", "w-4/5", "w-2/3"].map((width, index) => (
+              <div
+                key={width}
+                className={cn("anim-breathe h-2.5 rounded-full bg-tray", width)}
+                style={{ animationDelay: `${index * 180}ms` }}
+              />
+            ))}
+          </div>
+        </Shell>
       </div>
     )
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-8">
+      <StepRail current={step} />
+
       {restored ? (
-        <p className="rounded-xl bg-muted/60 px-3 py-2 text-sm text-muted-foreground">
+        <p className="type-ledger type-mixed rounded-full bg-primary/8 px-4 py-2.5 text-muted-foreground ring-1 ring-hairline">
           Picked up where you left off.
         </p>
       ) : null}
 
       {imageKeys.length ? (
-        <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-          {imageKeys.map((key) => (
-            <li
-              key={key}
-              className="aspect-4/3 overflow-hidden rounded-lg border border-border bg-muted"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`${mediaBaseUrl}${key}`}
-                alt=""
-                className="size-full object-cover"
-              />
-            </li>
-          ))}
-        </ul>
+        <Shell coreClassName="p-4">
+          <div className="mb-3 flex items-center justify-between gap-3 px-1">
+            <Eyebrow tone="quiet">
+              {imageKeys.length} photo{imageKeys.length === 1 ? "" : "s"}
+            </Eyebrow>
+            <span className="type-ledger text-muted-foreground">
+              First one is the cover
+            </span>
+          </div>
+
+          <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+            {imageKeys.map((key) => (
+              <li
+                key={key}
+                className="group/photo relative aspect-4/3 overflow-hidden rounded-tile bg-tray ring-1 ring-hairline"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`${mediaBaseUrl}${key}`}
+                  alt=""
+                  className="size-full object-cover"
+                />
+                {/*
+                 * Removal is here as well as in step one, because the only way
+                 * back to step one is a reload -- and a reload restores the
+                 * draft, which restores the photo. Dropping the key is the one
+                 * move that actually undoes an upload from this side.
+                 */}
+                <button
+                  type="button"
+                  aria-label="Remove photo"
+                  onClick={() =>
+                    setImageKeys((current) =>
+                      current.filter((item) => item !== key)
+                    )
+                  }
+                  className={cn(
+                    "absolute top-1.5 right-1.5 flex size-7 items-center justify-center rounded-full",
+                    "bg-background/85 text-foreground backdrop-blur",
+                    "opacity-0 transition-[opacity,transform] duration-500 ease-fluid",
+                    "group-hover/photo:opacity-100 focus-visible:opacity-100",
+                    "hover:scale-105 active:scale-95"
+                  )}
+                >
+                  <IconTrash
+                    aria-hidden="true"
+                    stroke={1.5}
+                    className="size-3.5"
+                  />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </Shell>
       ) : null}
 
       <ListingForm
@@ -239,5 +320,63 @@ export function PostFlow({
         error={error}
       />
     </div>
+  )
+}
+
+/**
+ * Where you are in three stops.
+ *
+ * Not a progress bar: a bar implies a percentage, and two of these three steps
+ * are one screen each. Done steps keep their number as a tick so the rail reads
+ * as a record of what happened rather than as decoration.
+ */
+function StepRail({ current }: { current: number }) {
+  return (
+    <ol className="flex flex-wrap items-center gap-x-2 gap-y-3">
+      {STEPS.map((label, index) => {
+        const done = index < current
+        const active = index === current
+
+        return (
+          <li key={label} className="flex items-center gap-2">
+            <span
+              className={cn(
+                "type-ledger type-mixed flex items-center gap-2 rounded-full py-1.5 pr-4 pl-2",
+                "transition-colors duration-500 ease-fluid",
+                active
+                  ? "bg-card text-foreground shadow-hairline ring-1 ring-hairline"
+                  : "text-muted-foreground"
+              )}
+            >
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "flex size-6 shrink-0 items-center justify-center rounded-full text-[0.6875rem]",
+                  done
+                    ? "bg-primary text-primary-foreground"
+                    : active
+                      ? "bg-primary/12 text-primary"
+                      : "bg-tray text-muted-foreground"
+                )}
+              >
+                {done ? (
+                  <IconCheck stroke={1.5} className="size-3.5" />
+                ) : (
+                  index + 1
+                )}
+              </span>
+              {label}
+            </span>
+
+            {index < STEPS.length - 1 ? (
+              <span
+                aria-hidden="true"
+                className="hidden h-px w-6 bg-hairline sm:block"
+              />
+            ) : null}
+          </li>
+        )
+      })}
+    </ol>
   )
 }

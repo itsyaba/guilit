@@ -1,6 +1,6 @@
-import Link from "next/link"
+import { IconSearchOff } from "@tabler/icons-react"
 
-import { Button } from "@/components/ui/button"
+import { CtaLink, Shell } from "@/components/kit"
 
 /**
  * Listings disappear for good reasons: sold, withdrawn, or removed by a seller
@@ -8,18 +8,31 @@ import { Button } from "@/components/ui/button"
  */
 export default function ListingNotFound() {
   return (
-    <div className="mx-auto flex max-w-lg flex-col items-center px-6 py-24 text-center">
-      <p className="type-ledger text-muted-foreground">404</p>
-      <h1 className="mt-3 text-lg font-semibold text-foreground">
-        This listing is gone
-      </h1>
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-        It was sold, withdrawn, or removed at the seller&rsquo;s request. Similar
-        items usually turn up again within a few days.
-      </p>
-      <Button render={<Link href="/browse" />} className="mt-6 rounded-lg">
-        Browse everything
-      </Button>
+    <div className="mx-auto max-w-lg px-4 py-24 sm:px-6">
+      <Shell coreClassName="flex flex-col items-center px-6 py-16 text-center">
+        <span
+          aria-hidden="true"
+          className="flex size-14 items-center justify-center rounded-full bg-tray ring-1 ring-hairline"
+        >
+          <IconSearchOff
+            stroke={1.5}
+            className="size-6 text-muted-foreground"
+          />
+        </span>
+
+        <p className="type-ledger mt-6 text-muted-foreground">404</p>
+        <h1 className="type-display mt-3 text-xl font-semibold text-foreground">
+          This listing is gone
+        </h1>
+        <p className="mt-3 text-base leading-relaxed text-muted-foreground">
+          It was sold, withdrawn, or removed at the seller&rsquo;s request.
+          Similar items usually turn up again within a few days.
+        </p>
+
+        <div className="mt-8">
+          <CtaLink href="/browse">Browse everything</CtaLink>
+        </div>
+      </Shell>
     </div>
   )
 }

@@ -224,8 +224,8 @@ a demo comfortably.
 ```bash
 GEMINI_API_KEY=                                  # blank = mock mode
 GEMINI_VISION_MODEL=gemini-3.6-flash
-GEMINI_PARSE_MODEL=gemini-2.0-flash-lite
-GEMINI_MODEL=gemini-2.0-flash-lite               # ingest extraction
+GEMINI_PARSE_MODEL=gemini-3.5-flash-lite
+GEMINI_MODEL=gemini-3.5-flash-lite               # ingest extraction
 GEMINI_API_BASE_URL=https://generativelanguage.googleapis.com/v1beta
 VISION_TIMEOUT_MS=5000
 SEARCH_PARSE_TIMEOUT_MS=900

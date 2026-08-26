@@ -1,5 +1,6 @@
-import { IconExternalLink } from "@tabler/icons-react"
+import { IconArrowUpRight } from "@tabler/icons-react"
 
+import { Eyebrow, Shell } from "@/components/kit"
 import { formatAmount, formatShortDate } from "@/lib/format"
 import type { Listing } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -12,6 +13,10 @@ import { cn } from "@/lib/utils"
  * straight back to the original message. It is the product's headline feature
  * and its legal posture in one table -- we index and attribute, we do not
  * republish, and the reader can always go and check.
+ *
+ * Rows are hairline-separated inside one core rather than being cards in a
+ * list: they are readings of the same measurement, and a stack of boxes would
+ * say they are unrelated items.
  */
 export function ChannelLedger({ listing }: { listing: Listing }) {
   if (listing.sources.length === 0) return null
@@ -25,82 +30,99 @@ export function ChannelLedger({ listing }: { listing: Listing }) {
 
   return (
     <section aria-labelledby="sources-heading">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 id="sources-heading" className="type-ledger text-foreground">
-          Seen in {listing.seenInChannels}{" "}
-          {listing.seenInChannels === 1 ? "channel" : "channels"}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <h2 id="sources-heading">
+          <Eyebrow>
+            Seen in {listing.seenInChannels}{" "}
+            {listing.seenInChannels === 1 ? "channel" : "channels"}
+          </Eyebrow>
         </h2>
         {saving > 0 ? (
           <p className="type-ledger text-muted-foreground">
-            {formatAmount(saving)} ETB between the cheapest and dearest
+            {formatAmount(saving)} ETB between cheapest and dearest
           </p>
         ) : null}
       </div>
 
-      <ul className="mt-3 divide-y divide-border overflow-hidden rounded-lg border border-border">
-        {listing.sources.map((source, index) => {
-          const isLowest = source.priceEtb !== null && source.priceEtb === low
+      <Shell className="mt-4" coreClassName="overflow-hidden">
+        <ul>
+          {listing.sources.map((source, index) => {
+            const isLowest = source.priceEtb !== null && source.priceEtb === low
 
-          return (
-            <li key={`${source.channelHandle}-${index}`}>
-              <a
-                href={source.messageUrl}
-                target="_blank"
-                rel="noopener noreferrer nofollow"
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-muted/60",
-                  "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
-                )}
+            return (
+              <li
+                key={`${source.channelHandle}-${index}`}
+                className="border-b border-hairline last:border-b-0"
               >
-                <span
-                  aria-hidden="true"
+                <a
+                  href={source.messageUrl}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
                   className={cn(
-                    "h-6 w-[3px] shrink-0 rounded-[1px]",
-                    isLowest ? "bg-primary" : "bg-border"
+                    "group/row flex items-center gap-4 px-5 py-4",
+                    "transition-colors duration-500 ease-fluid hover:bg-tray/60",
+                    "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
                   )}
-                />
-
-                <span className="min-w-0 flex-1">
-                  <span className="type-mixed block truncate text-sm text-foreground">
-                    {source.channelTitle}
-                  </span>
-                  <span className="type-ledger block truncate normal-case text-muted-foreground">
-                    @{source.channelHandle} · {formatShortDate(source.postedAt)}
-                  </span>
-                </span>
-
-                <span className="shrink-0 text-right">
+                >
+                  {/* The cheapest sighting is the only accented thing in the
+                      table -- the eye lands on the price worth paying. */}
                   <span
+                    aria-hidden="true"
                     className={cn(
-                      "block text-sm font-semibold tabular-nums",
-                      isLowest ? "text-primary" : "text-foreground"
+                      "h-8 w-[3px] shrink-0 rounded-full",
+                      isLowest ? "bg-primary" : "bg-border"
+                    )}
+                  />
+
+                  <span className="min-w-0 flex-1">
+                    <span className="type-mixed block truncate text-sm font-medium text-foreground">
+                      {source.channelTitle}
+                    </span>
+                    <span className="type-ledger mt-1 block truncate text-muted-foreground normal-case">
+                      @{source.channelHandle} ·{" "}
+                      {formatShortDate(source.postedAt)}
+                    </span>
+                  </span>
+
+                  <span className="shrink-0 text-right">
+                    <span
+                      className={cn(
+                        "block text-sm font-semibold tabular-nums",
+                        isLowest ? "text-primary" : "text-foreground"
+                      )}
+                    >
+                      {source.priceEtb === null
+                        ? "—"
+                        : `${formatAmount(source.priceEtb)} ETB`}
+                    </span>
+                    {isLowest && saving > 0 ? (
+                      <span className="type-ledger mt-0.5 block text-primary">
+                        cheapest
+                      </span>
+                    ) : null}
+                  </span>
+
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "flex size-9 shrink-0 items-center justify-center rounded-full bg-tray text-muted-foreground",
+                      "transition-transform duration-500 ease-fluid",
+                      "group-hover/row:translate-x-0.5 group-hover/row:-translate-y-px group-hover/row:scale-105"
                     )}
                   >
-                    {source.priceEtb === null
-                      ? "—"
-                      : `${formatAmount(source.priceEtb)} ETB`}
+                    <IconArrowUpRight stroke={1.5} className="size-4" />
                   </span>
-                  {isLowest && saving > 0 ? (
-                    <span className="type-ledger block text-primary">
-                      cheapest
-                    </span>
-                  ) : null}
-                </span>
+                  <span className="sr-only">
+                    Open the original post on Telegram
+                  </span>
+                </a>
+              </li>
+            )
+          })}
+        </ul>
+      </Shell>
 
-                <IconExternalLink
-                  aria-hidden="true"
-                  className="size-4 shrink-0 text-muted-foreground"
-                />
-                <span className="sr-only">
-                  Open the original post on Telegram
-                </span>
-              </a>
-            </li>
-          )
-        })}
-      </ul>
-
-      <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+      <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
         Gulit did not write these posts. Each row links to the message it came
         from, and contact goes to whoever posted it.
       </p>

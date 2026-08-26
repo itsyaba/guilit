@@ -17,11 +17,12 @@ import type { ListingCondition } from "@/lib/types"
  * Never called in mock mode, and never called when the rules left no residue.
  */
 
-/** The exact model id already proven in ingest/config.py. Do not guess a name
- *  here: a 404 returns null like any other failure, so a typo would ship a
- *  parser that looks like it works — the rules still fire — while this layer
- *  silently never runs. */
-const DEFAULT_MODEL = "gemini-2.0-flash-lite"
+/** Do not guess a name here: a 404 returns null like any other failure, so a
+ *  typo would ship a parser that looks like it works — the rules still fire —
+ *  while this layer silently never runs. That is exactly what happened with the
+ *  previous default, gemini-2.0-flash-lite, which Google shut down on
+ *  2026-06-01; check the deprecation table before changing this. */
+const DEFAULT_MODEL = "gemini-3.5-flash-lite"
 const DEFAULT_BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
 
 /**
@@ -136,12 +137,22 @@ export async function parseWithModel(
           // entry meaningful rather than a snapshot of one sampling.
           temperature: 0,
           maxOutputTokens: 256,
+          // Flash-Lite already defaults to minimal thinking, but this budget is
+          // 900ms — pinning it means a future default change cannot quietly
+          // push every call past the ceiling the way it did in lib/vision.ts.
+          thinkingConfig: { thinkingLevel: "minimal" },
         },
       }),
       signal: AbortSignal.timeout(SEARCH_PARSE_TIMEOUT_MS),
     })
 
-    if (!response.ok) return null
+    if (!response.ok) {
+      console.error(
+        `[search-parse] ${model} returned ${response.status}`,
+        (await response.text().catch(() => "")).slice(0, 500)
+      )
+      return null
+    }
 
     const body = await response.json()
     const text = body?.candidates?.[0]?.content?.parts?.[0]?.text
@@ -193,8 +204,11 @@ export async function parseWithModel(
     if (keywords) out.q = keywords
 
     return out
-  } catch {
+  } catch (error) {
     // Timeout, network failure, malformed JSON — all the same to the caller.
+    // Logged anyway: this layer is invisible by design, so a permanently broken
+    // one leaves no other trace.
+    console.error(`[search-parse] ${model} call failed`, error)
     return null
   }
 }

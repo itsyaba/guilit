@@ -31,7 +31,9 @@ export function ClaimPanel({
   async function sendCode() {
     setPending(true)
     setError(null)
-    const res = await fetch(`/api/listings/${listingId}/claim`, { method: "POST" })
+    const res = await fetch(`/api/listings/${listingId}/claim`, {
+      method: "POST",
+    })
     setPending(false)
     if (res.ok) {
       setStage("sent")
@@ -62,7 +64,10 @@ export function ClaimPanel({
   if (!isLoggedIn) {
     return (
       <p className="text-sm text-muted-foreground">
-        <a href="/login" className="text-primary underline underline-offset-4">
+        <a
+          href="/login"
+          className="text-primary underline decoration-primary/30 underline-offset-4 transition-colors duration-500 ease-fluid hover:decoration-primary"
+        >
           Log in with Telegram
         </a>{" "}
         to claim this listing.
@@ -81,7 +86,13 @@ export function ClaimPanel({
   return (
     <div className="space-y-2">
       {stage === "idle" ? (
-        <Button type="button" size="sm" variant="outline" onClick={sendCode} disabled={pending}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={sendCode}
+          disabled={pending}
+          className="h-10 rounded-full border-0 bg-card px-4 ring-1 ring-hairline"
+        >
           {pending ? "Sending…" : "Send verification code"}
         </Button>
       ) : (
@@ -92,9 +103,14 @@ export function ClaimPanel({
             placeholder="6-digit code"
             inputMode="numeric"
             maxLength={6}
-            className="h-9 w-28"
+            className="h-10 w-32 rounded-full border-0 bg-tray px-4 tabular-nums ring-1 ring-hairline"
           />
-          <Button type="button" size="sm" onClick={verify} disabled={pending || !code}>
+          <Button
+            type="button"
+            onClick={verify}
+            disabled={pending || !code}
+            className="h-10 rounded-full px-5"
+          >
             {pending ? "Verifying…" : "Verify"}
           </Button>
         </div>

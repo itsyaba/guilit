@@ -50,9 +50,15 @@ export async function ListingCard({
   return (
     <article
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card",
-        "transition-colors hover:border-foreground/25",
-        "focus-within:border-foreground/25 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring"
+        // The tile is the third step of the enclosure scale: a `rounded-shell`
+        // tray holds a `rounded-panel` core holds these. Hover lifts the card
+        // off the page instead of darkening its edge -- a border that changes
+        // colour is the one hover state that reads as a link on a page of
+        // links, and there are twenty-four of them here.
+        "group relative flex flex-col overflow-hidden rounded-tile bg-card ring-1 ring-hairline",
+        "transition-[transform,box-shadow] duration-500 ease-fluid",
+        "hover:-translate-y-0.5 hover:shadow-ambient",
+        "focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring"
       )}
     >
       <div className="relative aspect-4/3 overflow-hidden bg-muted">
@@ -97,7 +103,7 @@ export async function ListingCard({
 
         <ProvenanceStrip
           listing={listing}
-          className="mt-auto border-t border-border pt-2.5"
+          className="mt-auto border-t border-hairline pt-2.5"
         />
       </div>
     </article>

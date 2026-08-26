@@ -37,16 +37,24 @@ export function FilterBar({
 
   return (
     <>
-      <header className="mb-5 flex flex-wrap items-center gap-3">
-        <div className="mr-auto">{heading}</div>
-        <FilterSheet
-          options={options}
-          query={query}
-          activeCount={activeCount}
-          open={open}
-          onOpenChange={setOpen}
-        />
-        {sort}
+      {/*
+       * The controls sit level with the bottom of the heading block rather than
+       * with its top: the eyebrow, the h1 and the meta line are one object, and
+       * a sort pill floating beside the eyebrow reads as part of the label
+       * instead of as part of the grid below.
+       */}
+      <header className="anim-rise mb-8 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+        <div className="min-w-0">{heading}</div>
+        <div className="flex shrink-0 items-center gap-2">
+          <FilterSheet
+            options={options}
+            query={query}
+            activeCount={activeCount}
+            open={open}
+            onOpenChange={setOpen}
+          />
+          {sort}
+        </div>
       </header>
 
       <ActiveFilters

@@ -6,7 +6,6 @@ import "./globals.css"
 
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
-import { ThemeProvider } from "@/components/theme-provider"
 import { getLang, strings } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 
@@ -74,11 +73,14 @@ export const metadata: Metadata = {
     "Gulit indexes second-hand listings from Telegram channels across Addis Ababa into one searchable marketplace, with duplicates collapsed and every listing linked back to where it was posted.",
 }
 
+/**
+ * One theme, so one colour. The site is light-only -- there is no `.dark` token
+ * block and nothing puts the class on <html> -- and handing Android a dark
+ * theme-colour for a page that is never dark just mismatches the browser chrome
+ * against the page under it.
+ */
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fbfbfc" },
-    { media: "(prefers-color-scheme: dark)", color: "#1c1e24" },
-  ],
+  themeColor: "#fbfbfc",
 }
 
 export default async function RootLayout({
@@ -96,7 +98,6 @@ export default async function RootLayout({
   return (
     <html
       lang={lang}
-      suppressHydrationWarning
       className={cn(
         "antialiased",
         archivo.variable,
@@ -105,21 +106,19 @@ export default async function RootLayout({
       )}
     >
       <body className="min-h-svh font-sans">
-        <ThemeProvider>
-          <a
-            href="#main"
-            className="sr-only rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50"
-          >
-            {s.skipToResults}
-          </a>
-          <div className="flex min-h-svh flex-col">
-            <SiteHeader />
-            <main id="main" className="flex-1">
-              {children}
-            </main>
-            <SiteFooter />
-          </div>
-        </ThemeProvider>
+        <a
+          href="#main"
+          className="sr-only rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50"
+        >
+          {s.skipToResults}
+        </a>
+        <div className="flex min-h-svh flex-col">
+          <SiteHeader />
+          <main id="main" className="flex-1">
+            {children}
+          </main>
+          <SiteFooter />
+        </div>
       </body>
     </html>
   )

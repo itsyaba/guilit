@@ -1,3 +1,4 @@
+import { cache } from "react"
 import { and, asc, desc, eq, gte, inArray, isNotNull, lte, sql } from "drizzle-orm"
 
 import { db } from "@/db/client"
@@ -63,7 +64,12 @@ const TIER_VALUES: ListingTier[] = TIER_OPTIONS.map((t) => t.value)
 // Filter options
 // --------------------------------------------------------------------------
 
-export async function getFilterOptions(): Promise<FilterOptions> {
+/**
+ * Behind `cache()`: the header and the footer both want the category list, on
+ * every route, and without this each render paid for the same three queries
+ * twice. Memoised per request, so the second caller is free.
+ */
+export const getFilterOptions = cache(async function getFilterOptions(): Promise<FilterOptions> {
   const [categoryRows, areaRows, channelRow] = await Promise.all([
     db
       .select({ slug: categories.slug, nameEn: categories.nameEn, nameAm: categories.nameAm })
@@ -93,7 +99,7 @@ export async function getFilterOptions(): Promise<FilterOptions> {
     priceBoundsEtb: { min: 0, max: PRICE_BOUNDS_MAX },
     channelCount: Number(channelRow[0]?.count ?? 0),
   }
-}
+})
 
 // --------------------------------------------------------------------------
 // Cursor pagination

@@ -1,6 +1,4 @@
-import Link from "next/link"
-
-import { buttonVariants } from "@/components/ui/button"
+import { Band, CtaLink, Eyebrow, Shell } from "@/components/kit"
 import { conditionLabel } from "@/lib/format"
 import { strings, type Lang } from "@/lib/i18n"
 import type { ListingCondition } from "@/lib/types"
@@ -22,19 +20,26 @@ export function SellBand({ lang }: { lang: Lang }) {
   const s = strings(lang)
 
   return (
-    <section
-      aria-labelledby="sell-heading"
-      className="bg-muted/40"
-    >
-      <div className="mx-auto max-w-3xl px-4 py-14 text-center sm:px-6 lg:py-20">
+    <Band labelledBy="sell-heading" className="pt-4 pb-16 sm:pt-6 lg:pb-28">
+      <Shell
+        tone="accent"
+        coreClassName="relative isolate overflow-hidden px-5 py-14 text-center sm:px-10 lg:py-20"
+      >
+        <div
+          aria-hidden="true"
+          className="bg-wash pointer-events-none absolute inset-0 -z-10"
+        />
+
+        <Eyebrow>{s.eyebrowSell}</Eyebrow>
+
         <h2
           id="sell-heading"
-          className="type-display mx-auto max-w-[20ch] text-2xl font-semibold text-balance text-foreground sm:text-3xl"
+          className="type-section type-display mx-auto mt-5 max-w-[20ch] font-semibold text-balance text-foreground"
         >
           {s.sellTitle}
         </h2>
 
-        <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
+        <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-[1.0625rem]">
           {s.sellLede}
         </p>
 
@@ -45,25 +50,19 @@ export function SellBand({ lang }: { lang: Lang }) {
           {CONDITIONS.map((condition) => (
             <li
               key={condition}
-              className="rounded-4xl border border-border bg-card px-3.5 py-2 text-sm text-foreground"
+              className="rounded-full bg-card px-3.5 py-2 text-sm text-foreground shadow-hairline ring-1 ring-hairline"
             >
               {conditionLabel(condition, lang)}
             </li>
           ))}
         </ul>
 
-        <div className="mt-8">
-          {/* A styled link, not a Button. base-ui's Button is a client
-              component, and pulling it in to render an anchor shipped the
-              library to a page whose only real buttons live inside two islands
-              that already have their own. */}
-          <Link href="/post" className={buttonVariants({ size: "lg" })}>
-            {s.sellAction}
-          </Link>
+        <div className="mt-9 flex justify-center">
+          <CtaLink href="/post">{s.sellAction}</CtaLink>
         </div>
 
-        <p className="mt-4 text-sm text-muted-foreground">{s.sellNote}</p>
-      </div>
-    </section>
+        <p className="mt-5 text-sm text-muted-foreground">{s.sellNote}</p>
+      </Shell>
+    </Band>
   )
 }

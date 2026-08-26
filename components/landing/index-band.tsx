@@ -1,3 +1,4 @@
+import { Band, Eyebrow, Shell } from "@/components/kit"
 import { formatAmount } from "@/lib/format"
 import {
   STALE_AFTER_HOURS,
@@ -7,13 +8,20 @@ import {
   type Lang,
 } from "@/lib/i18n"
 import type { LandingStats } from "@/lib/landing"
+import { cn } from "@/lib/utils"
 
 /**
  * What the index actually holds.
  *
  * These are the numbers a visiting engineer checks first, so they are read live
- * out of Postgres and stated without decoration. Figures on one hairline, no
- * cards: a box around a number adds nothing to the number.
+ * out of Postgres and stated without decoration -- the figure is the message and
+ * the label is the footnote, which is why the label sits underneath.
+ *
+ * The row of five bare figures became a bento: one large enclosure for the
+ * count everything else qualifies, and tiles for the rest. The asymmetry is
+ * doing work rather than being a style -- five equal-weight numbers side by side
+ * gave "posts awaiting dedup" the same visual claim as "listings live", and they
+ * are not the same claim.
  *
  * When capture has stalled the band grows rather than hides. A front page that
  * quietly keeps showing "489 listings" while the listener has been dead for two
@@ -34,8 +42,7 @@ export function IndexBand({
     stats.lastCapturedAt !== null &&
     hoursSince(stats.lastCapturedAt) > STALE_AFTER_HOURS
 
-  const entries = [
-    { label: s.statListings, value: formatAmount(stats.liveListings) },
+  const tiles = [
     { label: s.statChannels, value: formatAmount(stats.channelCount) },
     stats.collapsed > 0
       ? { label: s.statMerged, value: formatAmount(stats.collapsed) }
@@ -50,38 +57,71 @@ export function IndexBand({
     stale && stats.pendingDedup > 0
       ? { label: s.statPending, value: formatAmount(stats.pendingDedup) }
       : null,
-  ].filter((entry): entry is { label: string; value: string } => entry !== null)
+  ].filter((tile): tile is { label: string; value: string } => tile !== null)
+
+  // Three tiles in a two-column grid leaves a hole; the odd one out takes the
+  // full width instead of sitting beside empty space.
+  const odd = tiles.length % 2 === 1
 
   return (
-    <section aria-label={s.indexHeading} className="border-b border-border">
-      <div className="mx-auto max-w-[90rem] px-4 py-10 sm:px-6 lg:py-12">
-        <dl className="grid grid-cols-2 gap-x-6 gap-y-7 md:grid-cols-4 lg:grid-cols-5">
-          {entries.map((entry) => (
-            <div key={entry.label} className="min-w-0">
-              <dd className="type-display text-2xl font-semibold text-foreground tabular-nums sm:text-3xl">
-                {entry.value}
+    <Band label={s.indexHeading}>
+      <Eyebrow dot>{s.indexHeading}</Eyebrow>
+
+      <dl className="mt-6 grid gap-4 lg:grid-cols-3">
+        {/* The count everything else on the page qualifies. */}
+        <Shell coreClassName="flex h-full flex-col justify-between gap-8 p-6 sm:p-8">
+          <div>
+            <dd className="type-figure type-display text-[clamp(2.75rem,7vw,4rem)] leading-none text-foreground">
+              {formatAmount(stats.liveListings)}
+            </dd>
+            <dt className="type-ledger type-mixed mt-3 text-muted-foreground">
+              {s.statListings}
+            </dt>
+          </div>
+
+          {/* The figure that makes the headline count mean something: this
+              many Telegram posts stand behind those listings. */}
+          <div className="border-t border-hairline pt-4">
+            <dd className="type-figure text-lg text-foreground">
+              {formatAmount(stats.sightings)}
+            </dd>
+            <dt className="type-ledger type-mixed mt-1 text-muted-foreground">
+              {s.statSightings}
+            </dt>
+          </div>
+        </Shell>
+
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:col-span-2">
+          {tiles.map((tile, index) => (
+            <Shell
+              key={tile.label}
+              coreClassName="flex h-full flex-col justify-end gap-3 p-5 sm:p-6"
+              className={cn(odd && index === tiles.length - 1 && "col-span-2")}
+            >
+              <dd className="type-figure type-display text-3xl text-foreground sm:text-[2.125rem]">
+                {tile.value}
               </dd>
               {/* Label under the number: the figure is the message, the label
                   is the footnote. */}
-              <dt className="type-ledger mt-1.5 text-muted-foreground">
-                {entry.label}
+              <dt className="type-ledger type-mixed text-muted-foreground">
+                {tile.label}
               </dt>
-            </div>
+            </Shell>
           ))}
-        </dl>
+        </div>
+      </dl>
 
-        {/*
-         * Stated in words, not in colour. Amber in this product means one thing
-         * -- a price far enough below the range to be a scam signal -- and
-         * spending it on an operational problem would blunt the only warning
-         * that has to cut through.
-         */}
-        {stale && stats.lastCapturedAt ? (
-          <p className="mt-8 max-w-2xl border-t border-border pt-5 text-sm leading-relaxed text-muted-foreground">
-            {s.captureStalled(formatAgo(stats.lastCapturedAt, lang))}
-          </p>
-        ) : null}
-      </div>
-    </section>
+      {/*
+       * Stated in words, not in colour. Amber in this product means one thing
+       * -- a price far enough below the range to be a scam signal -- and
+       * spending it on an operational problem would blunt the only warning
+       * that has to cut through.
+       */}
+      {stale && stats.lastCapturedAt ? (
+        <p className="mt-6 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          {s.captureStalled(formatAgo(stats.lastCapturedAt, lang))}
+        </p>
+      ) : null}
+    </Band>
   )
 }

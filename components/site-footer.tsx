@@ -26,8 +26,8 @@ export async function SiteFooter() {
   ]
 
   return (
-    <footer className="border-t border-border bg-muted/40">
-      <div className="mx-auto grid max-w-[90rem] gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+    <footer className="border-t border-hairline bg-tray">
+      <div className="mx-auto grid max-w-[90rem] gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr_1fr] lg:py-16">
         <div className="max-w-sm">
           <Wordmark />
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
@@ -60,7 +60,7 @@ export async function SiteFooter() {
         </FooterColumn>
       </div>
 
-      <div className="border-t border-border">
+      <div className="border-t border-hairline">
         <div className="mx-auto flex max-w-[90rem] flex-col gap-2 px-4 py-5 sm:px-6 md:flex-row md:items-center md:justify-between">
           <p className="type-ledger type-mixed text-muted-foreground">
             {s.footerTagline}
@@ -100,7 +100,7 @@ function FooterLink({
     <li>
       <Link
         href={href}
-        className="rounded-sm text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        className="rounded-sm text-sm text-muted-foreground transition-colors duration-500 ease-fluid hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
         {children}
       </Link>

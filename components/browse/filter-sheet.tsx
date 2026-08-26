@@ -14,6 +14,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer"
 import type { FilterOptions, ListingQuery } from "@/lib/types"
+import { cn } from "@/lib/utils"
 
 /**
  * On phones the sidebar becomes a bottom sheet. It swipes down to dismiss and
@@ -43,31 +44,41 @@ export function FilterSheet({
     <Drawer open={open} onOpenChange={setOpen} showSwipeHandle>
       <DrawerTrigger
         render={
-          <Button variant="outline" className="h-9 rounded-lg lg:hidden" />
+          <Button
+            variant="outline"
+            className={cn(
+              "h-11 rounded-full border-0 bg-card px-5 ring-1 ring-hairline lg:hidden",
+              "transition-shadow duration-500 ease-fluid hover:shadow-hairline"
+            )}
+          />
         }
       >
-        <IconAdjustmentsHorizontal aria-hidden="true" />
+        <IconAdjustmentsHorizontal aria-hidden="true" stroke={1.5} />
         Filters
         {activeCount > 0 ? (
-          <span className="type-ledger ml-1 inline-flex size-5 items-center justify-center rounded-full bg-foreground text-background">
+          <span className="type-ledger -mr-1 ml-1 inline-flex size-6 items-center justify-center rounded-full bg-foreground text-background">
             {activeCount}
           </span>
         ) : null}
       </DrawerTrigger>
 
-      <DrawerContent className="rounded-t-xl rounded-b-none">
-        <DrawerHeader className="flex-row items-center justify-between border-b border-border pb-3 text-left">
-          <DrawerTitle className="text-base">Filters</DrawerTitle>
+      <DrawerContent className="rounded-t-shell rounded-b-none bg-card">
+        <DrawerHeader className="flex-row items-center justify-between border-b border-hairline pb-3 text-left">
+          <DrawerTitle className="type-display text-base">Filters</DrawerTitle>
           <DrawerClose
             render={
-              <Button variant="ghost" size="sm" className="rounded-lg" />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-full text-muted-foreground"
+              />
             }
           >
             Close
           </DrawerClose>
         </DrawerHeader>
 
-        <div className="overflow-y-auto overscroll-contain px-4 pt-5 pb-4">
+        <div className="overflow-y-auto overscroll-contain px-4 pt-2 pb-4">
           <FilterPanel
             options={options}
             query={query}

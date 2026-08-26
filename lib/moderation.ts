@@ -100,7 +100,7 @@ export const QUEUE_REASON_LABELS: Record<QueueReason, string> = {
 
 /** Tailwind-compatible class names for the badge. Uses the design-system tokens. */
 export const QUEUE_REASON_CLASSES: Record<QueueReason, string> = {
-  low_confidence:   "bg-zinc-100 text-zinc-700",
+  low_confidence:   "bg-muted text-muted-foreground",
   price_outlier:    "bg-flag-surface text-flag-foreground",
   flagged_phone:    "bg-destructive/10 text-destructive",
   report_threshold: "bg-destructive/10 text-destructive",

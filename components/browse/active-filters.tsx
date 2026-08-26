@@ -91,7 +91,12 @@ export function ActiveFilters({
   const conditionLabel = (value: string) =>
     options.conditions.find((c) => c.value === value)?.label ?? value
 
-  const chips: Array<{ key: string; value?: string; label: string; icon?: React.ReactNode }> = []
+  const chips: Array<{
+    key: string
+    value?: string
+    label: string
+    icon?: React.ReactNode
+  }> = []
 
   if (query.q) {
     chips.push({
@@ -108,10 +113,16 @@ export function ActiveFilters({
   }
   if (query.area) chips.push({ key: "area", label: query.area })
   if (query.minPrice !== undefined) {
-    chips.push({ key: "minPrice", label: `Over ${formatAmount(query.minPrice)} ETB` })
+    chips.push({
+      key: "minPrice",
+      label: `Over ${formatAmount(query.minPrice)} ETB`,
+    })
   }
   if (query.maxPrice !== undefined) {
-    chips.push({ key: "maxPrice", label: `Under ${formatAmount(query.maxPrice)} ETB` })
+    chips.push({
+      key: "maxPrice",
+      label: `Under ${formatAmount(query.maxPrice)} ETB`,
+    })
   }
   for (const value of query.tier ?? []) {
     const label = options.tiers.find((t) => t.value === value)?.label ?? value
@@ -119,19 +130,31 @@ export function ActiveFilters({
   }
 
   // Never offer something already applied.
-  const offered = suggestions.filter((s) => !(s.field in query) || query[s.field] === undefined)
+  const offered = suggestions.filter(
+    (s) => !(s.field in query) || query[s.field] === undefined
+  )
 
   if (!chips.length && !offered.length) return null
 
   return (
-    <div className={cn("mb-5 flex flex-col gap-2.5", className)}>
+    <div className={cn("mb-7 flex flex-col gap-3", className)}>
       {chips.length ? (
         // Wraps rather than scrolling sideways: a chip pushed off-screen is a
         // filter the shopper cannot see to remove.
-        <ul aria-label="Active filters" className="flex flex-wrap items-center gap-2">
+        <ul
+          aria-label="Active filters"
+          className="flex flex-wrap items-center gap-2"
+        >
           {chips.map((chip) => (
             <li key={`${chip.key}:${chip.value ?? chip.label}`}>
-              <span className="inline-flex h-9 items-center gap-1 rounded-lg border border-border bg-card pr-1 pl-3 text-sm text-foreground">
+              {/* Applied: solid pill, with the × in its own circle flush
+                  against the pill's inner padding. */}
+              <span
+                className={cn(
+                  "inline-flex h-10 items-center gap-1.5 rounded-full bg-card pr-1 pl-4 text-sm text-foreground",
+                  "shadow-hairline ring-1 ring-hairline"
+                )}
+              >
                 <button
                   type="button"
                   onClick={onEdit}
@@ -143,11 +166,15 @@ export function ActiveFilters({
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  className="size-8 rounded-md"
+                  className={cn(
+                    "size-8 rounded-full text-muted-foreground",
+                    "transition-[color,background-color] duration-500 ease-fluid",
+                    "hover:bg-tray hover:text-foreground"
+                  )}
                   aria-label={`Remove ${chip.label} filter`}
                   onClick={() => remove(chip.key, chip.value)}
                 >
-                  <IconX aria-hidden="true" />
+                  <IconX aria-hidden="true" stroke={1.5} />
                 </Button>
               </span>
             </li>
@@ -157,7 +184,10 @@ export function ActiveFilters({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-9 rounded-lg text-muted-foreground"
+                className={cn(
+                  "h-10 rounded-full px-4 text-muted-foreground",
+                  "transition-colors duration-500 ease-fluid hover:text-foreground"
+                )}
                 onClick={() => router.push("/browse")}
               >
                 Clear all
@@ -169,18 +199,28 @@ export function ActiveFilters({
 
       {offered.length ? (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="type-ledger text-muted-foreground">Did you mean</span>
-          <ul aria-label="Suggested filters" className="flex flex-wrap items-center gap-2">
+          <span className="type-ledger text-muted-foreground">
+            Did you mean
+          </span>
+          <ul
+            aria-label="Suggested filters"
+            className="flex flex-wrap items-center gap-2"
+          >
             {offered.map((suggestion) => (
               <li key={`${suggestion.field}:${suggestion.value}`}>
+                {/* Offered: dashed and unfilled, so "understood" and
+                    "applied" are one glance apart. */}
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-9 rounded-lg border-dashed"
+                  className={cn(
+                    "h-10 rounded-full border border-dashed border-border bg-transparent px-4",
+                    "transition-colors duration-500 ease-fluid hover:bg-card"
+                  )}
                   aria-label={`Add ${suggestion.label} filter`}
                   onClick={() => apply(suggestion.field, suggestion.value)}
                 >
-                  <IconPlus aria-hidden="true" />
+                  <IconPlus aria-hidden="true" stroke={1.5} />
                   <span className="type-mixed">{suggestion.label}</span>
                 </Button>
               </li>

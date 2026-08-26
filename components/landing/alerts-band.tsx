@@ -1,7 +1,5 @@
-import Link from "next/link"
-
 import { AlertForm } from "@/components/landing/alert-form"
-import { buttonVariants } from "@/components/ui/button"
+import { Band, CtaLink, Eyebrow, Shell } from "@/components/kit"
 import { strings, type Lang } from "@/lib/i18n"
 
 /**
@@ -14,6 +12,10 @@ import { strings, type Lang } from "@/lib/i18n"
  * Signed out, the entry point is a sign-in link and says why -- an alert has to
  * belong to somebody we can message on Telegram. Rendering a form that silently
  * discards what you typed would be worse than saying so.
+ *
+ * One of the two accent-tinted enclosures on the page, and the pair is
+ * deliberate: this and the sell band are the only two places asking for
+ * something back, so they are the only two that are lit.
  */
 export function AlertsBand({
   lang,
@@ -25,15 +27,26 @@ export function AlertsBand({
   const s = strings(lang)
 
   return (
-    <section aria-labelledby="alerts-heading" className="border-b border-border">
-      <div className="mx-auto max-w-3xl px-4 py-14 text-center sm:px-6 lg:py-20">
+    <Band labelledBy="alerts-heading">
+      <Shell
+        tone="accent"
+        className="mx-auto max-w-4xl"
+        coreClassName="relative isolate overflow-hidden px-5 py-12 text-center sm:px-10 lg:py-16"
+      >
+        <div
+          aria-hidden="true"
+          className="bg-wash pointer-events-none absolute inset-0 -z-10"
+        />
+
+        <Eyebrow>{s.eyebrowAlerts}</Eyebrow>
+
         <h2
           id="alerts-heading"
-          className="type-display mx-auto max-w-[24ch] text-2xl font-semibold text-balance text-foreground sm:text-3xl"
+          className="type-section type-display mx-auto mt-5 max-w-[22ch] font-semibold text-balance text-foreground"
         >
           {s.alertsTitle}
         </h2>
-        <p className="mx-auto mt-3 max-w-xl text-base leading-relaxed text-muted-foreground">
+        <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-[1.0625rem]">
           {s.alertsLede}
         </p>
 
@@ -44,22 +57,17 @@ export function AlertsBand({
             action={s.alertsAction}
             saved={s.alertsSaved}
             failed={s.alertsFailed}
-            className="mx-auto mt-8 max-w-xl"
+            className="mx-auto mt-9 max-w-xl"
           />
         ) : (
-          <div className="mt-8">
-            <Link
-              href="/login?next=/"
-              className={buttonVariants({ size: "lg" })}
-            >
-              {s.alertsAction}
-            </Link>
-            <p className="mt-3 text-sm text-muted-foreground">
+          <div className="mt-9">
+            <CtaLink href="/login?next=/">{s.alertsAction}</CtaLink>
+            <p className="mt-4 text-sm text-muted-foreground">
               {s.alertsSignedOut}
             </p>
           </div>
         )}
-      </div>
-    </section>
+      </Shell>
+    </Band>
   )
 }

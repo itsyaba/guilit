@@ -1,11 +1,8 @@
-import Link from "next/link"
-import { IconArrowRight } from "@tabler/icons-react"
-
 import { HeroSearch } from "@/components/landing/hero-search"
+import { CtaLink, Eyebrow } from "@/components/kit"
 import { formatAmount } from "@/lib/format"
 import { formatAgo, strings, type Lang } from "@/lib/i18n"
 import type { LandingStats } from "@/lib/landing"
-import { cn } from "@/lib/utils"
 
 /**
  * Phrases a shopper can tap, kept in their original scripts in both languages.
@@ -27,9 +24,17 @@ const EXAMPLES = [
  * focused on load on a desktop, and the first row of real stock sits directly
  * under it rather than behind a scroll.
  *
- * No gradient wash and no eyebrow pill. Both were decoration that cost a paint
- * and told a visitor nothing, and the space they used is now the top of the
- * inventory grid, which tells them everything.
+ * The light behind it is two radial washes and a 4rem lattice, painted into two
+ * fixed-height absolute elements with no filter on either. That distinction is
+ * the whole reason it is allowed to be here: a gradient is one paint, whereas
+ * the `backdrop-blur` this look usually reaches for would repaint the GPU on
+ * every scroll frame of a page this long -- on the mid-range Android this is
+ * aimed at, that is the difference between a smooth page and a stuttering one.
+ *
+ * The five figures that used to sit in a row under the field have moved into
+ * the index band, which is a better place to compare them. What is left here is
+ * the one line a visitor needs before they trust the box: how much is in it and
+ * when we last looked.
  */
 export function LandingHero({
   stats,
@@ -42,13 +47,47 @@ export function LandingHero({
   const empty = stats.liveListings === 0
 
   return (
-    <section className="border-b border-border">
-      <div className="mx-auto max-w-3xl px-4 pt-12 pb-10 text-center sm:px-6 lg:pt-16 lg:pb-12">
-        <h1 className="type-display text-[2rem] leading-[1.1] font-semibold text-balance text-foreground sm:text-[2.75rem]">
+    <section className="relative isolate overflow-hidden">
+      {/* Decoration, and inert in every sense: aria-hidden, pointer-events
+          none, behind the content, and a plain background-image rather than a
+          filter, so it costs one paint and never repaints on scroll. */}
+      <div
+        aria-hidden="true"
+        className="bg-wash pointer-events-none absolute inset-x-0 top-0 -z-10 h-[44rem]"
+      />
+      <div
+        aria-hidden="true"
+        className="bg-lattice pointer-events-none absolute inset-x-0 top-0 -z-10 h-[44rem]"
+      />
+
+      <div className="mx-auto max-w-3xl px-4 pt-14 pb-12 text-center sm:px-6 lg:pt-24 lg:pb-16">
+        {empty ? null : (
+          <div className="anim-rise">
+            <Eyebrow dot>
+              {formatAmount(stats.channelCount)} {s.statChannels}
+              {stats.lastCapturedAt ? (
+                <>
+                  <span aria-hidden="true" className="text-muted-foreground/50">
+                    ·
+                  </span>
+                  {s.capturedAgo(formatAgo(stats.lastCapturedAt, lang))}
+                </>
+              ) : null}
+            </Eyebrow>
+          </div>
+        )}
+
+        <h1
+          className="anim-rise type-hero type-display mt-7 font-semibold text-balance text-foreground"
+          style={{ animationDelay: "60ms" }}
+        >
           {empty ? s.freshTitle : s.heroTitle}
         </h1>
 
-        <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-[1.0625rem]">
+        <p
+          className="anim-rise mx-auto mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-[1.0625rem]"
+          style={{ animationDelay: "120ms" }}
+        >
           {empty ? s.freshLede : s.heroLede}
         </p>
 
@@ -57,52 +96,19 @@ export function LandingHero({
           label={s.searchLabel}
           placeholder={s.searchPlaceholder}
           action={s.searchAction}
-          className="mx-auto mt-8"
+          className="anim-rise mx-auto mt-10"
+          style={{ animationDelay: "180ms" }}
         />
 
-        {/*
-         * The live line. Capture age sits in the same breath as the counts
-         * rather than in a separate reassurance below them, because a count
-         * without a date is the number a dead pipeline also shows.
-         */}
         {empty ? null : (
-          <p className="type-ledger mt-6 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-muted-foreground">
-            <span>
-              {formatAmount(stats.liveListings)} {s.statListings}
-            </span>
-            <span aria-hidden="true">·</span>
-            <span>
-              {formatAmount(stats.channelCount)} {s.statChannels}
-            </span>
-            <span aria-hidden="true">·</span>
-            {/* Labelled, not bare. "2 days ago" on its own beside two counts
-                reads as ambiguous -- it could be the newest listing's age. */}
-            <span>
-              {stats.lastCapturedAt
-                ? s.capturedAgo(formatAgo(stats.lastCapturedAt, lang))
-                : s.noCaptureYet}
-            </span>
-          </p>
-        )}
-
-        {empty ? null : (
-          <p className="mt-6">
-            <Link
-              href="/browse"
-              className={cn(
-                "group/all inline-flex items-center gap-1.5 text-sm font-medium text-foreground",
-                "transition-colors duration-500 ease-fluid hover:text-primary",
-                "focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
-              )}
-            >
+          <div
+            className="anim-rise mt-10 flex justify-center"
+            style={{ animationDelay: "240ms" }}
+          >
+            <CtaLink href="/browse" tone="quiet">
               {s.browseAll(formatAmount(stats.liveListings))}
-              <IconArrowRight
-                aria-hidden="true"
-                stroke={1.5}
-                className="size-4 transition-transform duration-500 ease-fluid group-hover/all:translate-x-0.5"
-              />
-            </Link>
-          </p>
+            </CtaLink>
+          </div>
         )}
       </div>
     </section>

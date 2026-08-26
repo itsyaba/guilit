@@ -1,3 +1,4 @@
+import { Band, Eyebrow, Shell } from "@/components/kit"
 import { TierTag } from "@/components/listing/tier-tag"
 import { strings, type Lang } from "@/lib/i18n"
 import type { ListingTier } from "@/lib/types"
@@ -36,36 +37,38 @@ export function Provenance({ lang }: { lang: Lang }) {
   ]
 
   return (
-    <section
-      aria-labelledby="provenance-heading"
-      className="border-b border-border"
-    >
-      <div className="mx-auto max-w-[90rem] px-4 py-14 sm:px-6 lg:py-20">
-        <div className="grid gap-12 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)] lg:gap-20">
-          <div className="min-w-0">
-            <h2
-              id="provenance-heading"
-              className="type-display max-w-[20ch] text-2xl font-semibold text-foreground sm:text-3xl"
-            >
-              {s.provenanceTitle}
-            </h2>
-            <p className="mt-4 max-w-lg text-base leading-relaxed text-muted-foreground">
-              {s.provenanceBody1}
-            </p>
-            <p className="mt-4 max-w-lg text-base leading-relaxed text-muted-foreground">
-              {s.provenanceBody2}
-            </p>
-          </div>
+    <Band labelledBy="provenance-heading">
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)] lg:gap-16">
+        <div className="min-w-0">
+          <Eyebrow>{s.eyebrowSource}</Eyebrow>
 
-          <div className="min-w-0">
-            <h3 className="type-ledger text-muted-foreground">
-              {s.tiersTitle}
-            </h3>
-            <dl className="mt-4 divide-y divide-border border-t border-border">
+          <h2
+            id="provenance-heading"
+            className="type-section type-display mt-5 max-w-[18ch] font-semibold text-foreground"
+          >
+            {s.provenanceTitle}
+          </h2>
+          <p className="mt-5 max-w-lg text-base leading-relaxed text-muted-foreground sm:text-[1.0625rem]">
+            {s.provenanceBody1}
+          </p>
+          <p className="mt-4 max-w-lg text-base leading-relaxed text-muted-foreground sm:text-[1.0625rem]">
+            {s.provenanceBody2}
+          </p>
+        </div>
+
+        {/* The three states a listing can be in, as rows in one enclosure --
+            they are one scale, not three features. */}
+        <div className="min-w-0">
+          <h3 className="type-ledger type-mixed text-muted-foreground">
+            {s.tiersTitle}
+          </h3>
+
+          <Shell className="mt-4" coreClassName="overflow-hidden">
+            <dl>
               {tiers.map((entry) => (
                 <div
                   key={entry.tier}
-                  className="grid gap-2 py-5 sm:grid-cols-[8.5rem_1fr] sm:gap-6"
+                  className="grid gap-2 border-b border-hairline px-5 py-5 last:border-b-0 sm:grid-cols-[9rem_1fr] sm:gap-6 sm:px-6"
                 >
                   <dt className="pt-0.5">
                     <TierTag tier={entry.tier} />
@@ -81,35 +84,42 @@ export function Provenance({ lang }: { lang: Lang }) {
                 </div>
               ))}
             </dl>
-          </div>
-        </div>
-
-        {/*
-         * The pipeline, compressed to one strip. The stage names are the actual
-         * module names in ingest/, so a reader who opens the repository finds
-         * what this promised.
-         */}
-        <div className="mt-14 border-t border-border pt-8">
-          <h3 className="type-ledger text-muted-foreground">
-            {s.pipelineTitle}
-          </h3>
-          <ol className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-5 lg:gap-5">
-            {stages.map((stage) => (
-              <li
-                key={stage.title}
-                className="border-t-2 border-foreground/15 pt-3"
-              >
-                <h4 className="text-sm font-semibold text-foreground">
-                  {stage.title}
-                </h4>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                  {stage.body}
-                </p>
-              </li>
-            ))}
-          </ol>
+          </Shell>
         </div>
       </div>
-    </section>
+
+      {/*
+       * The pipeline, five numbered tiles. The stage names are the actual module
+       * names in ingest/, so a reader who opens the repository finds what this
+       * promised.
+       */}
+      <div className="mt-14 lg:mt-20">
+        <h3 className="type-ledger type-mixed text-muted-foreground">
+          {s.pipelineTitle}
+        </h3>
+
+        <ol className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {stages.map((stage, index) => (
+            <li
+              key={stage.title}
+              className="rounded-panel bg-card p-5 shadow-hairline ring-1 ring-hairline transition-shadow duration-500 ease-fluid hover:shadow-ambient"
+            >
+              <span
+                aria-hidden="true"
+                className="type-ledger flex size-7 items-center justify-center rounded-full bg-accent text-accent-foreground"
+              >
+                {index + 1}
+              </span>
+              <h4 className="mt-4 text-sm font-semibold text-foreground">
+                {stage.title}
+              </h4>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                {stage.body}
+              </p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </Band>
   )
 }

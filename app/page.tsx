@@ -26,9 +26,10 @@ export const metadata: Metadata = {
  * Rendered entirely on the server. The only JavaScript that reaches the browser
  * from this route is the search field's sentence parser, the alert form, and an
  * error handler on listing photographs -- there is no client fetch for anything
- * above the fold and no skeleton where SSR would do, because the audience is a
- * mid-range Android on Ethiopian mobile data and a loading state is a second
- * round trip they pay for.
+ * above the fold, no skeleton where SSR would do, and no observer behind the
+ * scroll reveals (they are CSS `view()` timelines), because the audience is a
+ * mid-range Android on Ethiopian mobile data and every one of those would be a
+ * cost they pay for.
  *
  * The order answers a visitor's questions as they ask them: what can I search,
  * what is actually for sale, how much is here and how fresh is it, what do you
@@ -36,8 +37,12 @@ export const metadata: Metadata = {
  * am I being overcharged, can you watch for me, who am I buying from, and how
  * do I sell.
  *
- * Every band is live data or a shipped feature. One await, one payload, props
- * down -- see lib/landing.
+ * Every band is live data or a shipped feature, and every band is built out of
+ * the same four pieces in components/kit -- one enclosure, one eyebrow,
+ * one CTA, one rhythm -- so the page reads as one object rather than as nine
+ * sections styled on nine different days.
+ *
+ * One await, one payload, props down -- see lib/landing.
  */
 export default async function Home() {
   const [lang, payload, user] = await Promise.all([

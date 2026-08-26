@@ -5,6 +5,7 @@ import {
   IconArrowUpRight,
 } from "@tabler/icons-react"
 
+import { Band, BandHead, Shell } from "@/components/kit"
 import { formatAmount, formatShortDate } from "@/lib/format"
 import { strings, type Lang } from "@/lib/i18n"
 import type { LandingCluster, LandingSighting } from "@/lib/landing"
@@ -23,6 +24,11 @@ import { cn } from "@/lib/utils"
  * prices could be four different sofas; four posts carrying one phone number
  * could not. Nothing on this page is claimed in prose that could be shown this
  * way instead.
+ *
+ * The two sides are deliberately unequal enclosures: the posts are a plain white
+ * core, the result sits in an accent-tinted tray. That is the whole diagram --
+ * raw material on the left, the thing we made on the right -- and it does the
+ * job the old matching pair of bordered boxes needed a caption for.
  *
  * A fabricated example here would undo the exact point it is making, so when the
  * index holds nothing cross-posted the section says so.
@@ -45,135 +51,126 @@ export function Collapse({
   const posts = sightings.length
 
   return (
-    <section aria-labelledby="collapse-heading" className="border-b border-border">
-      <div className="mx-auto max-w-[90rem] px-4 py-14 sm:px-6 lg:py-20">
-        <h2
-          id="collapse-heading"
-          className="type-display max-w-[22ch] text-2xl font-semibold text-foreground sm:text-3xl"
-        >
-          {s.collapseTitle(posts)}
-        </h2>
-        <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground">
-          {s.collapseLede(cluster.distinctChannels)}
-        </p>
+    <Band labelledBy="collapse-heading">
+      <BandHead
+        eyebrow={s.eyebrowMerge}
+        title={s.collapseTitle(posts)}
+        titleId="collapse-heading"
+        lede={s.collapseLede(cluster.distinctChannels)}
+      />
 
-        <div className="mt-9 grid items-stretch gap-4 lg:grid-cols-[minmax(0,1fr)_2rem_minmax(0,22rem)] lg:gap-0">
-          {/* ---- the posts ------------------------------------------------ */}
-          <div className="min-w-0 overflow-hidden rounded-4xl border border-border bg-card">
-            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-border px-4 py-3 sm:px-5">
-              <p className="type-ledger text-muted-foreground">
-                {s.collapseLedger(posts, cluster.distinctChannels)}
-              </p>
-              {cluster.phoneNormalized ? (
-                <p className="font-mono text-xs text-foreground tabular-nums">
-                  {cluster.phoneNormalized}
-                </p>
-              ) : null}
-            </div>
-
-            <ul className="divide-y divide-border">
-              {sightings.map((sighting, index) => (
-                <Post
-                  key={`${sighting.channelHandle}-${sighting.messageId}-${index}`}
-                  sighting={sighting}
-                  lowest={lowestPriceEtb}
-                  lang={lang}
-                />
-              ))}
-            </ul>
-          </div>
-
-          {/* ---- the funnel ----------------------------------------------- */}
-          {/*
-            * One arrow, rotated by breakpoint. The first pass drew a bracket
-            * out of borders, which at the 32px this column gets read as a
-            * stray hairline rather than as a convergence -- it looked like a
-            * rendering artifact next to the card it was pointing at.
-            */}
-          <div
-            aria-hidden="true"
-            className="flex justify-center lg:items-center"
-          >
-            <IconArrowDown
-              stroke={1.5}
-              className="size-5 text-muted-foreground lg:hidden"
-            />
-            <IconArrowRight
-              stroke={1.5}
-              className="hidden size-5 text-muted-foreground lg:block"
-            />
-          </div>
-
-          {/* ---- the one listing ------------------------------------------ */}
-          <div className="flex min-w-0 flex-col justify-center rounded-4xl border border-border bg-muted/40 px-5 py-6">
-            <p className="type-ledger text-muted-foreground">
-              {s.collapseResult}
+      <div className="mt-10 grid items-stretch gap-4 lg:mt-12 lg:grid-cols-[minmax(0,1fr)_3.5rem_minmax(0,24rem)] lg:gap-0">
+        {/* ---- the posts -------------------------------------------------- */}
+        <Shell coreClassName="overflow-hidden">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-hairline px-4 py-3.5 sm:px-5">
+            <p className="type-ledger type-mixed text-muted-foreground">
+              {s.collapseLedger(posts, cluster.distinctChannels)}
             </p>
-
-            <h3
-              className="mt-2 text-base leading-relaxed font-medium text-foreground"
-              lang="am"
-            >
-              {cluster.title}
-            </h3>
-
-            <p className="type-price mt-3 text-foreground">
-              {lowestPriceEtb === null
-                ? s.priceOnRequest
-                : s.collapseFrom(formatAmount(lowestPriceEtb))}
-            </p>
-
-            <p className="type-ledger mt-1.5 text-muted-foreground normal-case">
-              {cluster.categoryLabel}
-              {cluster.area ? ` · ${cluster.area}` : ""}
-            </p>
-
-            {spread > 0 ? (
-              <p className="mt-4 border-t border-border pt-4 text-sm leading-relaxed text-muted-foreground">
-                {s.collapseSpread(formatAmount(spread))}
+            {cluster.phoneNormalized ? (
+              <p className="font-mono text-xs text-foreground tabular-nums">
+                {cluster.phoneNormalized}
               </p>
             ) : null}
-
-            <Link
-              href={`/listing/${cluster.id}`}
-              className={cn(
-                "group/open mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-foreground",
-                "transition-colors duration-500 ease-fluid hover:text-primary",
-                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-              )}
-            >
-              {s.collapseOpen}
-              <IconArrowUpRight
-                aria-hidden="true"
-                stroke={1.5}
-                className="size-4 transition-transform duration-500 ease-fluid group-hover/open:translate-x-px group-hover/open:-translate-y-px"
-              />
-            </Link>
           </div>
+
+          <ul className="min-w-0 divide-y divide-hairline">
+            {sightings.map((sighting, index) => (
+              <Post
+                key={`${sighting.channelHandle}-${sighting.messageId}-${index}`}
+                sighting={sighting}
+                lowest={lowestPriceEtb}
+              />
+            ))}
+          </ul>
+        </Shell>
+
+        {/* ---- the funnel ------------------------------------------------- */}
+        {/*
+          * One arrow in one circle, rotated by breakpoint. The first pass drew
+          * a bracket out of borders, which at the width this column gets read
+          * as a stray hairline rather than as a convergence -- it looked like a
+          * rendering artifact next to the card it was pointing at.
+          */}
+        <div
+          aria-hidden="true"
+          className="flex justify-center lg:items-center"
+        >
+          <span className="flex size-10 items-center justify-center rounded-full bg-card text-muted-foreground shadow-hairline ring-1 ring-hairline">
+            <IconArrowDown stroke={1.5} className="size-4 lg:hidden" />
+            <IconArrowRight stroke={1.5} className="hidden size-4 lg:block" />
+          </span>
         </div>
 
-        <p className="mt-6 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          {s.collapseHow}
-        </p>
+        {/* ---- the one listing -------------------------------------------- */}
+        <Shell
+          tone="accent"
+          coreClassName="flex h-full min-w-0 flex-col justify-center px-5 py-6 sm:px-6"
+        >
+          <p className="type-ledger type-mixed text-muted-foreground">
+            {s.collapseResult}
+          </p>
+
+          <h3
+            className="mt-2 text-base leading-relaxed font-medium text-foreground"
+            lang="am"
+          >
+            {cluster.title}
+          </h3>
+
+          <p className="type-figure mt-3 text-2xl text-foreground">
+            {lowestPriceEtb === null
+              ? s.priceOnRequest
+              : s.collapseFrom(formatAmount(lowestPriceEtb))}
+          </p>
+
+          <p className="type-ledger type-mixed mt-2 text-muted-foreground normal-case">
+            {cluster.categoryLabel}
+            {cluster.area ? ` · ${cluster.area}` : ""}
+          </p>
+
+          {spread > 0 ? (
+            <p className="mt-5 border-t border-hairline pt-4 text-sm leading-relaxed text-muted-foreground">
+              {s.collapseSpread(formatAmount(spread))}
+            </p>
+          ) : null}
+
+          <Link
+            href={`/listing/${cluster.id}`}
+            className={cn(
+              "group/open mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-foreground",
+              "transition-colors duration-500 ease-fluid hover:text-primary",
+              "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            )}
+          >
+            {s.collapseOpen}
+            <IconArrowUpRight
+              aria-hidden="true"
+              stroke={1.5}
+              className="size-4 transition-transform duration-500 ease-fluid group-hover/open:translate-x-px group-hover/open:-translate-y-px"
+            />
+          </Link>
+        </Shell>
       </div>
-    </section>
+
+      <p className="mt-6 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+        {s.collapseHow}
+      </p>
+    </Band>
   )
 }
 
 function Post({
   sighting,
   lowest,
-  lang,
 }: {
   sighting: LandingSighting
   lowest: number | null
-  lang: Lang
 }) {
   const price = sighting.priceEtb
   const isLowest = price !== null && price === lowest
 
   return (
-    <li className="px-4 py-3.5 sm:px-5">
+    <li className="min-w-0 px-4 py-3.5 transition-colors duration-500 ease-fluid hover:bg-tray/60 sm:px-5">
       <div className="flex items-baseline justify-between gap-3">
         {/* Telegram handles are lowercase; uppercasing one makes it look wrong,
             so this is the mono register without the ledger's caps. */}
@@ -265,18 +262,15 @@ export function CollapseSingle({
   const s = strings(lang)
 
   return (
-    <section className="border-b border-border">
-      <div className="mx-auto max-w-[90rem] px-4 py-14 sm:px-6 lg:py-20">
-        <h2 className="type-display max-w-[22ch] text-2xl font-semibold text-foreground sm:text-3xl">
-          {s.collapseTitle(1)}
-        </h2>
-        <p className="mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground">
-          {s.collapseSingle(handle)}
-        </p>
-        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          {s.collapseSingleNote}
-        </p>
-      </div>
-    </section>
+    <Band label={s.collapseTitle(1)}>
+      <BandHead
+        eyebrow={s.eyebrowMerge}
+        title={s.collapseTitle(1)}
+        lede={s.collapseSingle(handle)}
+      />
+      <p className="mt-5 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+        {s.collapseSingleNote}
+      </p>
+    </Band>
   )
 }

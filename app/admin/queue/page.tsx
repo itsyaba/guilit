@@ -1,9 +1,9 @@
-import { requireAdmin } from '@/lib/session'
-import { getModerationQueue } from '@/lib/moderation-queue'
-import { QueueWorkspace } from './components/queue-workspace'
+import { requireAdmin } from "@/lib/session"
+import { getModerationQueue } from "@/lib/moderation-queue"
+import { QueueWorkspace } from "./components/queue-workspace"
 
 export const metadata = {
-  title: 'Moderation Queue',
+  title: "Moderation Queue",
 }
 
 export default async function QueuePage() {

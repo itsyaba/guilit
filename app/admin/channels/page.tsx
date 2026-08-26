@@ -1,12 +1,14 @@
-import { requireAdmin } from '@/lib/session'
-import { db } from '@/db/client'
-import { channels } from '@/db/schema'
-import { desc, sql } from 'drizzle-orm'
-import { AddChannelForm } from './components/add-channel-form'
-import { ChannelRow } from './components/channel-row'
+import { desc, sql } from "drizzle-orm"
+
+import { Eyebrow, Shell } from "@/components/kit"
+import { db } from "@/db/client"
+import { channels } from "@/db/schema"
+import { requireAdmin } from "@/lib/session"
+import { AddChannelForm } from "./components/add-channel-form"
+import { ChannelRow } from "./components/channel-row"
 
 export const metadata = {
-  title: 'Channels',
+  title: "Channels",
 }
 
 export default async function ChannelsPage() {
@@ -53,49 +55,86 @@ export default async function ChannelsPage() {
     .limit(100)
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-8">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-950">Channels</h1>
-          <p className="text-sm text-zinc-500 mt-1">Manage Telegram channels ingested by Gulit.</p>
+    <div className="anim-rise mx-auto max-w-[80rem] px-1 pb-16 sm:px-2">
+      <header className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="max-w-2xl">
+          <Eyebrow>Ingestion</Eyebrow>
+          <h1 className="type-section type-display mt-4 font-semibold text-foreground">
+            Channels
+          </h1>
+          <p className="mt-3 text-base leading-relaxed text-muted-foreground">
+            The allowlist the listener reads from. Switching a channel off stops
+            capture without touching what it has already posted.
+          </p>
         </div>
-        <AddChannelForm />
-      </div>
+        <div className="shrink-0">
+          <AddChannelForm />
+        </div>
+      </header>
 
-      <div className="rounded-lg border border-zinc-200 bg-white overflow-hidden shadow-sm">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-zinc-50 border-b border-zinc-200 text-xs uppercase text-zinc-500 font-semibold">
-            <tr>
-              <th className="px-6 py-3">Username</th>
-              <th className="px-6 py-3">Title</th>
-              <th className="px-6 py-3">Active</th>
-              <th className="px-6 py-3 text-right">Messages</th>
-              <th className="px-6 py-3 text-right">Listings</th>
-              <th className="px-6 py-3 text-right">Rejection Rate</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-zinc-200">
-            {items.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-zinc-500">
-                  No channels found.
-                </td>
+      <Shell className="mt-10" coreClassName="overflow-hidden">
+        {/* Scrolls inside its own core rather than widening the page. */}
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[52rem] text-left text-sm">
+            <thead>
+              <tr className="border-b border-hairline">
+                <Th>Channel</Th>
+                <Th>Title</Th>
+                <Th>Capture</Th>
+                <Th align="right">Messages</Th>
+                <Th align="right">Listings</Th>
+                <Th align="right">Rejected</Th>
               </tr>
-            ) : (
-              items.map((channel) => {
-                const totalListings = channel.listingCount + channel.rejectedCount
-                const rejectRate = totalListings > 0 ? channel.rejectedCount / totalListings : 0
-                return (
-                  <ChannelRow 
-                    key={channel.id} 
-                    channel={{ ...channel, rejectRate }} 
-                  />
-                )
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-hairline">
+              {items.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-6 py-16 text-center text-muted-foreground"
+                  >
+                    No channels on the allowlist yet.
+                  </td>
+                </tr>
+              ) : (
+                items.map((channel) => {
+                  const totalListings =
+                    channel.listingCount + channel.rejectedCount
+                  const rejectRate =
+                    totalListings > 0
+                      ? channel.rejectedCount / totalListings
+                      : 0
+                  return (
+                    <ChannelRow
+                      key={channel.id}
+                      channel={{ ...channel, rejectRate }}
+                    />
+                  )
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Shell>
     </div>
+  )
+}
+
+function Th({
+  children,
+  align = "left",
+}: {
+  children: React.ReactNode
+  align?: "left" | "right"
+}) {
+  return (
+    <th
+      scope="col"
+      className={`type-ledger px-6 py-4 font-normal text-muted-foreground ${
+        align === "right" ? "text-right" : ""
+      }`}
+    >
+      {children}
+    </th>
   )
 }

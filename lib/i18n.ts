@@ -61,6 +61,23 @@ const en = {
   logOut: "Log out",
   signedIn: "Signed in",
 
+  // ---- section labels -----------------------------------------------------
+  /**
+   * The eyebrow over each band on the front page. One word or two, in the
+   * ledger register, so nine sections of prose become nine things you can find
+   * without reading them.
+   */
+  eyebrowLive: "Live",
+  eyebrowMarket: "On the market",
+  eyebrowIndex: "The index",
+  eyebrowMerge: "Deduplication",
+  eyebrowCategories: "Categories",
+  eyebrowSearch: "Search",
+  eyebrowPrice: "Price",
+  eyebrowAlerts: "Alerts",
+  eyebrowSource: "Provenance",
+  eyebrowSell: "Selling",
+
   // ---- hero ---------------------------------------------------------------
   heroTitle: "Everything Addis is selling, in one place.",
   heroLede:
@@ -78,6 +95,8 @@ const en = {
   statCaptured: "since last capture",
   capturedAgo: (ago: string) => `captured ${ago}`,
   statPending: "posts awaiting dedup",
+  /** Source posts behind the live count: one per channel that carried an item. */
+  statSightings: "source posts captured",
   captureStalled: (ago: string) =>
     `Last capture ${ago}. These figures are accurate as of then, not as of now.`,
 
@@ -228,6 +247,18 @@ const am: Strings = {
   logOut: "ይውጡ",
   signedIn: "ገብተዋል",
 
+  // ---- section labels -----------------------------------------------------
+  eyebrowLive: "ቀጥታ",
+  eyebrowMarket: "ገበያ",
+  eyebrowIndex: "መዝገብ",
+  eyebrowMerge: "ውህደት",
+  eyebrowCategories: "ምድቦች",
+  eyebrowSearch: "ፍለጋ",
+  eyebrowPrice: "ዋጋ",
+  eyebrowAlerts: "ማሳወቂያ",
+  eyebrowSource: "ምንጭ",
+  eyebrowSell: "ሽያጭ",
+
   // ---- hero ---------------------------------------------------------------
   heroTitle: "አዲስ አበባ የምትሸጠው ሁሉ፣ በአንድ ቦታ።",
   heroLede:
@@ -245,6 +276,7 @@ const am: Strings = {
   statCaptured: "ካለፈው ስብሰባ ጀምሮ",
   capturedAgo: (ago: string) => `${ago} ተሰብስቧል`,
   statPending: "ውህደት የሚጠብቁ ልጥፎች",
+  statSightings: "የተሰበሰቡ ልጥፎች",
   captureStalled: (ago: string) =>
     `የመጨረሻው ስብሰባ ${ago} ነበር። እነዚህ ቁጥሮች የዚያን ጊዜ ትክክል ናቸው፣ የአሁኑን አይደሉም።`,
 

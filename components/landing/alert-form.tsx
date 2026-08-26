@@ -3,7 +3,6 @@
 import * as React from "react"
 import { IconLoader2 } from "@tabler/icons-react"
 
-import { buttonVariants } from "@/components/ui/button"
 import { resolveSearchRoute } from "@/lib/search-route"
 import { cn } from "@/lib/utils"
 
@@ -83,41 +82,53 @@ export function AlertForm({
 
   return (
     <form onSubmit={handleSubmit} className={cn("min-w-0", className)}>
+      {/* The same two enclosures as the hero field, one size down: a recessed
+          tray holding a white core, so the two controls on the front page read
+          as the same object rather than as two form styles. */}
       <div
         className={cn(
-          "flex items-center gap-2 rounded-4xl border border-border bg-card p-2 pl-4",
-          "transition-colors duration-500 ease-fluid focus-within:border-ring"
+          "group rounded-full bg-tray p-1.5 shadow-hairline ring-1 ring-hairline",
+          "transition-shadow duration-700 ease-fluid focus-within:shadow-ambient"
         )}
       >
-        <label htmlFor="alert-query" className="sr-only">
-          {label}
-        </label>
-        <input
-          id="alert-query"
-          name="q"
-          type="search"
-          required
-          autoComplete="off"
-          placeholder={placeholder}
-          className="h-11 min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground"
-        />
-        <button
-          type="submit"
-          disabled={state === "saving"}
-          className={buttonVariants({
-            size: "lg",
-            className: "h-10 shrink-0 rounded-4xl",
-          })}
+        <div
+          className={cn(
+            "flex items-center gap-2 rounded-full bg-card py-1 pr-1 pl-4 ring-1 ring-hairline",
+            "transition-shadow duration-500 ease-fluid focus-within:ring-ring/45"
+          )}
         >
-          {state === "saving" ? (
-            <IconLoader2
-              aria-hidden="true"
-              stroke={1.5}
-              className="size-4 animate-spin"
-            />
-          ) : null}
-          {action}
-        </button>
+          <label htmlFor="alert-query" className="sr-only">
+            {label}
+          </label>
+          <input
+            id="alert-query"
+            name="q"
+            type="search"
+            required
+            autoComplete="off"
+            placeholder={placeholder}
+            className="h-11 min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground"
+          />
+          <button
+            type="submit"
+            disabled={state === "saving"}
+            className={cn(
+              "flex h-10 shrink-0 items-center gap-2 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground",
+              "transition-[transform,box-shadow] duration-500 ease-fluid active:scale-[0.985]",
+              "shadow-hairline hover:shadow-ambient disabled:pointer-events-none disabled:opacity-50",
+              "focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-ring"
+            )}
+          >
+            {state === "saving" ? (
+              <IconLoader2
+                aria-hidden="true"
+                stroke={1.5}
+                className="size-4 animate-spin"
+              />
+            ) : null}
+            {action}
+          </button>
+        </div>
       </div>
 
       {state === "failed" ? (

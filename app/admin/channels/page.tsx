@@ -12,28 +12,40 @@ export const metadata = {
 export default async function ChannelsPage() {
   await requireAdmin()
 
-  // For real production we'd do complex joins here, but let's approximate with sql helpers.
-  // Assuming a generic structure for channels: id, username, title, isActive
+  // Every correlated subquery below must name the outer column as
+  // "channels"."id". Interpolating ${channels.id} renders it bare as "id",
+  // because the outer select touches one table and Drizzle drops the prefix.
+  // Inside these subqueries that is wrong twice over: against the joined
+  // tables it matches listings.id, listing_sources.id and raw_messages.id at
+  // once and Postgres refuses the whole query with 42702; against the lone
+  // raw_messages scan it silently binds to raw_messages.id instead, counting
+  // rows whose channel_id equals their own id. Keep the table qualifier.
+  const channelId = sql.raw('"channels"."id"')
+
   const items = await db
     .select({
       id: channels.id,
       username: channels.username,
       title: channels.title,
       active: channels.active,
-      messageCount: sql<number>`(SELECT COUNT(*) FROM raw_messages WHERE raw_messages.channel_id = ${channels.id})::int`,
+      messageCount: sql<number>`(
+        SELECT COUNT(*)
+        FROM raw_messages rm
+        WHERE rm.channel_id = ${channelId}
+      )::int`,
       listingCount: sql<number>`(
-        SELECT COUNT(*) 
-        FROM listings 
-        INNER JOIN listing_sources ON listing_sources.listing_id = listings.id
-        INNER JOIN raw_messages ON raw_messages.id = listing_sources.raw_message_id
-        WHERE raw_messages.channel_id = ${channels.id}
+        SELECT COUNT(*)
+        FROM listings l
+        INNER JOIN listing_sources ls ON ls.listing_id = l.id
+        INNER JOIN raw_messages rm ON rm.id = ls.raw_message_id
+        WHERE rm.channel_id = ${channelId}
       )::int`,
       rejectedCount: sql<number>`(
-        SELECT COUNT(*) 
-        FROM listings 
-        INNER JOIN listing_sources ON listing_sources.listing_id = listings.id
-        INNER JOIN raw_messages ON raw_messages.id = listing_sources.raw_message_id
-        WHERE raw_messages.channel_id = ${channels.id} AND listings.status = 'removed'
+        SELECT COUNT(*)
+        FROM listings l
+        INNER JOIN listing_sources ls ON ls.listing_id = l.id
+        INNER JOIN raw_messages rm ON rm.id = ls.raw_message_id
+        WHERE rm.channel_id = ${channelId} AND l.status = 'removed'
       )::int`,
     })
     .from(channels)

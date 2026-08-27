@@ -44,9 +44,12 @@ services:
       # unset — fail the `up` with a readable message rather than booting a
       # container that 500s on the first session read.
       SESSION_SECRET: "${SESSION_SECRET:?set SESSION_SECRET in .env — generate one with openssl rand -hex 32}"
-      # Telegram Login Widget. Without these /login cannot render or verify.
+      # Telegram auth. Without the first two /login cannot render a login at
+      # all; without the third the bot webhook refuses every update, so a tap
+      # on Start never completes the deep-link flow.
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME}
+      TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET}
       ADMIN_PHONE: ${ADMIN_PHONE}
       ADMIN_TELEGRAM_USERNAME: ${ADMIN_TELEGRAM_USERNAME}
       # Blank GEMINI_API_KEY is a supported mode — vision autofill and query

@@ -13,6 +13,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
+    "telegram:webhook": "node scripts/set-telegram-webhook.mjs",
     "ingest:auth": "./.venv/bin/python -m ingest.cli auth",
     "ingest:listen": "./.venv/bin/python -m ingest.cli listen",
     "ingest:backfill": "./.venv/bin/python -m ingest.cli backfill",

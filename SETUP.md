@@ -122,38 +122,79 @@ Inside containers, `docker-compose.yml:34` rewrites the host from `localhost` to
 `postgres`. Use the `localhost` form in your env files — that is what `make dev`,
 `drizzle-kit`, and `./.venv/bin/python -m ingest.cli` need.
 
-### 4.2 Telegram Login Widget — needed for login, posting, claiming
+### 4.2 Telegram login — needed for login, posting, claiming
+
+Login is a **bot deep link**: the site mints a nonce, the user taps
+`t.me/<bot>?start=<nonce>`, presses Start, and the bot's webhook tells us who
+tapped. No phone number is typed and no confirmation message has to be
+delivered. The old Login Widget is still on `/login` as a fallback behind a
+disclosure, but nothing depends on it.
 
 **Source: [@BotFather](https://t.me/BotFather) in any Telegram client.**
 
 1. `/newbot` → give it a display name and a username ending in `bot`.
 2. BotFather prints a token like `123456789:AAH...` → `TELEGRAM_BOT_TOKEN`
 3. The bot's `@handle`, without the `@` → `TELEGRAM_BOT_USERNAME`
-4. `/setdomain` → select the bot → send the **host** of `NEXT_PUBLIC_APP_URL`.
+4. Generate a webhook secret → `TELEGRAM_WEBHOOK_SECRET`
+5. Register the webhook.
 
 ```bash
 TELEGRAM_BOT_TOKEN=123456789:AAH...
 TELEGRAM_BOT_USERNAME=my_gulit_bot
-NEXT_PUBLIC_APP_URL=https://<your-tunnel-host>
+TELEGRAM_WEBHOOK_SECRET=$(openssl rand -hex 32)
+NEXT_PUBLIC_APP_URL=https://<your-public-host>
+
+npm run telegram:webhook              # register
+npm run telegram:webhook -- --info    # what Telegram thinks now
+npm run telegram:webhook -- --delete  # unregister
 ```
 
-**`localhost` will not work.** BotFather refuses `localhost` for `/setdomain`, and
-the widget refuses to complete auth against a domain the bot does not own. To
-test login locally you need a public HTTPS host:
+The webhook is a property of the **bot**, not of a deployment. One bot can only
+point at one URL, so pointing it at a preview or a tunnel takes production's
+logins down with it. Use a second bot for local work.
+
+**`localhost` will not work.** Telegram only delivers webhooks to public HTTPS.
+For local testing, expose the dev server and register against the tunnel:
 
 ```bash
 cloudflared tunnel --url http://localhost:3000
 # → https://random-words-1234.trycloudflare.com
+npm run telegram:webhook -- --url https://random-words-1234.trycloudflare.com
 ```
 
-Then `/setdomain` that host **and** set `NEXT_PUBLIC_APP_URL` to it, then restart
-the dev server (Next reads env files only at boot).
+Set `NEXT_PUBLIC_APP_URL` to the same host and restart the dev server (Next
+reads env files only at boot).
 
-A wrong or placeholder token is not a soft degradation. `verifyTelegramAuth`
-(`lib/telegram-auth.ts:29`) HMACs the payload with `sha256(bot_token)` as the
-key; a mismatched token changes the digest completely and
-`app/api/auth/telegram/callback/route.ts:23` redirects to
+Two failure modes worth recognising:
+
+- **`TELEGRAM_WEBHOOK_SECRET` unset** → `app/api/auth/telegram/bot/route.ts`
+  refuses every update and logs `webhook disabled`. Pressing Start does nothing
+  and the login page polls until the token expires. `/login` prints this
+  warning inline rather than letting you discover it by waiting.
+- **Secret set but not matching what was registered** → Telegram sees 403s.
+  `npm run telegram:webhook -- --info` shows them under `last_error_message`.
+  Re-run the registration after any change to the value.
+
+Tokens live ten minutes, are single-use, and are bound to the browser that
+minted them by a second secret held in an httpOnly cookie — see the comment at
+the top of `db/schema/login-tokens.ts` for why both halves exist.
+
+#### The Login Widget fallback
+
+`/setdomain` → select the bot → send the **host** of `NEXT_PUBLIC_APP_URL`. Only
+needed if you want the fallback to work.
+
+A wrong or placeholder token is not a soft degradation there.
+`verifyTelegramAuth` (`lib/telegram-auth.ts:29`) HMACs the payload with
+`sha256(bot_token)` as the key; a mismatched token changes the digest completely
+and `app/api/auth/telegram/callback/route.ts:23` redirects to
 `/login?error=invalid_auth` every time.
+
+The widget's own known failure is not something this repo can fix: it asks for a
+phone number and then waits on a Telegram service message. When no active
+official-client session receives that message, it shows a spinner and no error
+forever, because Telegram will not disclose whether a number is registered. That
+is the reason the deep link is now the primary path.
 
 > The committed `.env.local` currently holds
 > `TELEGRAM_BOT_TOKEN=123456:test-bot-token-for-local-dev-only`, which is a
@@ -597,11 +638,16 @@ Prerequisites: a real bot token, a tunnel host, `/setdomain` set, and
 `NEXT_PUBLIC_APP_URL` pointing at the tunnel (§4.2). Restart the dev server
 after changing env files.
 
-**Login.** Visit `/login` → the Telegram widget renders → one tap → redirected
-to `/` with a `gl_session` cookie set. If the page says
-"TELEGRAM_BOT_USERNAME is not configured", the env var did not reach the server
-process. If you land on `/login?error=invalid_auth`, the bot token is wrong or
-the auth payload is older than 24h.
+**Login.** Visit `/login` → tap **Continue with Telegram** → the bot chat opens →
+press **Start** → the tab you left unlocks by itself and lands on `/` with a
+`gl_session` cookie set. If pressing Start produces a reply but the tab never
+unlocks, the webhook reached us and the poll did not — check the browser network
+tab for `/api/auth/telegram/poll`. If pressing Start produces no reply at all,
+the webhook is not registered or the secret does not match (§4.2).
+
+If the page says "TELEGRAM_BOT_USERNAME is not set", the env var did not reach
+the server process. `/login?error=invalid_auth` comes only from the widget
+fallback: the bot token is wrong or the payload is older than 24h.
 
 **Admin.** Promote yourself (§4.3), then walk `/admin`, `/admin/queue`,
 `/admin/channels`, `/admin/reports`, `/admin/removals`. In the queue, approve
@@ -787,7 +833,10 @@ succeeds, and `/browse`, `/login`, `/post` still return 200 with `/admin` at 403
 | `ValidationError: TELEGRAM_API_ID Input should be a valid integer` | `TELEGRAM_API_ID=` left empty | Comment the line out (§3) |
 | 12 × `variable is not set. Defaulting to a blank string` from compose | No `.env` file — compose does not read `.env.local` | Create `.env` (§3) |
 | `/login` shows "TELEGRAM_BOT_USERNAME is not configured" | Var absent from the server process | Set it, restart dev server |
-| Login always redirects to `/login?error=invalid_auth` | Wrong bot token, or domain not registered via `/setdomain` | §4.2 |
+| Login always redirects to `/login?error=invalid_auth` | Wrong bot token, or domain not registered via `/setdomain`. Widget fallback only | §4.2 |
+| Deep-link login: pressing Start in the bot does nothing | Webhook not registered, or `TELEGRAM_WEBHOOK_SECRET` unset/mismatched | `npm run telegram:webhook -- --info`, then re-register (§4.2) |
+| Deep-link login: "That sign-in link has expired" | Token older than 10 minutes, or already used | Get a new link on `/login` |
+| Old Login Widget hangs on "Please confirm access via Telegram" | Telegram never delivered the service message; it does not report this | Use the deep-link button instead (§4.2) |
 | `/admin` returns 403 while logged in | `users.is_admin` is false | Promote by hand (§4.3) |
 | `/browse` renders but is empty | No corpus | §5 |
 | `price-context` returns `{"available":false}` | Bucket below `MIN_SAMPLE` | Grow the corpus with a larger `COUNT` |

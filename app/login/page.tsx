@@ -5,6 +5,7 @@ import {
   IconCircleCheck,
 } from "@tabler/icons-react"
 
+import { TelegramDeepLinkLogin } from "@/components/auth/telegram-deep-link-login"
 import { TelegramLoginButton } from "@/components/auth/telegram-login-button"
 import { Eyebrow, Shell, TextLink } from "@/components/kit"
 import { safeRedirectPath } from "@/lib/utils"
@@ -48,6 +49,7 @@ export default async function LoginPage({
 }) {
   const { error, next } = await searchParams
   const botUsername = process.env.TELEGRAM_BOT_USERNAME
+  const webhookReady = !!process.env.TELEGRAM_WEBHOOK_SECRET?.trim()
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ""
 
   /**
@@ -129,23 +131,62 @@ export default async function LoginPage({
             </p>
 
             {/*
-             * The slot is a fixed height whether or not the widget has landed:
-             * Telegram swaps a script tag for an iframe a moment after paint,
-             * and without reserved space the whole card jumps as it arrives.
+             * The deep link is the primary path and the widget is the fallback,
+             * not the other way round. The widget's phone step depends on
+             * Telegram delivering a service message to an active session; when
+             * that does not happen it shows a spinner and no error, which is
+             * indistinguishable from a bug in this app. The bot flow has no
+             * such step -- the identity arrives over the Bot API, on a webhook
+             * we authenticate ourselves.
              */}
-            <div className="mt-6 flex min-h-16 items-center">
+            <div className="mt-6">
               {botUsername ? (
-                <TelegramLoginButton
-                  botUsername={botUsername}
-                  authUrl={callback}
-                />
+                <TelegramDeepLinkLogin next={destination} />
               ) : (
                 <p className="type-ledger type-mixed rounded-tile bg-tray px-4 py-3 leading-relaxed text-muted-foreground ring-1 ring-hairline">
-                  TELEGRAM_BOT_USERNAME is not set, so the login widget cannot
-                  render. Set it and /setdomain the app host with @BotFather.
+                  TELEGRAM_BOT_USERNAME is not set, so Telegram login cannot
+                  start. Set it, set TELEGRAM_WEBHOOK_SECRET, and register the
+                  bot webhook -- see SETUP.md 4.2.
                 </p>
               )}
             </div>
+
+            {botUsername && !webhookReady ? (
+              /* Fails closed rather than silently: with no webhook secret the
+                 bot route refuses every update, so a tap on Start would go
+                 nowhere and the page would poll until the token expired. */
+              <p
+                role="alert"
+                className="mt-6 rounded-tile bg-destructive/10 px-4 py-3 text-sm leading-relaxed text-destructive-strong"
+              >
+                TELEGRAM_WEBHOOK_SECRET is not set, so the bot cannot complete a
+                login. Set it and run <code>npm run telegram:webhook</code>.
+              </p>
+            ) : null}
+
+            {botUsername ? (
+              /* Kept, and kept second. It still works for accounts that do get
+                 the service message, and it is the only way in if the webhook
+                 is ever misregistered. The slot is a fixed height because
+                 Telegram swaps a script tag for an iframe a moment after paint,
+                 and without reserved space the card jumps as it arrives. */
+              <details className="group mt-8 border-t border-hairline pt-6">
+                <summary className="cursor-pointer list-none text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                  Use the old phone-number widget instead
+                </summary>
+                <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+                  Asks for your phone number, then waits on a confirmation
+                  message inside Telegram. If that message never arrives, close
+                  this and use the button above.
+                </p>
+                <div className="mt-4 flex min-h-16 items-center">
+                  <TelegramLoginButton
+                    botUsername={botUsername}
+                    authUrl={callback}
+                  />
+                </div>
+              </details>
+            ) : null}
 
             <p className="mt-6 border-t border-hairline pt-6 text-xs leading-relaxed text-muted-foreground">
               We store your Telegram id and username, and nothing else. Gulit

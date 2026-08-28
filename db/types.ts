@@ -21,6 +21,7 @@ import type {
   conversations,
   messages,
   reservations,
+  loginTokens,
 } from "./schema"
 
 /**
@@ -49,6 +50,7 @@ export type RemovalRequest = InferSelectModel<typeof removalRequests>
 export type DbConversation = InferSelectModel<typeof conversations>
 export type DbMessage = InferSelectModel<typeof messages>
 export type DbReservation = InferSelectModel<typeof reservations>
+export type LoginToken = InferSelectModel<typeof loginTokens>
 
 /**
  * DB insert types — shapes required when writing to the database.
@@ -74,4 +76,4 @@ export type NewRemovalRequest = InferInsertModel<typeof removalRequests>
 export type NewConversation = InferInsertModel<typeof conversations>
 export type NewMessage = InferInsertModel<typeof messages>
 export type NewReservation = InferInsertModel<typeof reservations>
-
+export type NewLoginToken = InferInsertModel<typeof loginTokens>

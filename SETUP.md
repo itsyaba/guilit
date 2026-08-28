@@ -179,6 +179,39 @@ Tokens live ten minutes, are single-use, and are bound to the browser that
 minted them by a second secret held in an httpOnly cookie — see the comment at
 the top of `db/schema/login-tokens.ts` for why both halves exist.
 
+#### Guest login
+
+`/login` also offers a **guest account**: one POST to `/api/auth/guest` creates
+a real `users` row with no `telegram_id` from Telegram and no phone number, and
+sets the same `gl_session` cookie the Telegram flow does. Everything behind a
+login — posting, claiming, messages, reservations — works from it.
+
+It exists because the bot flow costs a context switch out of the browser, and
+anyone evaluating the app rather than using it abandons partway and reads the
+dead end as a broken product. A dialog offers it on the first `/login` view per
+browser session; after that the offer stays as an inline link under the Telegram
+button.
+
+**It is on by default.** Anyone who can reach `/login` can mint an account
+without proving an identity, so switch it off on a deployment where that
+matters:
+
+```bash
+GUEST_LOGIN=off      # also accepts 0 / false
+```
+
+With it off, `/api/auth/guest` answers 404 and the login page renders neither
+the dialog nor the link.
+
+Guest rows are recognisable two ways — `username` starts with `guest_`, and
+`telegram_id` is negative (real Telegram ids never are, which is also what keeps
+the unique constraint from ever colliding with a genuine account). To clear them
+out after a demo:
+
+```sql
+DELETE FROM users WHERE telegram_id < 0;
+```
+
 #### The Login Widget fallback
 
 `/setdomain` → select the bot → send the **host** of `NEXT_PUBLIC_APP_URL`. Only

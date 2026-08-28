@@ -5,9 +5,11 @@ import {
   IconCircleCheck,
 } from "@tabler/icons-react"
 
+import { GuestLogin } from "@/components/auth/guest-login"
 import { TelegramDeepLinkLogin } from "@/components/auth/telegram-deep-link-login"
 import { TelegramLoginButton } from "@/components/auth/telegram-login-button"
 import { Eyebrow, Shell, TextLink } from "@/components/kit"
+import { isGuestLoginEnabled } from "@/lib/guest-login"
 import { safeRedirectPath } from "@/lib/utils"
 
 export const metadata: Metadata = {
@@ -49,6 +51,7 @@ export default async function LoginPage({
 }) {
   const { error, next } = await searchParams
   const botUsername = process.env.TELEGRAM_BOT_USERNAME
+  const guestLogin = isGuestLoginEnabled()
   const webhookReady = !!process.env.TELEGRAM_WEBHOOK_SECRET?.trim()
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ""
 
@@ -187,6 +190,13 @@ export default async function LoginPage({
                 </div>
               </details>
             ) : null}
+
+            {/*
+             * Last in the card and first on screen: the component renders the
+             * inline fallback here, and opens the dialog that makes the offer
+             * before anyone has spent a minute on a Telegram round trip.
+             */}
+            {guestLogin ? <GuestLogin next={destination} /> : null}
 
             <p className="mt-6 border-t border-hairline pt-6 text-xs leading-relaxed text-muted-foreground">
               We store your Telegram id and username, and nothing else. Gulit
